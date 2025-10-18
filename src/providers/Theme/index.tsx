@@ -7,15 +7,23 @@ import type { Theme, ThemeContextType } from './types'
 import canUseDOM from '@/utilities/canUseDOM'
 import { defaultTheme, getImplicitPreference, themeLocalStorageKey } from './shared'
 import { themeIsValid } from './types'
+import { Media } from '@/payload-types'
 
 const initialContext: ThemeContextType = {
   setTheme: () => null,
   theme: undefined,
+  logo: undefined,
 }
 
 const ThemeContext = createContext(initialContext)
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+export const ThemeProvider = ({
+  children,
+  logo,
+}: {
+  children: React.ReactNode
+  logo?: Media | null
+}) => {
   const [theme, setThemeState] = useState<Theme | undefined>(
     canUseDOM ? (document.documentElement.getAttribute('data-theme') as Theme) : undefined,
   )
@@ -51,7 +59,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     setThemeState(themeToSet)
   }, [])
 
-  return <ThemeContext value={{ setTheme, theme }}>{children}</ThemeContext>
+  return <ThemeContext value={{ setTheme, theme, logo }}>{children}</ThemeContext>
 }
 
 export const useTheme = (): ThemeContextType => use(ThemeContext)

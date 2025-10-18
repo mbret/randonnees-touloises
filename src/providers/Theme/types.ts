@@ -1,8 +1,11 @@
+import { Media } from '@/payload-types'
+
 export type Theme = 'dark' | 'light'
 
 export interface ThemeContextType {
   setTheme: (theme: Theme | null) => void
   theme?: Theme | null
+  logo?: Media | null
 }
 
 export function themeIsValid(string: null | string): string is Theme {

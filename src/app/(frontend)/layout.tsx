@@ -7,16 +7,28 @@ import React from 'react'
 
 import { AdminBar } from '@/components/AdminBar'
 import { Footer } from '@/Footer/Component'
-import { Header } from '@/Header/Component'
+import { Header } from '@/navigation/Header/Header'
 import { Providers } from '@/providers'
 import { InitTheme } from '@/providers/Theme/InitTheme'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import { draftMode } from 'next/headers'
 import { getServerSideURL } from '@/utilities/getURL'
 import './globals.css'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { isEnabled } = await draftMode()
+  const payload = await getPayload({ config: configPromise })
+  const { docs } = await payload.find({
+    collection: 'media',
+    where: {
+      filename: {
+        equals: 'logo.webp',
+      },
+    },
+  })
+  const logo = docs[0]
 
   return (
     <html className={cn(GeistSans.variable, GeistMono.variable)} lang="en" suppressHydrationWarning>
@@ -26,7 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
       </head>
       <body>
-        <Providers>
+        <Providers logo={logo}>
           <AdminBar
             adminBarProps={{
               preview: isEnabled,
