@@ -24,6 +24,7 @@ type CMSLinkType = {
   size?: ButtonProps['size'] | null
   type?: 'custom' | 'reference' | null
   url?: string | null
+  onClick?: () => void
 }
 
 export const CMSLink: React.FC<CMSLinkType> = ({
@@ -37,6 +38,7 @@ export const CMSLink: React.FC<CMSLinkType> = ({
   size: sizeFromProps,
   authCondition,
   url,
+  ...rest
 }) => {
   const { user } = useAuth()
 
@@ -68,7 +70,7 @@ export const CMSLink: React.FC<CMSLinkType> = ({
   }
 
   return (
-    <Button asChild className={className} size={size} variant={appearance}>
+    <Button asChild className={className} size={size} variant={appearance} {...rest}>
       <Link className={cn(className)} href={href || url || ''} {...newTabProps}>
         {label && label}
         {children && children}
