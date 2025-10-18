@@ -30,7 +30,10 @@ export function HeaderClient({ data }: HeaderClientProps) {
   }, [headerTheme])
 
   return (
-    <header className="container relative z-20   " {...(theme ? { 'data-theme': theme } : {})}>
+    <header
+      className="container mx-auto relative z-20   "
+      {...(theme ? { 'data-theme': theme } : {})}
+    >
       <div className="py-4 flex justify-between">
         <Link href="/">
           <Logo loading="eager" priority="high" />

@@ -7,27 +7,10 @@ import type { Header as HeaderType } from '@/payload-types'
 import { CMSLink } from '@/components/Link'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { SearchIcon } from 'lucide-react'
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from '@/components/ui/navigation-menu'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { ChevronRightIcon, SearchIcon } from 'lucide-react'
+import { Item, ItemActions, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
+import { Logo } from '@/components/Logo/Logo'
 
 export const MobileNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   const [open, setOpen] = useState(false)
@@ -39,51 +22,37 @@ export const MobileNav: React.FC<{ data: HeaderType }> = ({ data }) => {
         <Button className="md:hidden">Menu</Button>
       </SheetTrigger>
       <SheetContent side="left">
-        <SheetHeader>
-          <SheetTitle>Edit profile</SheetTitle>
-          <SheetDescription>
-            Make changes to your profile here. Click save when you&apos;re done.
-          </SheetDescription>
+        <SheetHeader className="items-start">
+          <SheetTitle className="sr-only">Edit profile</SheetTitle>
+          <Logo className="max-h-10 w-auto" />
         </SheetHeader>
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>Item One</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <NavigationMenuLink>Link</NavigationMenuLink>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-        <nav className="gap-3  flex flex-col p-4">
+        <nav className="gap-3 flex flex-col p-4">
           {navItems.map(({ link }, i) => {
             return (
-              <CMSLink
-                key={i}
-                {...link}
-                appearance="link"
-                onClick={() => {
-                  setOpen(false)
-                }}
-              />
+              <Item asChild key={i}>
+                <CMSLink
+                  {...link}
+                  appearance="inline"
+                  label={undefined}
+                  onClick={() => setOpen(false)}
+                >
+                  {/* TODO: Add a search icon to the search link */}
+                  {link.url === '/search' && (
+                    <ItemMedia>
+                      <SearchIcon className="w-5 text-primary" />
+                    </ItemMedia>
+                  )}
+                  <ItemContent>
+                    <ItemTitle>{link.label}</ItemTitle>
+                  </ItemContent>
+                  <ItemActions>
+                    <ChevronRightIcon className="size-4" />
+                  </ItemActions>
+                </CMSLink>
+              </Item>
             )
           })}
-          <Link href="/search">
-            <span className="sr-only">Search</span>
-            <SearchIcon
-              className="w-5 text-primary"
-              onClick={() => {
-                setOpen(false)
-              }}
-            />
-          </Link>
         </nav>
-        <SheetFooter>
-          <Button type="submit">Save changes</Button>
-          <SheetClose asChild>
-            <Button variant="outline">Close</Button>
-          </SheetClose>
-        </SheetFooter>
       </SheetContent>
     </Sheet>
   )
