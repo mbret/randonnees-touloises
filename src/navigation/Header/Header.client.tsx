@@ -36,7 +36,7 @@ export function HeaderClient({ data }: HeaderClientProps) {
     >
       <div className="py-4 flex justify-between">
         <Link href="/">
-          <Logo loading="eager" priority="high" />
+          <Logo loading="eager" priority="high" className="max-h-14 w-auto" />
         </Link>
         <DesktopNav data={data} />
         <MobileNav data={data} />
