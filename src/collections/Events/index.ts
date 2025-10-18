@@ -10,7 +10,6 @@ import {
 } from '@payloadcms/richtext-lexical'
 
 import { authenticated } from '../../access/authenticated'
-import { authenticatedOrPublished } from '../../access/authenticatedOrPublished'
 import { Banner } from '../../blocks/Banner/config'
 import { Code } from '../../blocks/Code/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
@@ -26,13 +25,46 @@ import {
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
 import { slugField } from 'payload'
+import { visibilityField } from '@/fields/visibility'
+import { checkRole } from '@/access/utilities'
 
 export const Events: CollectionConfig<'events'> = {
   slug: 'events',
   access: {
     create: authenticated,
     delete: authenticated,
-    read: authenticatedOrPublished,
+    read: ({ req: { user } }) => {
+      if (user && checkRole(['admin'], user)) {
+        return true
+      }
+
+      const basePublishedQuery = {
+        _status: {
+          equals: 'published',
+        },
+      }
+
+      const noVisibilitySet = { visibility: { exists: false } }
+
+      // If user is authenticated, check their roles against visibility
+      if (user) {
+        const userRoles = user.roles || []
+
+        return {
+          and: [
+            basePublishedQuery,
+            {
+              or: [noVisibilitySet, { visibility: { in: userRoles } }],
+            },
+          ],
+        }
+      }
+
+      // Unauthenticated users: only published posts with no visibility restrictions
+      return {
+        and: [basePublishedQuery, noVisibilitySet],
+      }
+    },
     update: authenticated,
   },
   // This config controls what's populated by default when a post is referenced
@@ -53,14 +85,14 @@ export const Events: CollectionConfig<'events'> = {
       url: ({ data, req }) =>
         generatePreviewPath({
           slug: data?.slug,
-          collection: 'posts',
+          collection: 'events',
           req,
         }),
     },
     preview: (data, { req }) =>
       generatePreviewPath({
         slug: data?.slug as string,
-        collection: 'posts',
+        collection: 'events',
         req,
       }),
     useAsTitle: 'title',
@@ -105,7 +137,7 @@ export const Events: CollectionConfig<'events'> = {
         {
           fields: [
             {
-              name: 'relatedPosts',
+              name: 'relatedEvents',
               type: 'relationship',
               admin: {
                 position: 'sidebar',
@@ -118,7 +150,7 @@ export const Events: CollectionConfig<'events'> = {
                 }
               },
               hasMany: true,
-              relationTo: 'posts',
+              relationTo: 'events',
             },
             {
               name: 'categories',
@@ -189,6 +221,12 @@ export const Events: CollectionConfig<'events'> = {
       },
       hasMany: true,
       relationTo: 'users',
+    },
+    {
+      ...visibilityField,
+      admin: {
+        position: 'sidebar',
+      },
     },
     // This field is only used to populate the user data via the `populateAuthors` hook
     // This is because the `user` collection has access control locked to protect user privacy

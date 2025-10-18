@@ -7,6 +7,7 @@ import { adminOrSelf } from '@/access/adminOrSelf'
 import { checkRole } from '@/access/utilities'
 import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
 import { ensureFirstUserIsAdmin } from './hooks/ensureFirstUserIsAdmin'
+import { roleField } from '@/fields/role'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -28,30 +29,7 @@ export const Users: CollectionConfig = {
       name: 'name',
       type: 'text',
     },
-    {
-      name: 'roles',
-      type: 'select',
-      access: {
-        create: adminOnlyFieldAccess,
-        read: adminOnlyFieldAccess,
-        update: adminOnlyFieldAccess,
-      },
-      defaultValue: ['customer'],
-      hasMany: true,
-      hooks: {
-        beforeChange: [ensureFirstUserIsAdmin],
-      },
-      options: [
-        {
-          label: 'admin',
-          value: 'admin',
-        },
-        {
-          label: 'customer',
-          value: 'customer',
-        },
-      ],
-    },
+    roleField,
     {
       name: 'orders',
       type: 'join',

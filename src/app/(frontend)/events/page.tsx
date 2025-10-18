@@ -18,10 +18,10 @@ export default async function Page() {
   const headers = await getHeaders()
   const { user } = await payload.auth({ headers })
 
-  console.log(payload)
+  console.log(user)
 
   const posts = await payload.find({
-    collection: 'posts',
+    collection: 'events',
     depth: 1,
     limit: 12,
     user,
@@ -34,27 +34,25 @@ export default async function Page() {
     },
   })
 
-  console.log(posts)
-
   return (
     <div className="pt-24 pb-24">
       <PageClient />
       <div className="container mb-16">
         <div className="prose dark:prose-invert max-w-none">
-          <h1>Posts</h1>
+          <h1>Events</h1>
         </div>
       </div>
 
       <div className="container mb-8">
         <PageRange
-          collection="posts"
+          collection="events"
           currentPage={posts.page}
           limit={12}
           totalDocs={posts.totalDocs}
         />
       </div>
 
-      <CollectionArchive posts={posts.docs} relationTo="posts" />
+      <CollectionArchive posts={posts.docs} relationTo="events" />
 
       <div className="container">
         {posts.totalPages > 1 && posts.page && (

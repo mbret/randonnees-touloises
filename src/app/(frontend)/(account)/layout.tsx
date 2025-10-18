@@ -11,6 +11,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const payload = await getPayload({ config: configPromise })
   const { user } = await payload.auth({ headers })
 
+  console.log(user)
+
   return (
     <div>
       <div className="container">

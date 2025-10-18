@@ -26,13 +26,47 @@ import {
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
 import { slugField } from 'payload'
+import { visibilityField } from '@/fields/visibility'
+import { checkRole } from '@/access/utilities'
 
 export const Posts: CollectionConfig<'posts'> = {
   slug: 'posts',
+  auth: false,
   access: {
     create: authenticated,
     delete: authenticated,
-    read: authenticatedOrPublished,
+    read: ({ req: { user } }) => {
+      if (user && checkRole(['admin'], user)) {
+        return true
+      }
+
+      const basePublishedQuery = {
+        _status: {
+          equals: 'published',
+        },
+      }
+
+      const noVisibilitySet = { visibility: { exists: false } }
+
+      // If user is authenticated, check their roles against visibility
+      if (user) {
+        const userRoles = user.roles || []
+
+        return {
+          and: [
+            basePublishedQuery,
+            {
+              or: [noVisibilitySet, { visibility: { in: userRoles } }],
+            },
+          ],
+        }
+      }
+
+      // Unauthenticated users: only published posts with no visibility restrictions
+      return {
+        and: [basePublishedQuery, noVisibilitySet],
+      }
+    },
     update: authenticated,
   },
   // This config controls what's populated by default when a post is referenced
@@ -189,6 +223,12 @@ export const Posts: CollectionConfig<'posts'> = {
       },
       hasMany: true,
       relationTo: 'users',
+    },
+    {
+      ...visibilityField,
+      admin: {
+        position: 'sidebar',
+      },
     },
     // This field is only used to populate the user data via the `populateAuthors` hook
     // This is because the `user` collection has access control locked to protect user privacy
