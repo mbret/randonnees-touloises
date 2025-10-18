@@ -4,6 +4,7 @@ import Link from 'next/link'
 import React from 'react'
 
 import type { Page, Post, GlobalPage } from '@/payload-types'
+import { useAuth } from '@/providers/auth'
 
 type RelationTo = 'pages' | 'posts' | 'globalPages'
 
@@ -13,6 +14,7 @@ type CMSLinkType = {
   className?: string
   label?: string | null
   newTab?: boolean | null
+  authCondition?: 'always' | 'loggedIn' | 'loggedOut' | null
   reference?: {
     relationTo: RelationTo
     value: Page | Post | GlobalPage | string | number
@@ -22,20 +24,24 @@ type CMSLinkType = {
   url?: string | null
 }
 
-export const CMSLink: React.FC<CMSLinkType> = (props) => {
-  const {
-    type,
-    appearance = 'inline',
-    children,
-    className,
-    label,
-    newTab,
-    reference,
-    size: sizeFromProps,
-    url,
-  } = props
+export const CMSLink: React.FC<CMSLinkType> = ({
+  type,
+  appearance = 'inline',
+  children,
+  className,
+  label,
+  newTab,
+  reference,
+  size: sizeFromProps,
+  authCondition,
+  url,
+}) => {
+  const { user } = useAuth()
 
   const ignoreCollectionSlugFor: RelationTo[] = ['globalPages', 'pages']
+
+  if (authCondition === 'loggedIn' && !user) return null
+  if (authCondition === 'loggedOut' && user) return null
 
   const href =
     type === 'reference' && typeof reference?.value === 'object' && reference.value.slug

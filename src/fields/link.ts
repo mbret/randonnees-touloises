@@ -1,6 +1,8 @@
 import type { Field, GroupField } from 'payload'
 
 import deepMerge from '@/utilities/deepMerge'
+import { visibilityField } from './visibility'
+import { authConditionField } from './authConditionField'
 
 export type LinkAppearances = 'default' | 'outline'
 
@@ -63,6 +65,12 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
             label: 'Open in new tab',
           },
         ],
+      },
+      {
+        ...authConditionField,
+      },
+      {
+        ...visibilityField,
       },
     ],
   }

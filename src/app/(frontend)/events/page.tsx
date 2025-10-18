@@ -18,8 +18,6 @@ export default async function Page() {
   const headers = await getHeaders()
   const { user } = await payload.auth({ headers })
 
-  console.log(user)
-
   const posts = await payload.find({
     collection: 'events',
     depth: 1,

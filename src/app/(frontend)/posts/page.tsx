@@ -18,8 +18,6 @@ export default async function Page() {
   const headers = await getHeaders()
   const { user } = await payload.auth({ headers })
 
-  console.log(payload)
-
   const posts = await payload.find({
     collection: 'posts',
     depth: 1,
@@ -33,8 +31,6 @@ export default async function Page() {
       meta: true,
     },
   })
-
-  console.log(posts)
 
   return (
     <div className="pt-24 pb-24">
