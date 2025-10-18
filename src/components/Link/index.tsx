@@ -1,14 +1,17 @@
 'use client'
 
-import { Button, type ButtonProps } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/utilities/ui'
 import Link from 'next/link'
-import React from 'react'
+import React, { ComponentProps } from 'react'
 
 import type { Page, Post, GlobalPage } from '@/payload-types'
 import { useAuth } from '@/providers/auth'
+import { ExternalLinkIcon } from 'lucide-react'
 
 type RelationTo = 'pages' | 'posts' | 'globalPages'
+
+type ButtonProps = ComponentProps<typeof Button>
 
 type CMSLinkType = {
   appearance?: 'inline' | ButtonProps['variant']
@@ -24,6 +27,7 @@ type CMSLinkType = {
   size?: ButtonProps['size'] | null
   type?: 'custom' | 'reference' | null
   url?: string | null
+  isExternal?: boolean | null
   onClick?: () => void
 }
 
@@ -38,6 +42,7 @@ export const CMSLink: React.FC<CMSLinkType> = ({
   size: sizeFromProps,
   authCondition,
   url,
+  isExternal,
   ...rest
 }) => {
   const { user } = useAuth()
@@ -56,13 +61,13 @@ export const CMSLink: React.FC<CMSLinkType> = ({
 
   if (!href) return null
 
-  const size = appearance === 'link' ? 'clear' : sizeFromProps
+  const size = appearance === 'link' ? 'default' : sizeFromProps
   const newTabProps = newTab ? { rel: 'noopener noreferrer', target: '_blank' } : {}
 
   /* Ensure we don't break any styles set by richText */
   if (appearance === 'inline') {
     return (
-      <Link className={cn(className)} href={href || url || ''} {...newTabProps}>
+      <Link className={cn(className)} href={href || url || ''} {...newTabProps} {...rest}>
         {label && label}
         {children && children}
       </Link>
@@ -74,6 +79,7 @@ export const CMSLink: React.FC<CMSLinkType> = ({
       <Link className={cn(className)} href={href || url || ''} {...newTabProps}>
         {label && label}
         {children && children}
+        {isExternal && <ExternalLinkIcon />}
       </Link>
     </Button>
   )

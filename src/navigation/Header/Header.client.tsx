@@ -30,10 +30,13 @@ export function HeaderClient({ data }: HeaderClientProps) {
   }, [headerTheme])
 
   return (
-    <header className="container relative z-20   " {...(theme ? { 'data-theme': theme } : {})}>
-      <div className="py-4 flex justify-between">
+    <header
+      className="container mx-auto relative z-20   "
+      {...(theme ? { 'data-theme': theme } : {})}
+    >
+      <div className="py-4 flex justify-between items-center">
         <Link href="/">
-          <Logo loading="eager" priority="high" />
+          <Logo loading="eager" priority="high" className="max-h-14 w-auto" />
         </Link>
         <DesktopNav data={data} />
         <MobileNav data={data} />
