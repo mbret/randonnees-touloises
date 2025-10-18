@@ -72,6 +72,11 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
       {
         ...visibilityField,
       },
+      {
+        name: 'isExternal',
+        type: 'checkbox',
+        label: 'Lien externe',
+      },
     ],
   }
 

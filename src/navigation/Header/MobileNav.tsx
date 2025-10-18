@@ -5,10 +5,9 @@ import React, { useState } from 'react'
 import type { Header as HeaderType } from '@/payload-types'
 
 import { CMSLink } from '@/components/Link'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { ChevronRightIcon, SearchIcon } from 'lucide-react'
+import { ChevronRightIcon, ExternalLinkIcon, SearchIcon } from 'lucide-react'
 import { Item, ItemActions, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { Logo } from '@/components/Logo/Logo'
 
@@ -46,7 +45,11 @@ export const MobileNav: React.FC<{ data: HeaderType }> = ({ data }) => {
                     <ItemTitle>{link.label}</ItemTitle>
                   </ItemContent>
                   <ItemActions>
-                    <ChevronRightIcon className="size-4" />
+                    {link.isExternal ? (
+                      <ExternalLinkIcon className="size-4" />
+                    ) : (
+                      <ChevronRightIcon className="size-4" />
+                    )}
                   </ItemActions>
                 </CMSLink>
               </Item>
