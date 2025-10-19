@@ -4,12 +4,17 @@ import type { Post } from '@/payload-types'
 
 import { Media } from '@/components/Media'
 import { formatAuthors } from '@/utilities/formatAuthors'
+import { useMedias } from '@/metadata/MediaProvider'
+import { getCachedMedias } from '@/metadata/getMedias'
 
 export const PostHero: React.FC<{
   post: Post
-}> = ({ post }) => {
+}> = async ({ post }) => {
   const { categories, heroImage, populatedAuthors, publishedAt, title } = post
-
+  const medias = await getCachedMedias()()
+  const heroMedia = typeof heroImage === 'object' ? heroImage : null
+  const placeholderMedia = medias?.find((m) => m.filename === 'post_placeholder')
+  const media = heroMedia ?? placeholderMedia
   const hasAuthors =
     populatedAuthors && populatedAuthors.length > 0 && formatAuthors(populatedAuthors) !== ''
 
@@ -55,15 +60,21 @@ export const PostHero: React.FC<{
               <div className="flex flex-col gap-1">
                 <p className="text-sm">Date de publication</p>
 
-                <time dateTime={publishedAt}>{new Date(publishedAt).toLocaleDateString()}</time>
+                <time dateTime={publishedAt}>
+                  {new Date(publishedAt).toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </time>
               </div>
             )}
           </div>
         </div>
       </div>
       <div className="min-h-[50vh] select-none">
-        {heroImage && typeof heroImage !== 'string' && (
-          <Media fill priority imgClassName="-z-10 object-cover" resource={heroImage} />
+        {media && typeof media !== 'string' && (
+          <Media fill priority imgClassName="-z-10 object-cover" resource={media} />
         )}
         <div className="absolute pointer-events-none left-0 bottom-0 w-full h-5/6 bg-linear-to-t from-black to-transparent" />
       </div>
