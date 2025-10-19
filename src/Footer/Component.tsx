@@ -18,11 +18,11 @@ export async function Footer() {
           Maison Des Associations 2, cours Raymond Poincaré 54200 Toul
         </p>
       </div>
-      <div className="container mx-auto py-8 gap-8 flex flex-row justify-center">
+      {/* <div className="container mx-auto py-8 gap-8 flex flex-row justify-center">
         <Link href="https://www.ffrandonnee.fr/" target="_blank">
           <FederationLogo />
         </Link>
-      </div>
+      </div> */}
       <div className="container mx-auto py-8 gap-8 flex flex-row justify-between">
         <ThemeSelector />
         <nav className="flex flex-col md:flex-row gap-4">
