@@ -1,10 +1,8 @@
 import { getCachedGlobal } from '@/utilities/getGlobals'
 import React from 'react'
 
-import { ThemeSelector } from '@/providers/Theme/ThemeSelector'
 import { CMSLink } from '@/components/Link'
-import { FederationLogo } from './FederationLogo'
-import Link from 'next/link'
+import { ModeToggle } from '@/theme/ModeToggle'
 
 export async function Footer() {
   const footerData = await getCachedGlobal('footer', 1)()
@@ -24,7 +22,7 @@ export async function Footer() {
         </Link>
       </div> */}
       <div className="container mx-auto py-8 gap-8 flex flex-row justify-between">
-        <ThemeSelector />
+        <ModeToggle />
         <nav className="flex flex-col md:flex-row gap-4">
           {navItems.map(({ link }, i) => {
             return <CMSLink key={i} appearance="link" {...link} />

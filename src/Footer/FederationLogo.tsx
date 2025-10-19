@@ -1,10 +1,10 @@
 'use client'
 
 import { ImageMedia } from '@/components/Media/ImageMedia'
-import { useTheme } from '@/providers/Theme'
+import { useMedias } from '@/metadata/MediaProvider'
 
 export const FederationLogo = ({ className }: { className?: string }) => {
-  const { media } = useTheme()
+  const { media } = useMedias()
 
   return (
     <ImageMedia

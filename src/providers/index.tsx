@@ -1,19 +1,14 @@
 import React from 'react'
 
-import { HeaderThemeProvider } from './HeaderTheme'
-import { ThemeProvider } from './Theme'
+import { HeaderThemeProvider } from '../navigation/Header/HeaderThemeProvider'
 import { AuthProvider } from './auth'
-import { Media } from '@/payload-types'
 
 export const Providers: React.FC<{
   children: React.ReactNode
-  media?: Media[] | null
-}> = ({ children, media }) => {
+}> = ({ children }) => {
   return (
-    <ThemeProvider media={media}>
-      <AuthProvider>
-        <HeaderThemeProvider>{children}</HeaderThemeProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <HeaderThemeProvider>{children}</HeaderThemeProvider>
+    </AuthProvider>
   )
 }

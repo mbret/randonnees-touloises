@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import React from 'react'
-import { useTheme } from '@/providers/Theme'
+import { useMedias } from '@/metadata/MediaProvider'
 
 interface Props {
   className?: string
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const Logo = (props: Props) => {
-  const { media } = useTheme()
+  const { media } = useMedias()
   const logo = media?.find((m) => m.filename === 'logo.webp')
   const { loading: loadingFromProps, priority: priorityFromProps, className } = props
   const loading = loadingFromProps || 'lazy'

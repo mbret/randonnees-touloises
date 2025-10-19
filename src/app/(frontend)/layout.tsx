@@ -9,14 +9,15 @@ import { AdminBar } from '@/components/AdminBar'
 import { Footer } from '@/Footer/Component'
 import { Header } from '@/navigation/Header/Header'
 import { Providers } from '@/providers'
-import { InitTheme } from '@/providers/Theme/InitTheme'
 import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import { draftMode } from 'next/headers'
 import { getServerSideURL } from '@/utilities/getURL'
 import './globals.css'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
-import { SEO_TITLE } from '@/seo/constants'
+import { ThemeProvider } from '@/theme/ThemeProvider'
+import { Favicon } from '@/metadata/Favicon'
+import { MediaProvider } from '@/metadata/MediaProvider'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { isEnabled } = await draftMode()
@@ -25,26 +26,31 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     collection: 'media',
   })
 
-  console.log(docs)
-
   return (
-    <html className={cn(GeistSans.variable, GeistMono.variable)} lang="en" suppressHydrationWarning>
+    <html className={cn(GeistSans.variable, GeistMono.variable)} lang="fr" suppressHydrationWarning>
       <head>
-        <InitTheme />
-        <link href="/favicon.ico" rel="icon" sizes="32x32" />
-        <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+        <Favicon />
       </head>
       <body className="min-h-screen flex flex-col">
-        <Providers media={docs}>
-          <AdminBar
-            adminBarProps={{
-              preview: isEnabled,
-            }}
-          />
-          <Header />
-          {children}
-          <Footer />
-        </Providers>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <MediaProvider media={docs}>
+            <Providers>
+              <AdminBar
+                adminBarProps={{
+                  preview: isEnabled,
+                }}
+              />
+              <Header />
+              {children}
+              <Footer />
+            </Providers>
+          </MediaProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
