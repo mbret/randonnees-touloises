@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { RenderParams } from '@/components/common/RenderParams/RenderParams'
-import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
+import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import React from 'react'
 import { headers as getHeaders } from 'next/headers'
 import configPromise from '@payload-config'

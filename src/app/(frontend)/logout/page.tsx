@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
+import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import React from 'react'
 
 import { LogoutPage } from './LogoutPage'

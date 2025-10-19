@@ -10,12 +10,13 @@ import { Footer } from '@/Footer/Component'
 import { Header } from '@/navigation/Header/Header'
 import { Providers } from '@/providers'
 import { InitTheme } from '@/providers/Theme/InitTheme'
-import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
+import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import { draftMode } from 'next/headers'
 import { getServerSideURL } from '@/utilities/getURL'
 import './globals.css'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
+import { SEO_TITLE } from '@/seo/constants'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { isEnabled } = await draftMode()
@@ -23,6 +24,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { docs } = await payload.find({
     collection: 'media',
   })
+
+  console.log(docs)
 
   return (
     <html className={cn(GeistSans.variable, GeistMono.variable)} lang="en" suppressHydrationWarning>
@@ -50,8 +53,4 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 export const metadata: Metadata = {
   metadataBase: new URL(getServerSideURL()),
   openGraph: mergeOpenGraph(),
-  twitter: {
-    card: 'summary_large_image',
-    creator: '@payloadcms',
-  },
 }

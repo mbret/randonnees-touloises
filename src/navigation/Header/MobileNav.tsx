@@ -38,7 +38,7 @@ export const MobileNav: React.FC<{ data: HeaderType }> = ({ data }) => {
                   {/* TODO: Add a search icon to the search link */}
                   {link.url === '/search' && (
                     <ItemMedia>
-                      <SearchIcon className="w-5 text-primary" />
+                      <SearchIcon className="size-4" />
                     </ItemMedia>
                   )}
                   <ItemContent>
