@@ -8,15 +8,22 @@ export interface Props {
   className?: string
   fill?: boolean // for NextImage only
   htmlElement?: ElementType | null
-  pictureClassName?: string
-  imgClassName?: string
   onClick?: () => void
   onLoad?: () => void
   loading?: 'lazy' | 'eager' // for NextImage only
   priority?: boolean // for NextImage only
-  ref?: Ref<HTMLImageElement | HTMLVideoElement | null>
   resource?: MediaType | string | number | null // for Payload media
   size?: string // for NextImage only
   src?: StaticImageData // for static media
+}
+
+export interface ImageMediaProps extends Omit<Props, 'ref'> {
+  ref?: Ref<HTMLImageElement | null>
+  pictureClassName?: string
+  imgClassName?: string
+}
+
+export interface VideoMediaProps extends Omit<Props, 'ref'> {
+  ref?: Ref<HTMLVideoElement | null>
   videoClassName?: string
 }
