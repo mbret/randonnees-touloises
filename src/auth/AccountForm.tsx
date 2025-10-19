@@ -9,9 +9,9 @@ import { useRouter } from 'next/navigation'
 import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 // import { toast } from 'sonner'
-import { FormError } from '../common/FormError'
-import { FormItem } from '../common/FormItem'
 import { getClientSideURL } from '@/utilities/getURL'
+import { FormItem } from '@/components/common/FormItem'
+import { FormError } from '@/components/common/FormError'
 
 type FormData = {
   email: string
