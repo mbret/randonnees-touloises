@@ -12,17 +12,17 @@ import { Media } from '@/payload-types'
 const initialContext: ThemeContextType = {
   setTheme: () => null,
   theme: undefined,
-  logo: undefined,
+  media: undefined,
 }
 
 const ThemeContext = createContext(initialContext)
 
 export const ThemeProvider = ({
   children,
-  logo,
+  media,
 }: {
   children: React.ReactNode
-  logo?: Media | null
+  media?: Media[] | null
 }) => {
   const [theme, setThemeState] = useState<Theme | undefined>(
     canUseDOM ? (document.documentElement.getAttribute('data-theme') as Theme) : undefined,
@@ -59,7 +59,7 @@ export const ThemeProvider = ({
     setThemeState(themeToSet)
   }, [])
 
-  return <ThemeContext value={{ setTheme, theme, logo }}>{children}</ThemeContext>
+  return <ThemeContext value={{ setTheme, theme, media }}>{children}</ThemeContext>
 }
 
 export const useTheme = (): ThemeContextType => use(ThemeContext)

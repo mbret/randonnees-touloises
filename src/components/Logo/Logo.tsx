@@ -11,7 +11,8 @@ interface Props {
 }
 
 export const Logo = (props: Props) => {
-  const { logo } = useTheme()
+  const { media } = useTheme()
+  const logo = media?.find((m) => m.filename === 'logo.webp')
   const { loading: loadingFromProps, priority: priorityFromProps, className } = props
   const loading = loadingFromProps || 'lazy'
   const priority = priorityFromProps || 'low'

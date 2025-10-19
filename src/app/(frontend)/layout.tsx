@@ -22,13 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const payload = await getPayload({ config: configPromise })
   const { docs } = await payload.find({
     collection: 'media',
-    where: {
-      filename: {
-        equals: 'logo.webp',
-      },
-    },
   })
-  const logo = docs[0]
 
   return (
     <html className={cn(GeistSans.variable, GeistMono.variable)} lang="en" suppressHydrationWarning>
@@ -38,7 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
       </head>
       <body>
-        <Providers logo={logo}>
+        <Providers media={docs}>
           <AdminBar
             adminBarProps={{
               preview: isEnabled,

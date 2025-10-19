@@ -7,10 +7,10 @@ import { Media } from '@/payload-types'
 
 export const Providers: React.FC<{
   children: React.ReactNode
-  logo?: Media | null
-}> = ({ children, logo }) => {
+  media?: Media[] | null
+}> = ({ children, media }) => {
   return (
-    <ThemeProvider logo={logo}>
+    <ThemeProvider media={media}>
       <AuthProvider>
         <HeaderThemeProvider>{children}</HeaderThemeProvider>
       </AuthProvider>
