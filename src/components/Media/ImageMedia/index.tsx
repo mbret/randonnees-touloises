@@ -2,7 +2,7 @@
 
 import type { StaticImageData } from 'next/image'
 
-import { cn } from '@/utilities/ui'
+import { cn } from '@/components/ui'
 import NextImage from 'next/image'
 import React, { ComponentProps } from 'react'
 

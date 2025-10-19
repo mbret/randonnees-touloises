@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { cn } from '@/utilities/ui'
+import { cn } from '@/components/ui'
 import Link from 'next/link'
 import React, { ComponentProps } from 'react'
 

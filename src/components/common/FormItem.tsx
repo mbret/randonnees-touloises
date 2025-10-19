@@ -1,4 +1,4 @@
-import { cn } from '@/utilities/ui'
+import { cn } from '@/components/ui'
 
 type Props = {
   className?: string

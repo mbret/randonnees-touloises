@@ -11,8 +11,8 @@ const defaultCollectionLabels = {
     singular: 'Post',
   },
   events: {
-    plural: 'Events',
-    singular: 'Event',
+    plural: 'Événements',
+    singular: 'Événement',
   },
 }
 
@@ -53,7 +53,7 @@ export const PageRange: React.FC<{
       {(typeof totalDocs === 'undefined' || totalDocs === 0) && 'Search produced no results.'}
       {typeof totalDocs !== 'undefined' &&
         totalDocs > 0 &&
-        `Showing ${indexStart}${indexStart > 0 ? ` - ${indexEnd}` : ''} of ${totalDocs} ${
+        `Affichage ${indexStart}${indexStart > 0 ? ` - ${indexEnd}` : ''} de ${totalDocs} ${
           totalDocs > 1 ? plural : singular
         }`}
     </div>

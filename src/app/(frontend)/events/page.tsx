@@ -31,15 +31,19 @@ export default async function Page() {
       slug: true,
       categories: true,
       meta: true,
+      authors: true,
+      populatedAuthors: true,
+      heroImage: true,
+      publishedAt: true,
     },
   })
 
   return (
-    <div className="pt-24 pb-24">
+    <div className="pt-12 pb-12 md:pt-24 md:pb-24">
       <PageClient />
       <div className="container mb-16">
         <div className="prose dark:prose-invert max-w-none">
-          <h1>Events</h1>
+          <h1>Événements</h1>
         </div>
       </div>
 

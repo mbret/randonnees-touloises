@@ -7,6 +7,8 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
+// TODO remove
+// @deprecated
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
