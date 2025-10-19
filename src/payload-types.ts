@@ -140,10 +140,12 @@ export interface Config {
   globals: {
     header: Header;
     footer: Footer;
+    general: General;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    general: GeneralSelect<false> | GeneralSelect<true>;
   };
   locale: null;
   user: User & {
@@ -1151,6 +1153,7 @@ export interface Event {
   publishedAt?: string | null;
   authors?: (number | User)[] | null;
   visibility?: ('admin' | 'customer')[] | null;
+  requireContentPassword?: boolean | null;
   populatedAuthors?:
     | {
         id?: string | null;
@@ -1657,6 +1660,7 @@ export interface EventsSelect<T extends boolean = true> {
   publishedAt?: T;
   authors?: T;
   visibility?: T;
+  requireContentPassword?: T;
   populatedAuthors?:
     | T
     | {
@@ -2348,6 +2352,16 @@ export interface Footer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "general".
+ */
+export interface General {
+  id: number;
+  contentPassword?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -2394,6 +2408,16 @@ export interface FooterSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "general_select".
+ */
+export interface GeneralSelect<T extends boolean = true> {
+  contentPassword?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

@@ -7,8 +7,8 @@ import { headers as getHeaders } from 'next/headers'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 
-import { CreateAccountForm } from '@/components/account/CreateAccountForm'
 import { redirect } from 'next/navigation'
+import { CreateAccountForm } from '@/auth/CreateAccountForm'
 
 export default async function CreateAccount() {
   const headers = await getHeaders()

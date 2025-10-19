@@ -6,9 +6,9 @@ import React from 'react'
 import { headers as getHeaders } from 'next/headers'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import { LoginForm } from '@/components/account/LoginForm'
 import { redirect } from 'next/navigation'
 import { RenderParams } from '@/components/common/RenderParams/RenderParams'
+import { LoginForm } from '@/auth/LoginForm'
 
 export default async function Login() {
   const headers = await getHeaders()

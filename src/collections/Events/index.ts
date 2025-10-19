@@ -228,6 +228,15 @@ export const Events: CollectionConfig<'events'> = {
         position: 'sidebar',
       },
     },
+    {
+      name: 'requireContentPassword',
+      type: 'checkbox',
+      label: 'Nécessite un mot de passe pour voir le contenu',
+      required: false,
+      admin: {
+        position: 'sidebar',
+      },
+    },
     // This field is only used to populate the user data via the `populateAuthors` hook
     // This is because the `user` collection has access control locked to protect user privacy
     // GraphQL will also not return mutated user data that differs from the underlying schema

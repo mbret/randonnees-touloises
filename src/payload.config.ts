@@ -12,12 +12,13 @@ import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { Users } from './collections/Users'
 import { Footer } from './Footer/config'
-import { Header } from './navigation/Header/config'
+import { Header } from './cms/globals/header/config'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import { GlobalPages } from './collections/GlobalPages/config'
 import { Events } from './collections/Events'
+import { General } from './cms/globals/general/config'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -68,7 +69,7 @@ export default buildConfig({
   }),
   collections: [Pages, Posts, Events, Media, Categories, Users, GlobalPages],
   cors: [getServerSideURL()].filter(Boolean),
-  globals: [Header, Footer],
+  globals: [Header, Footer, General],
   plugins: [
     ...plugins,
     vercelBlobStorage({
