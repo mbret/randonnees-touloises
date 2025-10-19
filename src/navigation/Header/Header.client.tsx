@@ -31,10 +31,11 @@ export function HeaderClient({ data }: HeaderClientProps) {
 
   return (
     <header
-      className="container mx-auto relative z-20   "
+      // className="container mx-auto relative z-20"
+      className="sticky top-[var(--admin-bar-height)] z-12 mx-auto w-full flex-shrink-0 items-center justify-center border-b border-solid backdrop-blur-[8px] bg-background/60"
       {...(theme ? { 'data-theme': theme } : {})}
     >
-      <div className="py-4 flex justify-between items-center">
+      <div className="container py-4 flex justify-between items-center">
         <Link href="/">
           <Logo loading="eager" priority="high" className="max-h-14 w-auto" />
         </Link>

@@ -72,11 +72,11 @@ export const PostHero: React.FC<{
           </div>
         </div>
       </div>
-      <div className="min-h-[50vh] select-none">
+      <div className="min-h-[50vh] md:min-h-[60vh] select-none">
         {media && typeof media !== 'string' && (
           <Media fill priority imgClassName="-z-10 object-cover" resource={media} />
         )}
-        <div className="absolute pointer-events-none left-0 bottom-0 w-full h-5/6 bg-linear-to-t from-black to-transparent" />
+        <div className="absolute pointer-events-none left-0 bottom-0 w-full h-[90%] bg-linear-to-t from-black to-transparent" />
       </div>
     </div>
   )

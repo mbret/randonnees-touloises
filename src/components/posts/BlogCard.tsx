@@ -102,8 +102,8 @@ export const BlogCard: React.FC<{
       </CardHeader>
       <CardFooter>
         {authors?.map((author, index) => (
-          <div className="flex items-center gap-2">
-            <Avatar key={index}>
+          <div className="flex items-center gap-2" key={index}>
+            <Avatar>
               <AvatarImage src={author.avatarUrl} alt={author.name} />
               <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
             </Avatar>

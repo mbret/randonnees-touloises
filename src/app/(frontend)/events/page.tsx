@@ -39,12 +39,13 @@ export default async function Page() {
   })
 
   return (
-    <div className="pt-12 pb-12 md:pt-24 md:pb-24">
+    <div className="pt-12 pb-12 md:pt-20 md:pb-20">
       <PageClient />
-      <div className="container mb-16">
-        <div className="prose dark:prose-invert max-w-none">
-          <h1>Événements</h1>
-        </div>
+      <div className="container prose dark:prose-invert mb-12 text-center sm:mb-16 lg:mb-24">
+        <h1 className="scroll-m-20">
+          <span className="relative z-10">Événements</span>
+        </h1>
+        <p className="text-muted-foreground text-">Découvrez les événements à venir et passés.</p>
       </div>
 
       <div className="container mb-8">
