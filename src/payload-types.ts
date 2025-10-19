@@ -1189,6 +1189,10 @@ export interface Redirect {
       | ({
           relationTo: 'posts';
           value: number | Post;
+        } | null)
+      | ({
+          relationTo: 'globalPages';
+          value: number | GlobalPage;
         } | null);
     url?: string | null;
   };
