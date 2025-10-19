@@ -8,10 +8,10 @@ export default function NotFound() {
     <div className="container py-28">
       <div className="prose max-w-none">
         <h1 style={{ marginBottom: 0 }}>404</h1>
-        <p className="mb-4">Cette page n'a pas été trouvée.</p>
+        <p className="mb-4">Cette page n&apos;a pas été trouvée.</p>
       </div>
       <Button asChild variant="default">
-        <Link href="/">Retour à l'accueil</Link>
+        <Link href="/">Retour à l&apos;accueil</Link>
       </Button>
     </div>
   )
