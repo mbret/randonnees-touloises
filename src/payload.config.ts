@@ -19,6 +19,7 @@ import { getServerSideURL } from './utilities/getURL'
 import { GlobalPages } from './collections/GlobalPages/config'
 import { Events } from './collections/Events'
 import { General } from './cms/globals/general/config'
+import { TeamDirectoryConfig } from './cms/globals/teamDirectory/config'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -69,7 +70,7 @@ export default buildConfig({
   }),
   collections: [Pages, Posts, Events, Media, Categories, Users, GlobalPages],
   cors: [getServerSideURL()].filter(Boolean),
-  globals: [Header, Footer, General],
+  globals: [Header, Footer, General, TeamDirectoryConfig],
   plugins: [
     ...plugins,
     vercelBlobStorage({

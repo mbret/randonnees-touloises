@@ -10,6 +10,7 @@ import PageClient from './page.client'
 import { headers as getHeaders } from 'next/headers.js'
 import { SEO_TITLE } from '@/seo/constants'
 import { generateMeta } from '@/seo/generateMeta'
+import { TeamSectionBlock } from '@/blocks/TeamSectionBlock/Component'
 
 export const dynamic = 'force-static'
 
@@ -56,6 +57,8 @@ export default async function Page() {
           totalDocs={posts.totalDocs}
         />
       </div>
+
+      <TeamSectionBlock />
 
       <CollectionArchive posts={posts.docs} relationTo="events" />
 

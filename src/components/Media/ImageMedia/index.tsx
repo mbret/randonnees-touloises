@@ -24,6 +24,7 @@ export const ImageMedia: React.FC<
     alt: altFromProps,
     fill,
     pictureClassName,
+    className,
     imgClassName,
     priority,
     resource,
@@ -63,7 +64,7 @@ export const ImageMedia: React.FC<
     <picture className={cn(pictureClassName)}>
       <NextImage
         alt={alt || ''}
-        className={cn(imgClassName)}
+        className={cn(className, imgClassName)}
         fill={fill}
         height={!fill ? height : undefined}
         placeholder="blur"
