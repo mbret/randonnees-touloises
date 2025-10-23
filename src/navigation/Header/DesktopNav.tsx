@@ -1,18 +1,9 @@
 'use client'
 
 import React, { ComponentProps } from 'react'
-
 import type { Header as HeaderType } from '@/payload-types'
-
 import { CMSLink } from '@/components/Link'
-import {
-  ChevronDown,
-  CircleCheckIcon,
-  CircleHelpIcon,
-  CircleIcon,
-  ExternalLinkIcon,
-  SearchIcon,
-} from 'lucide-react'
+import { ExternalLinkIcon, SearchIcon } from 'lucide-react'
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -22,12 +13,11 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu'
-import Link from 'next/link'
 import { cn } from '@/components/ui'
+import { useMediaQuery } from '@/components/ui/hooks/use-media-query'
+import { cssVariables } from '@/theme/variables'
 
 function ListItem({ url, isExternal, className, ...rest }: ComponentProps<typeof CMSLink>) {
-  console.log(url, isExternal)
-
   return (
     <CMSLink
       appearance="inline"
@@ -54,12 +44,15 @@ function ListItem({ url, isExternal, className, ...rest }: ComponentProps<typeof
 
 export const DesktopNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   const navItems = data?.navItems || []
-  const alwaysVisibleItems = navItems.slice(0, 3).reverse()
-  const restItems = navItems.slice(3).reverse()
+  const md = useMediaQuery(`(width <= ${cssVariables.breakpoints.md})`)
+  const lg = useMediaQuery(`(width <= ${cssVariables.breakpoints.lg})`)
+  const maxVisibleItems = md ? 3 : lg ? 4 : 6
+  const alwaysVisibleItems = navItems.slice(0, maxVisibleItems).reverse()
+  const restItems = navItems.slice(maxVisibleItems).reverse()
 
   return (
     <>
-      <NavigationMenu viewport={false} className="max-md:hidden">
+      <NavigationMenu viewport={false} className="max-sm:hidden">
         <NavigationMenuList className="flex-wrap ">
           {restItems.length > 0 && (
             <NavigationMenuItem>

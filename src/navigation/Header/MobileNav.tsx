@@ -18,7 +18,7 @@ export const MobileNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button className="md:hidden">Menu</Button>
+        <Button className="sm:hidden">Menu</Button>
       </SheetTrigger>
       <SheetContent side="left">
         <SheetHeader className="items-start">
