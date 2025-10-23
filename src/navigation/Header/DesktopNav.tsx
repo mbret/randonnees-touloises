@@ -46,7 +46,7 @@ export const DesktopNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   const navItems = data?.navItems || []
   const md = useMediaQuery(`(width <= ${cssVariables.breakpoints.md})`)
   const lg = useMediaQuery(`(width <= ${cssVariables.breakpoints.lg})`)
-  const maxVisibleItems = md ? 3 : lg ? 4 : 6
+  const maxVisibleItems = md ? 2 : lg ? 3 : 4
   const alwaysVisibleItems = navItems.slice(0, maxVisibleItems).reverse()
   const restItems = navItems.slice(maxVisibleItems).reverse()
 
