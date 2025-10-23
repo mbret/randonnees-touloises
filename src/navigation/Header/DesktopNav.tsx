@@ -52,8 +52,8 @@ export const DesktopNav: React.FC<{ data: HeaderType }> = ({ data }) => {
 
   return (
     <>
-      <NavigationMenu viewport={false} className="max-sm:hidden">
-        <NavigationMenuList className="flex-wrap ">
+      <NavigationMenu viewport={md} className="max-sm:hidden">
+        <NavigationMenuList className="flex-wrap">
           {restItems.length > 0 && (
             <NavigationMenuItem>
               <NavigationMenuTrigger>Plus</NavigationMenuTrigger>

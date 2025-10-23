@@ -1,5 +1,6 @@
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
+import { postgresAdapter } from '@payloadcms/db-postgres'
 
 import sharp from 'sharp' // sharp-import
 import path from 'path'
@@ -20,6 +21,7 @@ import { GlobalPages } from './collections/GlobalPages/config'
 import { Events } from './collections/Events'
 import { General } from './cms/globals/general/config'
 import { TeamDirectoryConfig } from './cms/globals/teamDirectory/config'
+import { GalleriesConfig } from './collections/Galleries/Gallery'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -63,12 +65,12 @@ export default buildConfig({
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
-  db: vercelPostgresAdapter({
+  db: postgresAdapter({
     pool: {
       connectionString: process.env.POSTGRES_URL || '',
     },
   }),
-  collections: [Pages, Posts, Events, Media, Categories, Users, GlobalPages],
+  collections: [Pages, Posts, Events, Media, Categories, Users, GlobalPages, GalleriesConfig],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer, General, TeamDirectoryConfig],
   plugins: [

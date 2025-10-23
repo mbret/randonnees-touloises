@@ -79,6 +79,7 @@ export interface Config {
     categories: Category;
     users: User;
     globalPages: GlobalPage;
+    gallery: Gallery;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -117,6 +118,7 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     globalPages: GlobalPagesSelect<false> | GlobalPagesSelect<true>;
+    gallery: GallerySelect<false> | GallerySelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1182,6 +1184,53 @@ export interface Event {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "gallery".
+ */
+export interface Gallery {
+  id: number;
+  name?: string | null;
+  caption?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  mediaSource: 'upload' | 'external';
+  media?: (number | null) | Media;
+  externalMedia?: {
+    type: 'youtube' | 'vimeo' | 'image' | 'other';
+    url: string;
+    alt?: string | null;
+    caption?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1384,6 +1433,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'globalPages';
         value: number | GlobalPage;
+      } | null)
+    | ({
+        relationTo: 'gallery';
+        value: number | Gallery;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1844,6 +1897,26 @@ export interface UsersSelect<T extends boolean = true> {
 export interface GlobalPagesSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "gallery_select".
+ */
+export interface GallerySelect<T extends boolean = true> {
+  name?: T;
+  caption?: T;
+  mediaSource?: T;
+  media?: T;
+  externalMedia?:
+    | T
+    | {
+        type?: T;
+        url?: T;
+        alt?: T;
+        caption?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
