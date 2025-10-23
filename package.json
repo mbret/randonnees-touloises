@@ -25,6 +25,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@payloadcms/admin-bar": "3.59.1",
+    "@payloadcms/db-postgres": "^3.60.0",
     "@payloadcms/db-vercel-postgres": "3.59.1",
     "@payloadcms/live-preview-react": "3.59.1",
     "@payloadcms/next": "3.59.1",
