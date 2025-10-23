@@ -1,4 +1,4 @@
-let styles =
+const styles =
   typeof window !== 'undefined'
     ? getComputedStyle(document.documentElement)
     : {
