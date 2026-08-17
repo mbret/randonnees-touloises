@@ -21,7 +21,7 @@ const pathsFor = (post: Partial<Post>) => {
 const revalidate = (paths: Iterable<string>) => {
   for (const path of new Set(paths)) revalidatePath(path)
 
-  revalidateTag('posts-sitemap')
+  revalidateTag('posts-sitemap', { expire: 0 })
 }
 
 export const revalidatePost: CollectionAfterChangeHook<Post> = ({
