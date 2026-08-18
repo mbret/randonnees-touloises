@@ -80,6 +80,7 @@ export interface Config {
     users: User;
     globalPages: GlobalPage;
     gallery: Gallery;
+    contactSubmissions: ContactSubmission;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -119,6 +120,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     globalPages: GlobalPagesSelect<false> | GlobalPagesSelect<true>;
     gallery: GallerySelect<false> | GallerySelect<true>;
+    contactSubmissions: ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1231,6 +1233,20 @@ export interface Gallery {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contactSubmissions".
+ */
+export interface ContactSubmission {
+  id: number;
+  status: 'nouveau' | 'traite';
+  nom: string;
+  email: string;
+  telephone?: string | null;
+  message?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1437,6 +1453,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'gallery';
         value: number | Gallery;
+      } | null)
+    | ({
+        relationTo: 'contactSubmissions';
+        value: number | ContactSubmission;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1917,6 +1937,19 @@ export interface GallerySelect<T extends boolean = true> {
         alt?: T;
         caption?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contactSubmissions_select".
+ */
+export interface ContactSubmissionsSelect<T extends boolean = true> {
+  status?: T;
+  nom?: T;
+  email?: T;
+  telephone?: T;
+  message?: T;
   updatedAt?: T;
   createdAt?: T;
 }

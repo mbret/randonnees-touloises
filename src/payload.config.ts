@@ -22,6 +22,7 @@ import { Events } from './collections/Events'
 import { General } from './cms/globals/general/config'
 import { TeamDirectoryConfig } from './cms/globals/teamDirectory/config'
 import { GalleriesConfig } from './collections/Galleries/Gallery'
+import { ContactSubmissions } from './collections/ContactSubmissions'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -66,11 +67,25 @@ export default buildConfig({
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
   db: postgresAdapter({
+    // The schema is managed by the files in src/migrations, in every
+    // environment. Leaving dev push on would let local schema drift silently
+    // and make the next `migrate:create` diff meaningless.
+    push: false,
     pool: {
       connectionString: process.env.POSTGRES_URL || '',
     },
   }),
-  collections: [Pages, Posts, Events, Media, Categories, Users, GlobalPages, GalleriesConfig],
+  collections: [
+    Pages,
+    Posts,
+    Events,
+    Media,
+    Categories,
+    Users,
+    GlobalPages,
+    GalleriesConfig,
+    ContactSubmissions,
+  ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer, General, TeamDirectoryConfig],
   plugins: [

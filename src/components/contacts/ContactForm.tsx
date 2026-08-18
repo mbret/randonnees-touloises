@@ -6,21 +6,13 @@ import { FieldError, FieldGroup } from '@/components/ui/field'
 import React, { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
+import { submitContact } from './actions'
+
 export type ContactFormData = {
   nom: string
   email: string
   telephone?: string
   message?: string
-}
-
-/**
- * TODO: the submission backend is not wired up yet.
- * Replace with a server action that persists the submission and/or sends
- * the notification email.
- */
-const submitContact = async (data: ContactFormData): Promise<void> => {
-  console.warn('[ContactForm] submission backend not wired up yet', data)
-  throw new Error('Contact form submission is not wired up yet')
 }
 
 export const ContactForm: React.FC = () => {
@@ -40,8 +32,17 @@ export const ContactForm: React.FC = () => {
     setIsLoading(true)
 
     try {
-      await submitContact(data)
-      setHasSubmitted(true)
+      const result = await submitContact(data)
+
+      if (result.success) {
+        setHasSubmitted(true)
+      } else {
+        setError(
+          result.error === 'invalid'
+            ? 'Merci de vérifier les informations saisies.'
+            : 'Une erreur est survenue, merci de réessayer plus tard.',
+        )
+      }
     } catch (err) {
       console.error(err)
       setError('Une erreur est survenue, merci de réessayer plus tard.')
