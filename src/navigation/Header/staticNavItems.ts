@@ -12,6 +12,7 @@ export const staticNavItems: HeaderNavItem[] = [
   { id: 'static-search', link: { label: 'Recherche', type: 'custom', url: '/search' } },
   { id: 'static-contact', link: { label: 'Contact', type: 'custom', url: '/contact' } },
   { id: 'static-about', link: { label: 'À propos', type: 'custom', url: '/about' } },
+  { id: 'static-activities', link: { label: 'Nos activités', type: 'custom', url: '/activities' } },
 ]
 
 const staticUrls = new Set(
