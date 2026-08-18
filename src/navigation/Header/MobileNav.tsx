@@ -10,10 +10,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { ChevronRightIcon, ExternalLinkIcon, SearchIcon } from 'lucide-react'
 import { Item, ItemActions, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { Logo } from '@/components/Logo/Logo'
+import { withStaticNavItems } from './staticNavItems'
 
 export const MobileNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   const [open, setOpen] = useState(false)
-  const navItems = data?.navItems || []
+  const navItems = withStaticNavItems(data?.navItems)
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>

@@ -3,6 +3,7 @@
 import clsx from 'clsx'
 import React from 'react'
 import { useMedias } from '@/metadata/MediaProvider'
+import { ImagePlaceholder } from '@/components/common/ImagePlaceholder'
 
 interface Props {
   className?: string
@@ -17,7 +18,8 @@ export const Logo = (props: Props) => {
   const loading = loadingFromProps || 'lazy'
   const priority = priorityFromProps || 'low'
 
-  if (!logo || !logo.url) return null
+  if (!logo || !logo.url)
+    return <ImagePlaceholder className={className} height={34} label="Logo à définir" width={193} />
 
   return (
     /* eslint-disable @next/next/no-img-element */

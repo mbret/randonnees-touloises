@@ -7,7 +7,7 @@ import { headers as getHeaders } from 'next/headers.js'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { redirect } from 'next/navigation'
-import { AccountForm } from '@/auth/AccountForm'
+import { AccountForm } from '@/components/auth/AccountForm'
 
 export default async function AccountPage() {
   const headers = await getHeaders()

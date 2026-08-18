@@ -36,7 +36,7 @@ export function HeaderClient({ data }: HeaderClientProps) {
       {...(theme ? { 'data-theme': theme } : {})}
     >
       <div className="container py-4 flex justify-between items-center">
-        <Link href="/">
+        <Link aria-label="Accueil" href="/">
           <Logo loading="eager" priority="high" className="max-h-14 w-auto" />
         </Link>
         <DesktopNav data={data} />

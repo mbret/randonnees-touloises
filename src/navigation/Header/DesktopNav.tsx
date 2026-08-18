@@ -16,6 +16,7 @@ import {
 import { cn } from '@/components/ui'
 import { useMediaQuery } from '@/components/ui/hooks/use-media-query'
 import { cssVariables } from '@/theme/variables'
+import { withStaticNavItems } from './staticNavItems'
 
 function ListItem({ url, isExternal, className, ...rest }: ComponentProps<typeof CMSLink>) {
   return (
@@ -43,7 +44,7 @@ function ListItem({ url, isExternal, className, ...rest }: ComponentProps<typeof
 }
 
 export const DesktopNav: React.FC<{ data: HeaderType }> = ({ data }) => {
-  const navItems = data?.navItems || []
+  const navItems = withStaticNavItems(data?.navItems)
   const md = useMediaQuery(`(width <= ${cssVariables.breakpoints.md})`)
   const lg = useMediaQuery(`(width <= ${cssVariables.breakpoints.lg})`)
   const maxVisibleItems = md ? 2 : lg ? 3 : 4
