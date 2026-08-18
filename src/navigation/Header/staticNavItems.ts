@@ -11,6 +11,7 @@ export type HeaderNavItem = NonNullable<HeaderType['navItems']>[number]
 export const staticNavItems: HeaderNavItem[] = [
   { id: 'static-search', link: { label: 'Recherche', type: 'custom', url: '/search' } },
   { id: 'static-contact', link: { label: 'Contact', type: 'custom', url: '/contact' } },
+  { id: 'static-about', link: { label: 'À propos', type: 'custom', url: '/about' } },
 ]
 
 const staticUrls = new Set(
