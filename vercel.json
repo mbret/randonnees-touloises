@@ -5,5 +5,5 @@
       "schedule": "0 0 * * *"
     }
   ],
-  "buildCommand": "pnpm ci"
+  "buildCommand": "pnpm run ci"
 }
