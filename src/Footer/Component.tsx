@@ -21,9 +21,18 @@ export async function Footer() {
           <FederationLogo />
         </Link>
       </div> */}
-      <div className="container mx-auto py-8 gap-8 flex flex-row justify-between">
-        <ModeToggle />
-        <nav className="flex flex-col md:flex-row gap-4">
+      <div className="container mx-auto py-8 gap-4 flex flex-col items-center md:grid md:grid-cols-[1fr_auto_1fr]">
+        <div className="md:col-start-1 md:row-start-1 md:justify-self-start">
+          <ModeToggle />
+        </div>
+        <nav className="flex flex-col md:flex-row items-center gap-4 md:col-start-2 md:row-start-1">
+          <CMSLink appearance="link" label="Règlement intérieur" type="custom" url="/terms" />
+          <CMSLink
+            appearance="link"
+            label="Politique de confidentialité"
+            type="custom"
+            url="/privacy"
+          />
           {navItems.map(({ link }, i) => {
             return <CMSLink key={i} appearance="link" {...link} />
           })}
