@@ -27,6 +27,28 @@ import { ContactSubmissions } from './collections/ContactSubmissions'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+const connectionString = process.env.POSTGRES_URL || ''
+
+/**
+ * `.env` carries the Vercel/Neon values, and `.env.local` — which points at the
+ * local container — is gitignored. A fresh clone or a deleted `.env.local`
+ * would therefore make `pnpm dev` read and write production without saying so.
+ * Refuse instead, and require an explicit opt-in for the occasions a remote
+ * database really is wanted (running a migration against prod by hand).
+ */
+if (process.env.NODE_ENV !== 'production' && !process.env.ALLOW_REMOTE_DB && connectionString) {
+  const host = new URL(connectionString).hostname
+  const local = ['localhost', '127.0.0.1', '::1', 'host.docker.internal']
+
+  if (!local.includes(host)) {
+    throw new Error(
+      `Refusing to connect to the remote database "${host}" outside production.\n` +
+        `Point POSTGRES_URL at a local database, or prefix the command with ` +
+        `ALLOW_REMOTE_DB=1 if you mean it.`,
+    )
+  }
+}
+
 export default buildConfig({
   admin: {
     components: {
@@ -72,7 +94,7 @@ export default buildConfig({
     // and make the next `migrate:create` diff meaningless.
     push: false,
     pool: {
-      connectionString: process.env.POSTGRES_URL || '',
+      connectionString,
     },
   }),
   collections: [
