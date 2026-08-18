@@ -13,6 +13,14 @@ export const staticNavItems: HeaderNavItem[] = [
   { id: 'static-contact', link: { label: 'Contact', type: 'custom', url: '/contact' } },
   { id: 'static-about', link: { label: 'À propos', type: 'custom', url: '/about' } },
   { id: 'static-activities', link: { label: 'Nos activités', type: 'custom', url: '/activities' } },
+  {
+    id: 'static-board',
+    link: { label: 'Conseil d’administration', type: 'custom', url: '/board' },
+  },
+  {
+    id: 'static-animation-team',
+    link: { label: 'Équipe d’animation', type: 'custom', url: '/animation-team' },
+  },
 ]
 
 const staticUrls = new Set(

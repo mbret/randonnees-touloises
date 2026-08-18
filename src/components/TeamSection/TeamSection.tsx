@@ -15,7 +15,7 @@ import { Media as MediaType } from '@/payload-types'
 import { Media } from '../Media'
 import { Fragment } from 'react'
 
-type TeamMember = {
+export type TeamMember = {
   media?: MediaType | null | number
   name?: string | null
   role?: string | null
@@ -74,6 +74,14 @@ const getLinkForContact = (
       return <a href={value ?? '#'}>{<WebhookIcon className="size-5" />}</a>
   }
 }
+const getInitials = (name?: string | null) => {
+  const words = name?.trim().split(/\s+/).filter(Boolean) ?? []
+
+  if (words.length === 0) return ''
+
+  return [words[0], words[words.length - 1]].map((word) => word?.[0]?.toUpperCase()).join('')
+}
+
 export const TeamSection = ({ teamMembers }: { teamMembers: TeamMember[] }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 lg:gap-y-10 xl:grid-cols-5">
@@ -84,11 +92,19 @@ export const TeamSection = ({ teamMembers }: { teamMembers: TeamMember[] }) => {
         >
           <CardContent className="px-0">
             <div className="bg-muted aspect-square">
-              <Media
-                resource={member.media}
-                className="w-full h-full"
-                imgClassName="w-full h-full object-cover object-top"
-              />
+              {member.media ? (
+                <Media
+                  resource={member.media}
+                  className="w-full h-full"
+                  imgClassName="w-full h-full object-cover object-top"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-muted-foreground text-3xl font-medium">
+                    {getInitials(member.name)}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="space-y-3 p-4">
               <CardTitle className="text-lg">{member.name}</CardTitle>
