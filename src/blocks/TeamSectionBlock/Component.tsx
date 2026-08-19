@@ -12,7 +12,9 @@ export const TeamSectionBlock = async () => {
 
   return (
     <div className="container">
-      <TeamSection teamMembers={teamMembers} />
+      <div className="max-w-6xl mx-auto">
+        <TeamSection teamMembers={teamMembers} />
+      </div>
     </div>
   )
 }

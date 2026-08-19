@@ -77,51 +77,59 @@ const getLinkForContact = (
 }
 export const TeamSection = ({ teamMembers }: { teamMembers: TeamMember[] }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 lg:gap-y-10 xl:grid-cols-5">
-      {teamMembers.map((member, index) => (
-        <Card
-          key={index}
-          className="overflow-hidden py-0 shadow-none transition-colors duration-300"
-        >
-          <CardContent className="px-0">
-            <div className="bg-muted aspect-square">
-              {member.media ? (
-                <Media
-                  resource={member.media}
-                  className="w-full h-full"
-                  imgClassName="w-full h-full object-cover object-center"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-muted-foreground text-3xl font-medium">
-                    {getInitials(member.name)}
-                  </span>
+    /**
+     * Column count keys off the width the page hands the section rather than the
+     * viewport, so the section stays fluid and the caller dictates the layout.
+     * Thresholds are the same `--container-*` scale the callers cap themselves
+     * with, which keeps a narrow column readable wherever it is placed.
+     */
+    <div className="@container">
+      <div className="grid grid-cols-2 gap-4 @xl:grid-cols-3 @xl:gap-6 @2xl:grid-cols-4 @4xl:grid-cols-5 @4xl:gap-y-10 @6xl:grid-cols-6">
+        {teamMembers.map((member, index) => (
+          <Card
+            key={index}
+            className="overflow-hidden py-0 shadow-none transition-colors duration-300"
+          >
+            <CardContent className="px-0">
+              <div className="bg-muted aspect-square">
+                {member.media ? (
+                  <Media
+                    resource={member.media}
+                    className="w-full h-full"
+                    imgClassName="w-full h-full object-cover object-center"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-muted-foreground text-3xl font-medium">
+                      {getInitials(member.name)}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2 p-3 @xl:p-4">
+                <CardTitle className="text-base break-words">{member.name}</CardTitle>
+                <Separator />
+                <div className="text-muted-foreground text-sm">
+                  <p className="mb-1 font-medium">{member.role}</p>
+                  <p>{member.description}</p>
                 </div>
-              )}
-            </div>
-            <div className="space-y-3 p-4">
-              <CardTitle className="text-lg">{member.name}</CardTitle>
-              <Separator />
-              <div className="text-muted-foreground">
-                <p className="mb-1 font-medium">{member.role}</p>
-                <p>{member.description}</p>
+                <div className="flex gap-3">
+                  {member.contactLinks?.map((contactLink) => (
+                    <Fragment key={contactLink.id}>
+                      {getLinkForContact(contactLink.type, contactLink.value)}
+                    </Fragment>
+                  ))}
+                  {member.socialLinks?.map((socialLink) => (
+                    <a href={socialLink.uri ?? '#'} key={socialLink.id}>
+                      {getIconForSocialLink(socialLink.type)}
+                    </a>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-3">
-                {member.contactLinks?.map((contactLink) => (
-                  <Fragment key={contactLink.id}>
-                    {getLinkForContact(contactLink.type, contactLink.value)}
-                  </Fragment>
-                ))}
-                {member.socialLinks?.map((socialLink) => (
-                  <a href={socialLink.uri ?? '#'} key={socialLink.id}>
-                    {getIconForSocialLink(socialLink.type)}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 }
