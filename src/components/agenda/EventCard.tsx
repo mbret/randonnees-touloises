@@ -1,13 +1,13 @@
 import React from 'react'
 
-import type { AgendaOuting } from './groupOutings'
+import type { AgendaEvent } from './groupEvents'
 
 import RichText from '@/components/RichText'
 import { Item, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { cn } from '@/components/ui'
 
 /**
- * A single outing: departure and return times down the leading column, then the
+ * A single event: departure and return times down the leading column, then the
  * kind of walk and the details as the editor laid them out — meeting point,
  * animateur, distance and so on all live in that rich text rather than in fields
  * of their own, so the card imposes no order on them.
@@ -17,7 +17,7 @@ import { cn } from '@/components/ui'
  * headings for an article rather than a card. The few marks that survive in this
  * space are styled here instead.
  */
-export function OutingCard({ content, endTime, startTime, title }: AgendaOuting) {
+export function EventCard({ content, endTime, startTime, title }: AgendaEvent) {
   return (
     <Item variant="outline">
       {startTime && (

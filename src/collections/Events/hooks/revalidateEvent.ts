@@ -8,7 +8,7 @@ import type { Event } from '../../../payload-types'
  * Events have no page of their own; they only ever surface in the agenda on the
  * home page. So every write revalidates that, rather than a per-document path —
  * it is otherwise only re-rendered on a timer, which would leave a freshly
- * published outing invisible for up to an hour.
+ * published event invisible for up to an hour.
  */
 const revalidateAgenda = (log: (message: string) => void) => {
   log('Revalidating the agenda')

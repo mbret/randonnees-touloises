@@ -1,14 +1,14 @@
 import React from 'react'
 
-import type { AgendaDay, AgendaMonth as AgendaMonthType } from './groupOutings'
+import type { AgendaDay, AgendaMonth as AgendaMonthType } from './groupEvents'
 
 import { ChevronDownIcon } from 'lucide-react'
 import { ItemGroup } from '@/components/ui/item'
-import { OutingCard } from './OutingCard'
+import { EventCard } from './EventCard'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/components/ui'
 
-function AgendaDayGroup({ date, label, outings }: AgendaDay) {
+function AgendaDayGroup({ date, label, events }: AgendaDay) {
   return (
     <div>
       {/* The ids are anchor targets, so the heading clears the sticky header. */}
@@ -19,8 +19,8 @@ function AgendaDayGroup({ date, label, outings }: AgendaDay) {
         {label}
       </h4>
       <ItemGroup className="mt-3 gap-3">
-        {outings.map((outing, i) => (
-          <OutingCard key={i} {...outing} />
+        {events.map((event, i) => (
+          <EventCard key={i} {...event} />
         ))}
       </ItemGroup>
     </div>
@@ -29,7 +29,7 @@ function AgendaDayGroup({ date, label, outings }: AgendaDay) {
 
 /**
  * One month of the programme: a heading, then every day it holds with its
- * outings underneath.
+ * events underneath.
  *
  * The current site puts the days behind a filter and shows one at a time, which
  * hides most of the month behind a click and leaves nothing for search engines.

@@ -1137,14 +1137,14 @@ export interface TeamSectionBlock {
 export interface Event {
   id: number;
   /**
-   * Par exemple « Grande », « Nordique » ou « Assemblée générale ».
+   * Le nom de l’événement, par exemple « Grande » ou « Assemblée générale ».
    */
   title: string;
   date: string;
   startTime?: string | null;
   endTime?: string | null;
   /**
-   * Lieu de rendez-vous, animateur, kilométrage, dénivelé, covoiturage… tel que vous voulez le présenter.
+   * Tout ce qu’il faut savoir, présenté comme vous le souhaitez.
    */
   content?: {
     root: {

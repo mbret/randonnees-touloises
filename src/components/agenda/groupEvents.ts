@@ -1,21 +1,21 @@
 import type { Event } from '@/payload-types'
 
 /**
- * One outing as the club announces it in its monthly programme.
+ * One event as the club announces it in its monthly programme.
  *
  * The day is a plain `YYYY-MM-DD` string and the times are wall-clock `HH:mm`
  * strings rather than a single instant, because that is exactly how the
  * programme is written and it keeps the whole thing out of reach of timezone
- * drift: a 08:30 departure reads 08:30 whatever the server's clock is set to,
- * and no outing can slide onto the neighbouring day across a DST change.
+ * drift: a 08:30 start reads 08:30 whatever the server's clock is set to,
+ * and no event can slide onto the neighbouring day across a DST change.
  */
-export type AgendaOuting = {
-  /** How the club names it: 'Grande', 'Nordique', 'Journée interclubs santé'… */
+export type AgendaEvent = {
+  /** How the club names it: 'Grande', 'Marche Breathwalk', 'Assemblée générale'… */
   title: string
   date: string
   startTime?: string
   endTime?: string
-  /** Meeting point and practical details, laid out however the editor wants. */
+  /** Whatever the entry needs to say, laid out however the editor wants. */
   content?: Event['content']
 }
 
@@ -27,7 +27,7 @@ export type AgendaDay = {
    * knows which month they are looking at.
    */
   label: string
-  outings: AgendaOuting[]
+  events: AgendaEvent[]
 }
 
 export type AgendaMonth = {
@@ -65,22 +65,22 @@ const formatDay = (date: string, options: Intl.DateTimeFormatOptions) =>
 export const dayInFrance = (value: Date | string) =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' }).format(new Date(value))
 
-/** Today in Toul as `YYYY-MM-DD`, so past outings drop off on the right day. */
+/** Today in Toul as `YYYY-MM-DD`, so past events drop off on the right day. */
 export const todayInFrance = () => dayInFrance(new Date())
 
 /**
- * Turns a flat list of outings into the month → day → outings shape the agenda
+ * Turns a flat list of events into the month → day → events shape the agenda
  * renders, dropping anything before `from` and sorting by day then start time.
  *
  * Grouping is derived here rather than stored anywhere: a month is a view of
  * the dates, not a thing an editor has to create and keep in step.
  */
-export const groupOutingsByMonth = (
-  outings: AgendaOuting[],
+export const groupEventsByMonth = (
+  events: AgendaEvent[],
   { from = todayInFrance() }: { from?: string } = {},
 ): AgendaMonth[] => {
-  const upcoming = [...outings]
-    .filter((outing) => outing.date >= from)
+  const upcoming = [...events]
+    .filter((event) => event.date >= from)
     .sort(
       (a, b) =>
         a.date.localeCompare(b.date) || (a.startTime ?? '').localeCompare(b.startTime ?? ''),
@@ -88,8 +88,8 @@ export const groupOutingsByMonth = (
 
   const grouped: AgendaMonth[] = []
 
-  for (const outing of upcoming) {
-    const month = outing.date.slice(0, 7)
+  for (const event of upcoming) {
+    const month = event.date.slice(0, 7)
     let section = grouped.at(-1)
 
     if (section?.month !== month) {
@@ -103,16 +103,16 @@ export const groupOutingsByMonth = (
 
     let day = section.days.at(-1)
 
-    if (day?.date !== outing.date) {
+    if (day?.date !== event.date) {
       day = {
-        date: outing.date,
-        label: formatDay(outing.date, { weekday: 'long', day: 'numeric', month: 'long' }),
-        outings: [],
+        date: event.date,
+        label: formatDay(event.date, { weekday: 'long', day: 'numeric', month: 'long' }),
+        events: [],
       }
       section.days.push(day)
     }
 
-    day.outings.push(outing)
+    day.events.push(event)
   }
 
   return grouped

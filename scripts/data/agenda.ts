@@ -1,8 +1,8 @@
 /**
- * One outing exactly as the club printed it, with the details still as plain
+ * One event exactly as the club printed it, with the details still as plain
  * text: one item per line, bare URLs and all.
  */
-export type SeedOuting = {
+export type SeedEvent = {
   title: string
   /** `YYYY-MM-DD`, read as a day in Toul. */
   date: string
@@ -22,7 +22,7 @@ export type SeedOuting = {
  * The "km : 0,0" and "D+ : --- m" placeholders are dropped; everything else,
  * animateur included, is left as the club wrote it.
  */
-export const agendaOutings: SeedOuting[] = [
+export const agendaEvents: SeedEvent[] = [
   {
     title: 'Journée',
     date: '2026-08-20',

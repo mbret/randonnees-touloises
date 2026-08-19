@@ -36,8 +36,8 @@ const validateTime = (value: unknown) =>
 export const Events: CollectionConfig<'events'> = {
   slug: 'events',
   labels: {
-    singular: 'Sortie / Événement',
-    plural: 'Sorties / Événements',
+    singular: 'Événement',
+    plural: 'Événements',
   },
   access: {
     create: authenticated,
@@ -74,7 +74,7 @@ export const Events: CollectionConfig<'events'> = {
       required: true,
       label: 'Intitulé',
       admin: {
-        description: 'Par exemple « Grande », « Nordique » ou « Assemblée générale ».',
+        description: 'Le nom de l’événement, par exemple « Grande » ou « Assemblée générale ».',
       },
     },
     {
@@ -96,7 +96,7 @@ export const Events: CollectionConfig<'events'> = {
         {
           name: 'startTime',
           type: 'text',
-          label: 'Heure de départ',
+          label: 'Heure de début',
           validate: validateTime,
           admin: {
             placeholder: '09:00',
@@ -106,7 +106,7 @@ export const Events: CollectionConfig<'events'> = {
         {
           name: 'endTime',
           type: 'text',
-          label: 'Heure de retour',
+          label: 'Heure de fin',
           validate: validateTime,
           admin: {
             placeholder: '11:30',
@@ -120,8 +120,7 @@ export const Events: CollectionConfig<'events'> = {
       type: 'richText',
       label: 'Détails',
       admin: {
-        description:
-          'Lieu de rendez-vous, animateur, kilométrage, dénivelé, covoiturage… tel que vous voulez le présenter.',
+        description: 'Tout ce qu’il faut savoir, présenté comme vous le souhaitez.',
       },
       editor: lexicalEditor({
         features: ({ rootFeatures }) => {

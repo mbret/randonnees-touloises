@@ -7,19 +7,19 @@
  *   POSTGRES_URL=<production url> ALLOW_REMOTE_DB=1 \
  *     pnpm payload run scripts/import-agenda.ts
  *
- * The source is scripts/data/agenda.ts, where each outing's details are still
+ * The source is scripts/data/agenda.ts, where each event's details are still
  * plain text. Every line becomes a paragraph and every bare URL a real link, so
  * what lands in the CMS is rich text an editor can rework rather than a blob.
  *
  * Configured through the environment, not flags: the payload CLI does not forward
  * extra argv to a script. DRY_RUN=1 reports without writing, LIMIT=N takes the
- * first N outings, and a remote database needs ALLOW_REMOTE_DB=1.
+ * first N events, and a remote database needs ALLOW_REMOTE_DB=1.
  *
  * Reruns are safe: an event is matched on its date plus title plus start time and
  * skipped if it already exists, so the script tops up rather than duplicating.
  */
-import { agendaOutings, type SeedOuting } from './data/agenda'
-import { dayInFrance } from '@/components/agenda/groupOutings'
+import { agendaEvents, type SeedEvent } from './data/agenda'
+import { dayInFrance } from '@/components/agenda/groupEvents'
 
 const urlPattern = /(https?:\/\/\S+)/g
 
@@ -99,9 +99,9 @@ const main = async () => {
   }
 
   const payload = await getPayload({ config })
-  const outings: SeedOuting[] = limit ? agendaOutings.slice(0, limit) : agendaOutings
+  const events: SeedEvent[] = limit ? agendaEvents.slice(0, limit) : agendaEvents
 
-  const days = outings.map((outing) => outing.date).sort()
+  const days = events.map((event) => event.date).sort()
   const DAY_MS = 24 * 60 * 60 * 1000
 
   /**
@@ -125,8 +125,8 @@ const main = async () => {
     },
   })
 
-  const identity = (outing: { date: string; startTime?: string | null; title: string }) =>
-    `${outing.date}|${outing.startTime ?? ''}|${outing.title}`
+  const identity = (event: { date: string; startTime?: string | null; title: string }) =>
+    `${event.date}|${event.startTime ?? ''}|${event.title}`
 
   const present = new Set(
     existing.map((doc) =>
@@ -137,10 +137,10 @@ const main = async () => {
   let created = 0
   let skipped = 0
 
-  for (const outing of outings) {
-    const label = `${outing.date} ${outing.startTime ?? '--:--'} ${outing.title}`
+  for (const event of events) {
+    const label = `${event.date} ${event.startTime ?? '--:--'} ${event.title}`
 
-    if (present.has(identity(outing))) {
+    if (present.has(identity(event))) {
       skipped++
       console.log(`  skipped ${label} (already present)`)
       continue
@@ -159,21 +159,21 @@ const main = async () => {
       context: { disableRevalidate: true },
       data: {
         _status: 'published',
-        content: toRichText(outing.content),
-        date: `${outing.date}T00:00:00.000Z`,
-        endTime: outing.endTime,
-        startTime: outing.startTime,
-        title: outing.title,
+        content: toRichText(event.content),
+        date: `${event.date}T00:00:00.000Z`,
+        endTime: event.endTime,
+        startTime: event.startTime,
+        title: event.title,
       },
     })
 
-    present.add(identity(outing))
+    present.add(identity(event))
     created++
     console.log(`  created ${label}`)
   }
 
   console.log(
-    `${dryRun ? 'Would create' : 'Created'} ${created}, skipped ${skipped}, of ${outings.length}.`,
+    `${dryRun ? 'Would create' : 'Created'} ${created}, skipped ${skipped}, of ${events.length}.`,
   )
 }
 

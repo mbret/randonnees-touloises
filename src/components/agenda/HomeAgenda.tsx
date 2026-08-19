@@ -2,7 +2,7 @@ import React from 'react'
 
 import { AgendaMonth } from './AgendaMonth'
 import { getAgendaEvents } from './getAgendaEvents'
-import { groupOutingsByMonth } from './groupOutings'
+import { groupEventsByMonth } from './groupEvents'
 
 /**
  * The whole upcoming programme, a section per month, with all but the first few
@@ -12,7 +12,7 @@ import { groupOutingsByMonth } from './groupOutings'
  * page, same as the site it replaces — so `/activities` links here by anchor.
  */
 export async function HomeAgenda() {
-  const months = groupOutingsByMonth(await getAgendaEvents())
+  const months = groupEventsByMonth(await getAgendaEvents())
 
   return (
     <section className="container scroll-mt-24 py-16 md:py-24" id="agenda">
@@ -27,7 +27,7 @@ export async function HomeAgenda() {
 
       {months.length === 0 ? (
         <p className="text-muted-foreground mt-12 text-center">
-          Aucune sortie n’est programmée pour le moment.
+          Aucun événement n’est programmé pour le moment.
         </p>
       ) : (
         <div className="mx-auto mt-12 flex max-w-3xl flex-col gap-16">
