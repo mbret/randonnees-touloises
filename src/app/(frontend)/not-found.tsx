@@ -5,14 +5,16 @@ import { Button } from '@/components/ui/button'
 
 export default function NotFound() {
   return (
-    <div className="container py-28">
-      <div className="prose max-w-none">
-        <h1 style={{ marginBottom: 0 }}>404</h1>
-        <p className="mb-4">Cette page n&apos;a pas été trouvée.</p>
+    <div className="flex flex-1 items-center justify-center py-24">
+      <div className="container flex flex-col items-center text-center">
+        <div className="prose dark:prose-invert">
+          <h1 className="mb-2">404</h1>
+          <p>Cette page n’a pas été trouvée.</p>
+        </div>
+        <Button asChild variant="default" className="mt-8">
+          <Link href="/">Retour à l’accueil</Link>
+        </Button>
       </div>
-      <Button asChild variant="default">
-        <Link href="/">Retour à l&apos;accueil</Link>
-      </Button>
     </div>
   )
 }
