@@ -318,6 +318,7 @@ export interface Post {
   publishedAt?: string | null;
   authors?: (number | User)[] | null;
   visibility?: ('admin' | 'customer')[] | null;
+  requireContentPassword?: boolean | null;
   populatedAuthors?:
     | {
         id?: string | null;
@@ -1135,9 +1136,17 @@ export interface TeamSectionBlock {
  */
 export interface Event {
   id: number;
+  /**
+   * Par exemple « Grande », « Nordique » ou « Assemblée générale ».
+   */
   title: string;
-  heroImage?: (number | null) | Media;
-  content: {
+  date: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  /**
+   * Lieu de rendez-vous, animateur, kilométrage, dénivelé, covoiturage… tel que vous voulez le présenter.
+   */
+  content?: {
     root: {
       type: string;
       children: {
@@ -1151,32 +1160,8 @@ export interface Event {
       version: number;
     };
     [k: string]: unknown;
-  };
-  relatedEvents?: (number | Event)[] | null;
+  } | null;
   categories?: (number | Category)[] | null;
-  meta?: {
-    title?: string | null;
-    /**
-     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
-     */
-    image?: (number | null) | Media;
-    description?: string | null;
-  };
-  publishedAt?: string | null;
-  authors?: (number | User)[] | null;
-  visibility?: ('admin' | 'customer')[] | null;
-  requireContentPassword?: boolean | null;
-  populatedAuthors?:
-    | {
-        id?: string | null;
-        name?: string | null;
-      }[]
-    | null;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
-  slug: string;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1735,6 +1720,7 @@ export interface PostsSelect<T extends boolean = true> {
   publishedAt?: T;
   authors?: T;
   visibility?: T;
+  requireContentPassword?: T;
   populatedAuthors?:
     | T
     | {
@@ -1753,29 +1739,11 @@ export interface PostsSelect<T extends boolean = true> {
  */
 export interface EventsSelect<T extends boolean = true> {
   title?: T;
-  heroImage?: T;
+  date?: T;
+  startTime?: T;
+  endTime?: T;
   content?: T;
-  relatedEvents?: T;
   categories?: T;
-  meta?:
-    | T
-    | {
-        title?: T;
-        image?: T;
-        description?: T;
-      };
-  publishedAt?: T;
-  authors?: T;
-  visibility?: T;
-  requireContentPassword?: T;
-  populatedAuthors?:
-    | T
-    | {
-        id?: T;
-        name?: T;
-      };
-  generateSlug?: T;
-  slug?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

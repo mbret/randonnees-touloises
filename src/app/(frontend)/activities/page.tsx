@@ -69,7 +69,7 @@ export default function Page() {
           <h2 id="participer">Participer</h2>
           <p>
             Les horaires, les lieux de rendez-vous, le kilométrage et le dénivelé de chaque sortie
-            sont publiés dans le <Link href="/events">programme</Link>. Une question sur une
+            sont publiés dans le <Link href="/#agenda">programme</Link>. Une question sur une
             activité ? <Link href="/contact">Écrivez-nous</Link>.
           </p>
         </div>

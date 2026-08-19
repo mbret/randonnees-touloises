@@ -1,24 +1,35 @@
-import type { AgendaOuting } from '@/components/home/agenda/groupOutings'
+/**
+ * One outing exactly as the club printed it, with the details still as plain
+ * text: one item per line, bare URLs and all.
+ */
+export type SeedOuting = {
+  title: string
+  /** `YYYY-MM-DD`, read as a day in Toul. */
+  date: string
+  startTime?: string
+  endTime?: string
+  content: string
+}
 
 /**
- * The club's programme for the coming weeks, kept in code so the agenda can
- * ship before the `events` collection grows a date field. Same shape the CMS
- * query will return, so only the source changes later — see
- * src/components/home/agenda/groupOutings.ts.
+ * Seed input for scripts/import-agenda.ts: the club's programme for August and
+ * September 2026, transcribed from the current site's agenda modules.
  *
- * Transcribed from the current site's agenda modules (August and September
- * 2026). The animateur is lifted out of the free text into `author`, the
- * "km : 0,0" and "D+ : --- m" placeholders are dropped, and everything else is
- * left as the club wrote it.
+ * This is not what the site renders — the agenda reads the `events` collection.
+ * The script turns each line of `content` into a paragraph and each bare URL into
+ * a link, so the same text arrives in the CMS as rich text an editor can rework.
+ *
+ * The "km : 0,0" and "D+ : --- m" placeholders are dropped; everything else,
+ * animateur included, is left as the club wrote it.
  */
-export const agendaOutings: AgendaOuting[] = [
+export const agendaOutings: SeedOuting[] = [
   {
     title: 'Journée',
     date: '2026-08-20',
     startTime: '08:30',
     endTime: '11:45',
-    author: 'Jean-Luc',
     content: `BOUCQ (terrain de foot)
+Animateur : Jean-Luc
 Lieu de départ : https://maps.app.goo.gl/1fhbP7SyeCEiAhLe8`,
   },
   {
@@ -26,8 +37,8 @@ Lieu de départ : https://maps.app.goo.gl/1fhbP7SyeCEiAhLe8`,
     date: '2026-08-20',
     startTime: '09:00',
     endTime: '11:30',
-    author: 'Philippe',
     content: `VILLEY LE SEC (Eglise)
+Animateur : Philippe
 Lieu de départ : https://maps.app.goo.gl/QcBphyhyqeEdQPNK7`,
   },
   {
@@ -35,8 +46,8 @@ Lieu de départ : https://maps.app.goo.gl/QcBphyhyqeEdQPNK7`,
     date: '2026-08-21',
     startTime: '09:00',
     endTime: '11:30',
-    author: 'Bernard T.',
     content: `BLENOD LES TOUL (Mairie)
+Animateur : Bernard T.
 km : 10,0 · D+ : 125 m
 Lieu de départ : https://maps.app.goo.gl/KoNog92s8WDwxqp86`,
   },
@@ -45,8 +56,8 @@ Lieu de départ : https://maps.app.goo.gl/KoNog92s8WDwxqp86`,
     date: '2026-08-21',
     startTime: '09:30',
     endTime: '11:45',
-    author: 'Daniel D.',
     content: `OCHEY (chalet Forestier)
+Animateur : Daniel D.
 Lieu de départ : https://maps.app.goo.gl/revUbkPxsxVSKFBL9`,
   },
   {
@@ -54,8 +65,8 @@ Lieu de départ : https://maps.app.goo.gl/revUbkPxsxVSKFBL9`,
     date: '2026-08-24',
     startTime: '09:00',
     endTime: '11:30',
-    author: 'Pascal',
     content: `LAY SAINT REMY (Eglise)
+Animateur : Pascal
 Lieu de départ : https://maps.app.goo.gl/KSVoXskUNfSYBd6H6`,
   },
   {
@@ -63,8 +74,8 @@ Lieu de départ : https://maps.app.goo.gl/KSVoXskUNfSYBd6H6`,
     date: '2026-08-24',
     startTime: '09:00',
     endTime: '17:00',
-    author: 'Doudou',
     content: `NEUFCHATEAU (parking mairie de Rollainville)
+Animateur : Doudou
 covoiturage Carrefour à 08:00
 Lieu de départ : https://maps.app.goo.gl/6Vba3XtW7jC1KSCP6`,
   },
@@ -73,8 +84,8 @@ Lieu de départ : https://maps.app.goo.gl/6Vba3XtW7jC1KSCP6`,
     date: '2026-08-25',
     startTime: '09:30',
     endTime: '11:45',
-    author: 'Jean-Luc',
     content: `CHOLOY (Mairie)
+Animateur : Jean-Luc
 Lieu de départ : https://maps.app.goo.gl/qVfvfH5RgCxP7rFd9`,
   },
   {
@@ -82,8 +93,8 @@ Lieu de départ : https://maps.app.goo.gl/qVfvfH5RgCxP7rFd9`,
     date: '2026-08-27',
     startTime: '08:30',
     endTime: '11:45',
-    author: 'Pascal',
     content: `FONTENOY (Gare)
+Animateur : Pascal
 Lieu de départ : https://maps.app.goo.gl/DhpHM9EfDuTZYYCf9`,
   },
   {
@@ -91,8 +102,8 @@ Lieu de départ : https://maps.app.goo.gl/DhpHM9EfDuTZYYCf9`,
     date: '2026-08-27',
     startTime: '09:00',
     endTime: '11:45',
-    author: 'Roland',
     content: `MARON (ancienne Gare)
+Animateur : Roland
 Lieu de départ : https://maps.app.goo.gl/GfZmAzk4mPksRHFr5`,
   },
   {
@@ -100,8 +111,8 @@ Lieu de départ : https://maps.app.goo.gl/GfZmAzk4mPksRHFr5`,
     date: '2026-08-28',
     startTime: '09:00',
     endTime: '11:30',
-    author: 'Bernard T.',
     content: `BOUCQ (terrain de foot)
+Animateur : Bernard T.
 km : 9,0 · D+ : 130 m
 Lieu de départ : https://maps.app.goo.gl/a6KpaC6TdebhWHj37`,
   },
@@ -110,8 +121,8 @@ Lieu de départ : https://maps.app.goo.gl/a6KpaC6TdebhWHj37`,
     date: '2026-08-28',
     startTime: '09:30',
     endTime: '11:45',
-    author: 'Gérald',
     content: `ECROUVES (plateau)
+Animateur : Gérald
 Lieu de départ : https://maps.app.goo.gl/QZfCj7EsVr3DbDWX7`,
   },
   {
@@ -119,8 +130,8 @@ Lieu de départ : https://maps.app.goo.gl/QZfCj7EsVr3DbDWX7`,
     date: '2026-08-31',
     startTime: '08:30',
     endTime: '11:45',
-    author: 'Pascal',
     content: `MARON (ancienne gare)
+Animateur : Pascal
 Lieu de départ : https://maps.app.goo.gl/GfZmAzk4mPksRHFr5`,
   },
   {
@@ -128,8 +139,8 @@ Lieu de départ : https://maps.app.goo.gl/GfZmAzk4mPksRHFr5`,
     date: '2026-08-31',
     startTime: '09:00',
     endTime: '11:30',
-    author: 'Philippe',
     content: `MONT LE VIGNOBLE (Cimetière)
+Animateur : Philippe
 Lieu de départ : https://maps.app.goo.gl/Z3oCqtaGHi96VBfj7`,
   },
   {
@@ -137,8 +148,8 @@ Lieu de départ : https://maps.app.goo.gl/Z3oCqtaGHi96VBfj7`,
     date: '2026-09-01',
     startTime: '14:00',
     endTime: '16:15',
-    author: 'Muriel',
     content: `VILLEY LE SEC (Mairie)
+Animateur : Muriel
 Lieu de départ : https://maps.app.goo.gl/ozneCFqQ6tULcxie6`,
   },
   {
@@ -146,8 +157,8 @@ Lieu de départ : https://maps.app.goo.gl/ozneCFqQ6tULcxie6`,
     date: '2026-09-03',
     startTime: '09:00',
     endTime: '11:30',
-    author: 'Jean-Luc',
     content: `PAGNY SUR MEUSE (Gare)
+Animateur : Jean-Luc
 Lieu de départ : https://maps.app.goo.gl/NypUgPHzgVaPjkZ6A`,
   },
   {
@@ -155,8 +166,8 @@ Lieu de départ : https://maps.app.goo.gl/NypUgPHzgVaPjkZ6A`,
     date: '2026-09-03',
     startTime: '14:00',
     endTime: '17:30',
-    author: 'Francis',
     content: `SAULXURES LES VANNES (Parking Eglise)
+Animateur : Francis
 km : 13,0 · D+ : 220 m
 Covoiturage Intermarché-Ex Colruyt à 13 h 30
 Lieu de départ : https://maps.app.goo.gl/9yj7guonroVDfeht5`,
@@ -166,8 +177,8 @@ Lieu de départ : https://maps.app.goo.gl/9yj7guonroVDfeht5`,
     date: '2026-09-04',
     startTime: '09:00',
     endTime: '11:30',
-    author: 'Bernard T.',
     content: `TROUSSEY (Eglise)
+Animateur : Bernard T.
 Lieu de départ : https://maps.app.goo.gl/8ztt1UzDYj7zZhSZ7`,
   },
   {
@@ -175,8 +186,8 @@ Lieu de départ : https://maps.app.goo.gl/8ztt1UzDYj7zZhSZ7`,
     date: '2026-09-04',
     startTime: '14:00',
     endTime: '16:15',
-    author: 'Gérald',
     content: `VELAINE EN HAYE (terrain de foot)
+Animateur : Gérald
 Lieu de départ : https://maps.app.goo.gl/SUdCrjVEMrS6wsbV9`,
   },
   {
@@ -184,8 +195,8 @@ Lieu de départ : https://maps.app.goo.gl/SUdCrjVEMrS6wsbV9`,
     date: '2026-09-07',
     startTime: '09:00',
     endTime: '11:30',
-    author: 'Michel',
     content: `CHOLOY (Mairie)
+Animateur : Michel
 km : 9,0 · D+ : 92 m
 Lieu de départ : https://maps.app.goo.gl/QdX8pKM3GpWcEsW39`,
   },
@@ -194,8 +205,8 @@ Lieu de départ : https://maps.app.goo.gl/QdX8pKM3GpWcEsW39`,
     date: '2026-09-07',
     startTime: '14:00',
     endTime: '16:45',
-    author: 'Bernard A.',
     content: `MANONVILLE (Cimetière)
+Animateur : Bernard A.
 covoiturage LIDL CDM 13H30
 Lieu de départ : https://maps.app.goo.gl/Sopa4FDGNnHwyFp26`,
   },
@@ -204,8 +215,8 @@ Lieu de départ : https://maps.app.goo.gl/Sopa4FDGNnHwyFp26`,
     date: '2026-09-08',
     startTime: '09:30',
     endTime: '11:30',
-    author: 'Pascal',
     content: `BRULEY (Kiosque)
+Animateur : Pascal
 Lieu de départ : https://maps.app.goo.gl/sgBgTD29jGCYCS3H6`,
   },
   {
@@ -213,8 +224,8 @@ Lieu de départ : https://maps.app.goo.gl/sgBgTD29jGCYCS3H6`,
     date: '2026-09-10',
     startTime: '09:00',
     endTime: '11:30',
-    author: 'Pascal',
     content: `TOUL (Pont Bernon)
+Animateur : Pascal
 Lieu de départ : https://maps.app.goo.gl/qYmF5YiwDgbdBMUU8`,
   },
   {
@@ -222,8 +233,8 @@ Lieu de départ : https://maps.app.goo.gl/qYmF5YiwDgbdBMUU8`,
     date: '2026-09-10',
     startTime: '14:00',
     endTime: '17:00',
-    author: 'Philippe',
     content: `CHAUDENEY (salle Bouchot)
+Animateur : Philippe
 Lieu de départ : https://maps.app.goo.gl/71tdjgm7k3xUirq67`,
   },
   {
@@ -231,8 +242,8 @@ Lieu de départ : https://maps.app.goo.gl/71tdjgm7k3xUirq67`,
     date: '2026-09-11',
     startTime: '09:00',
     endTime: '11:30',
-    author: 'Bernard A.',
     content: `BRULEY (Eglise)
+Animateur : Bernard A.
 Lieu de départ : https://maps.app.goo.gl/qgyStRRaTeFt1yzm7`,
   },
   {
@@ -240,8 +251,8 @@ Lieu de départ : https://maps.app.goo.gl/qgyStRRaTeFt1yzm7`,
     date: '2026-09-11',
     startTime: '14:00',
     endTime: '16:15',
-    author: 'Daniel D',
     content: `GYE (Mairie)
+Animateur : Daniel D
 Lieu de départ : https://maps.app.goo.gl/rcQs37rafDektJsU8`,
   },
   {
@@ -249,8 +260,8 @@ Lieu de départ : https://maps.app.goo.gl/rcQs37rafDektJsU8`,
     date: '2026-09-14',
     startTime: '14:00',
     endTime: '16:45',
-    author: 'Pascal',
     content: `BLENOD LES TOUL (point de vue)
+Animateur : Pascal
 km : 11,1 · D+ : 137 m
 Lieu de départ : https://maps.app.goo.gl/6MBhYX6YZTJ5Bzdh7`,
   },
@@ -259,8 +270,8 @@ Lieu de départ : https://maps.app.goo.gl/6MBhYX6YZTJ5Bzdh7`,
     date: '2026-09-15',
     startTime: '14:00',
     endTime: '16:15',
-    author: 'Patricia',
     content: `LAC DU DER
+Animateur : Patricia
 covoiturage Intermarché contact (ancien Colryut) à 08H30
 Lieu de départ : https://maps.app.goo.gl/LPGGQCMisGgfZMdC6`,
   },
@@ -269,8 +280,8 @@ Lieu de départ : https://maps.app.goo.gl/LPGGQCMisGgfZMdC6`,
     date: '2026-09-17',
     startTime: '14:00',
     endTime: '16:30',
-    author: 'Philippe',
     content: `VILLEY SAINT ETIENNE (Pavillon Bleu)
+Animateur : Philippe
 Lieu de départ : https://maps.app.goo.gl/LeMmcYaHHBsLDES19`,
   },
   {
@@ -278,8 +289,8 @@ Lieu de départ : https://maps.app.goo.gl/LeMmcYaHHBsLDES19`,
     date: '2026-09-17',
     startTime: '14:00',
     endTime: '17:00',
-    author: 'Jean Luc',
     content: `VITERNE (Stade de foot)
+Animateur : Jean Luc
 Lieu de départ : https://maps.app.goo.gl/oAgVZGdxLtnjHKSx5`,
   },
   {
@@ -287,8 +298,8 @@ Lieu de départ : https://maps.app.goo.gl/oAgVZGdxLtnjHKSx5`,
     date: '2026-09-18',
     startTime: '09:00',
     endTime: '11:30',
-    author: 'Bernard A.',
     content: `FONTENOY (Gare)
+Animateur : Bernard A.
 Lieu de départ : https://maps.app.goo.gl/PYhY5ZvCXCW3LJLy7`,
   },
   {
@@ -296,8 +307,8 @@ Lieu de départ : https://maps.app.goo.gl/PYhY5ZvCXCW3LJLy7`,
     date: '2026-09-18',
     startTime: '10:00',
     endTime: '12:00',
-    author: 'Danièle (Subtil)',
     content: `ETANGS DE CHAUDENEY (Parking Kayak)
+Animateur : Danièle (Subtil)
 Sur inscription uniquement (voir site)
 Lieu de départ : https://maps.app.goo.gl/CDz5yrdS3S86NteW6`,
   },
@@ -306,8 +317,8 @@ Lieu de départ : https://maps.app.goo.gl/CDz5yrdS3S86NteW6`,
     date: '2026-09-19',
     startTime: '09:00',
     endTime: '18:00',
-    author: 'Jean-Luc (CD54)',
     content: `SAINT-MAX (Chateau)
+Animateur : Jean-Luc (CD54)
 Inscription obligatoire
 https://forms.gle/7c5QjegnhgkJ57uL8
 Départ bus à 08H20 (Arsenal)`,
@@ -317,8 +328,8 @@ Départ bus à 08H20 (Arsenal)`,
     date: '2026-09-20',
     startTime: '10:00',
     endTime: '17:30',
-    author: 'Isabelle',
     content: `LAY SAINT CHRISTOPHE (Salle des fêtes Pierre Rotach)
+Animateur : Isabelle
 Lieu de départ : https://maps.app.goo.gl/2YcR59dUFnkLfTvKA`,
   },
   {
@@ -326,8 +337,8 @@ Lieu de départ : https://maps.app.goo.gl/2YcR59dUFnkLfTvKA`,
     date: '2026-09-21',
     startTime: '14:00',
     endTime: '16:30',
-    author: 'Isabelle',
     content: `PIERRE LA TREICHE (Salle Poussot)
+Animateur : Isabelle
 Lieu de départ : https://maps.app.goo.gl/xEXPpprNPWQZcvZb7`,
   },
   {
@@ -335,8 +346,8 @@ Lieu de départ : https://maps.app.goo.gl/xEXPpprNPWQZcvZb7`,
     date: '2026-09-21',
     startTime: '14:00',
     endTime: '16:45',
-    author: 'Doudou',
     content: `CLAIRLIEU (parking carrefour de la haute borne avant Clairlieu)
+Animateur : Doudou
 Lieu de départ : https://maps.app.goo.gl/Hyx8vqnsEd21sbpF7`,
   },
   {
@@ -344,8 +355,8 @@ Lieu de départ : https://maps.app.goo.gl/Hyx8vqnsEd21sbpF7`,
     date: '2026-09-22',
     startTime: '14:00',
     endTime: '16:15',
-    author: 'Pascal',
     content: `TOUL CROIX DE METZ (Toul Padel Club)
+Animateur : Pascal
 Lieu de départ : https://maps.app.goo.gl/fgBaLmbVNHgsAavKA`,
   },
   {
@@ -353,8 +364,8 @@ Lieu de départ : https://maps.app.goo.gl/fgBaLmbVNHgsAavKA`,
     date: '2026-09-24',
     startTime: '14:00',
     endTime: '16:30',
-    author: 'Michel',
     content: `THUILLEY AUX GROSEILLES (parking salle des fêtes)
+Animateur : Michel
 km : 10,0 · D+ : 142 m
 Lieu de départ : https://maps.app.goo.gl/zU3byfDrwFhZRr4H7`,
   },
@@ -363,8 +374,8 @@ Lieu de départ : https://maps.app.goo.gl/zU3byfDrwFhZRr4H7`,
     date: '2026-09-24',
     startTime: '14:00',
     endTime: '17:00',
-    author: 'Jean-Marie',
     content: `LE BONHOMME - LE GRAND BREZOUARD
+Animateur : Jean-Marie
 covoiturage Carrefour à 07H30
 Lieu de départ : https://maps.app.goo.gl/GPiBYzMQ5NohHrmq7`,
   },
@@ -373,8 +384,8 @@ Lieu de départ : https://maps.app.goo.gl/GPiBYzMQ5NohHrmq7`,
     date: '2026-09-25',
     startTime: '09:00',
     endTime: '11:30',
-    author: 'Bernard A.',
     content: `CHAUDENEY (salle Bouchot)
+Animateur : Bernard A.
 Lieu de départ : https://maps.app.goo.gl/6vPvjX62FVQL7Dbs8`,
   },
   {
@@ -382,8 +393,8 @@ Lieu de départ : https://maps.app.goo.gl/6vPvjX62FVQL7Dbs8`,
     date: '2026-09-25',
     startTime: '14:00',
     endTime: '16:15',
-    author: 'Daniel D',
     content: `ALLAIN (aire de covoiturage)
+Animateur : Daniel D
 Lieu de départ : https://maps.app.goo.gl/iis7L8j5rWrVBRqd8`,
   },
   {
@@ -391,8 +402,8 @@ Lieu de départ : https://maps.app.goo.gl/iis7L8j5rWrVBRqd8`,
     date: '2026-09-28',
     startTime: '14:00',
     endTime: '16:30',
-    author: 'Gérald',
     content: `CORNIEVILLE (parking milieu du village)
+Animateur : Gérald
 Lieu de départ : https://maps.app.goo.gl/a9reeTAKWGZZfHJw8`,
   },
   {
@@ -400,8 +411,8 @@ Lieu de départ : https://maps.app.goo.gl/a9reeTAKWGZZfHJw8`,
     date: '2026-09-28',
     startTime: '14:00',
     endTime: '16:45',
-    author: 'Jean-Marie',
     content: `PAGNEY DERRIERE BARINE (Les Acacias)
+Animateur : Jean-Marie
 Lieu de départ : https://maps.app.goo.gl/nK3aknincArtnstTA`,
   },
   {
@@ -409,8 +420,8 @@ Lieu de départ : https://maps.app.goo.gl/nK3aknincArtnstTA`,
     date: '2026-09-29',
     startTime: '14:00',
     endTime: '16:15',
-    author: 'Muriel',
     content: `BICQUELEY (Rue de la Poirière, tas de bois)
+Animateur : Muriel
 Lieu de départ : https://maps.app.goo.gl/Xja52hs2whEg68NQA`,
   },
 ]

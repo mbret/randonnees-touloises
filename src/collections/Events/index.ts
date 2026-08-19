@@ -13,23 +13,32 @@ import { authenticated } from '../../access/authenticated'
 import { Banner } from '../../blocks/Banner/config'
 import { Code } from '../../blocks/Code/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
-import { generatePreviewPath } from '../../utilities/generatePreviewPath'
-import { populateAuthors } from './hooks/populateAuthors'
-import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
-
-import {
-  MetaDescriptionField,
-  MetaImageField,
-  MetaTitleField,
-  OverviewField,
-  PreviewField,
-} from '@payloadcms/plugin-seo/fields'
-import { slugField } from 'payload'
-import { visibilityField } from '@/fields/visibility'
 import { checkRole } from '@/access/utilities'
+import { revalidateEvent, revalidateEventDelete } from './hooks/revalidateEvent'
 
+/** Wall-clock time as the programme announces it, e.g. `08:30`. */
+const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/
+
+const validateTime = (value: unknown) =>
+  !value || (typeof value === 'string' && timePattern.test(value))
+    ? true
+    : 'Indiquez une heure au format HH:MM, par exemple 08:30.'
+
+/**
+ * Anything the club puts on a date: the weekly randonnées, a sortie à la
+ * journée, an assemblée générale.
+ *
+ * An event is a calendar entry and nothing more — it has no page, so no slug, no
+ * SEO and no hero image. Anything that deserves a page of its own (a poster, a
+ * registration form, a write-up) is a post instead, which is also where the
+ * content password lives.
+ */
 export const Events: CollectionConfig<'events'> = {
   slug: 'events',
+  labels: {
+    singular: 'Sortie / Événement',
+    plural: 'Sorties / Événements',
+  },
   access: {
     create: authenticated,
     delete: authenticated,
@@ -38,63 +47,24 @@ export const Events: CollectionConfig<'events'> = {
         return true
       }
 
-      const basePublishedQuery = {
+      return {
         _status: {
           equals: 'published',
         },
       }
-
-      const noVisibilitySet = { visibility: { exists: false } }
-
-      // If user is authenticated, check their roles against visibility
-      if (user) {
-        const userRoles = user.roles || []
-
-        return {
-          and: [
-            basePublishedQuery,
-            {
-              or: [noVisibilitySet, { visibility: { in: userRoles } }],
-            },
-          ],
-        }
-      }
-
-      // Unauthenticated users: only published posts with no visibility restrictions
-      return {
-        and: [basePublishedQuery, noVisibilitySet],
-      }
     },
     update: authenticated,
   },
-  // This config controls what's populated by default when a post is referenced
-  // https://payloadcms.com/docs/queries/select#defaultpopulate-collection-config-property
-  // Type safe if the collection slug generic is passed to `CollectionConfig` - `CollectionConfig<'posts'>
   defaultPopulate: {
     title: true,
-    slug: true,
-    categories: true,
-    meta: {
-      image: true,
-      description: true,
-    },
+    date: true,
+    startTime: true,
+    endTime: true,
+    content: true,
   },
+  defaultSort: 'date',
   admin: {
-    defaultColumns: ['title', 'slug', 'updatedAt'],
-    livePreview: {
-      url: ({ data, req }) =>
-        generatePreviewPath({
-          slug: data?.slug,
-          collection: 'events',
-          req,
-        }),
-    },
-    preview: (data, { req }) =>
-      generatePreviewPath({
-        slug: data?.slug as string,
-        collection: 'events',
-        req,
-      }),
+    defaultColumns: ['date', 'title', 'startTime'],
     useAsTitle: 'title',
   },
   fields: [
@@ -102,179 +72,90 @@ export const Events: CollectionConfig<'events'> = {
       name: 'title',
       type: 'text',
       required: true,
+      label: 'Intitulé',
+      admin: {
+        description: 'Par exemple « Grande », « Nordique » ou « Assemblée générale ».',
+      },
     },
     {
-      type: 'tabs',
-      tabs: [
+      name: 'date',
+      type: 'date',
+      required: true,
+      index: true,
+      label: 'Date',
+      admin: {
+        date: {
+          pickerAppearance: 'dayOnly',
+        },
+        position: 'sidebar',
+      },
+    },
+    {
+      type: 'row',
+      fields: [
         {
-          fields: [
-            {
-              name: 'heroImage',
-              type: 'upload',
-              relationTo: 'media',
-            },
-            {
-              name: 'content',
-              type: 'richText',
-              editor: lexicalEditor({
-                features: ({ rootFeatures }) => {
-                  return [
-                    ...rootFeatures,
-                    HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
-                    BlocksFeature({ blocks: [Banner, Code, MediaBlock] }),
-                    FixedToolbarFeature(),
-                    InlineToolbarFeature(),
-                    HorizontalRuleFeature(),
-                  ]
-                },
-              }),
-              label: false,
-              required: true,
-            },
-          ],
-          label: 'Content',
+          name: 'startTime',
+          type: 'text',
+          label: 'Heure de départ',
+          validate: validateTime,
+          admin: {
+            placeholder: '09:00',
+            width: '50%',
+          },
         },
         {
-          fields: [
-            {
-              name: 'relatedEvents',
-              type: 'relationship',
-              admin: {
-                position: 'sidebar',
-              },
-              filterOptions: ({ id }) => {
-                return {
-                  id: {
-                    not_in: [id],
-                  },
-                }
-              },
-              hasMany: true,
-              relationTo: 'events',
-            },
-            {
-              name: 'categories',
-              type: 'relationship',
-              admin: {
-                position: 'sidebar',
-              },
-              hasMany: true,
-              relationTo: 'categories',
-            },
-          ],
-          label: 'Meta',
-        },
-        {
-          name: 'meta',
-          label: 'SEO',
-          fields: [
-            OverviewField({
-              titlePath: 'meta.title',
-              descriptionPath: 'meta.description',
-              imagePath: 'meta.image',
-            }),
-            MetaTitleField({
-              hasGenerateFn: true,
-            }),
-            MetaImageField({
-              relationTo: 'media',
-            }),
-
-            MetaDescriptionField({}),
-            PreviewField({
-              // if the `generateUrl` function is configured
-              hasGenerateFn: true,
-
-              // field paths to match the target field for data
-              titlePath: 'meta.title',
-              descriptionPath: 'meta.description',
-            }),
-          ],
+          name: 'endTime',
+          type: 'text',
+          label: 'Heure de retour',
+          validate: validateTime,
+          admin: {
+            placeholder: '11:30',
+            width: '50%',
+          },
         },
       ],
     },
     {
-      name: 'publishedAt',
-      type: 'date',
+      name: 'content',
+      type: 'richText',
+      label: 'Détails',
       admin: {
-        date: {
-          pickerAppearance: 'dayAndTime',
+        description:
+          'Lieu de rendez-vous, animateur, kilométrage, dénivelé, covoiturage… tel que vous voulez le présenter.',
+      },
+      editor: lexicalEditor({
+        features: ({ rootFeatures }) => {
+          return [
+            ...rootFeatures,
+            HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
+            BlocksFeature({ blocks: [Banner, Code, MediaBlock] }),
+            FixedToolbarFeature(),
+            InlineToolbarFeature(),
+            HorizontalRuleFeature(),
+          ]
         },
-        position: 'sidebar',
-      },
-      hooks: {
-        beforeChange: [
-          ({ siblingData, value }) => {
-            if (siblingData._status === 'published' && !value) {
-              return new Date()
-            }
-            return value
-          },
-        ],
-      },
+      }),
     },
     {
-      name: 'authors',
+      // Kept as the hook for typing events later — a select can be layered on
+      // these without a migration once there is more than randonnées in here.
+      name: 'categories',
       type: 'relationship',
       admin: {
         position: 'sidebar',
       },
       hasMany: true,
-      relationTo: 'users',
+      relationTo: 'categories',
     },
-    {
-      ...visibilityField,
-      admin: {
-        position: 'sidebar',
-      },
-    },
-    {
-      name: 'requireContentPassword',
-      type: 'checkbox',
-      label: 'Nécessite un mot de passe pour voir le contenu',
-      required: false,
-      admin: {
-        position: 'sidebar',
-      },
-    },
-    // This field is only used to populate the user data via the `populateAuthors` hook
-    // This is because the `user` collection has access control locked to protect user privacy
-    // GraphQL will also not return mutated user data that differs from the underlying schema
-    {
-      name: 'populatedAuthors',
-      type: 'array',
-      access: {
-        update: () => false,
-      },
-      admin: {
-        disabled: true,
-        readOnly: true,
-      },
-      fields: [
-        {
-          name: 'id',
-          type: 'text',
-        },
-        {
-          name: 'name',
-          type: 'text',
-        },
-      ],
-    },
-    slugField(),
   ],
   hooks: {
-    afterChange: [revalidatePost],
-    afterRead: [populateAuthors],
-    afterDelete: [revalidateDelete],
+    afterChange: [revalidateEvent],
+    afterDelete: [revalidateEventDelete],
   },
   versions: {
     drafts: {
-      autosave: {
-        interval: 100, // We set this interval for optimal live preview
-      },
       schedulePublish: true,
     },
-    maxPerDoc: 50,
+    maxPerDoc: 10,
   },
 }

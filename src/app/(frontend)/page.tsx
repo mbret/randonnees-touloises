@@ -1,6 +1,6 @@
 import type { Metadata } from 'next/types'
 
-import { HomeAgenda } from '@/components/home/agenda/HomeAgenda'
+import { HomeAgenda } from '@/components/agenda/HomeAgenda'
 import { HomeHero } from '@/components/home/HomeHero'
 import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import { SEO_DESCRIPTION, SEO_TITLE } from '@/seo/constants'

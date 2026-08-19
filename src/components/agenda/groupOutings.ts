@@ -1,3 +1,5 @@
+import type { Event } from '@/payload-types'
+
 /**
  * One outing as the club announces it in its monthly programme.
  *
@@ -13,10 +15,8 @@ export type AgendaOuting = {
   date: string
   startTime?: string
   endTime?: string
-  /** The animateur leading the outing. */
-  author?: string
-  /** Meeting point and practical details, free text, one item per line. */
-  content: string
+  /** Meeting point and practical details, laid out however the editor wants. */
+  content?: Event['content']
 }
 
 export type AgendaDay = {
@@ -52,9 +52,21 @@ const formatDay = (date: string, options: Intl.DateTimeFormatOptions) =>
     ),
   )
 
+/**
+ * The calendar day an instant falls on in Toul, as `YYYY-MM-DD`.
+ *
+ * This is how a stored timestamp is turned back into the day an editor meant.
+ * Payload's `dayOnly` picker sends midnight in the editor's own timezone, so a
+ * date chosen in France is stored as 22:00 or 23:00 UTC the day before — reading
+ * the ISO string's first ten characters would be a day out. Formatting the
+ * instant in Paris recovers the intended day, and does so whether the value was
+ * stored as Paris midnight or as UTC midnight.
+ */
+export const dayInFrance = (value: Date | string) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' }).format(new Date(value))
+
 /** Today in Toul as `YYYY-MM-DD`, so past outings drop off on the right day. */
-export const todayInFrance = () =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' }).format(new Date())
+export const todayInFrance = () => dayInFrance(new Date())
 
 /**
  * Turns a flat list of outings into the month → day → outings shape the agenda
@@ -65,7 +77,7 @@ export const todayInFrance = () =>
  */
 export const groupOutingsByMonth = (
   outings: AgendaOuting[],
-  { from = todayInFrance(), months }: { from?: string; months?: number } = {},
+  { from = todayInFrance() }: { from?: string } = {},
 ): AgendaMonth[] => {
   const upcoming = [...outings]
     .filter((outing) => outing.date >= from)
@@ -103,5 +115,5 @@ export const groupOutingsByMonth = (
     day.outings.push(outing)
   }
 
-  return months === undefined ? grouped : grouped.slice(0, months)
+  return grouped
 }
