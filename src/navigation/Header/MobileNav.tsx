@@ -26,7 +26,7 @@ export const MobileNav: React.FC<{ data: HeaderType }> = ({ data }) => {
           <SheetTitle className="sr-only">Edit profile</SheetTitle>
           <Logo className="max-h-10 w-auto" />
         </SheetHeader>
-        <nav className="gap-3 flex flex-col p-4">
+        <nav className="gap-3 flex flex-col overflow-y-auto p-4">
           {navItems.map(({ link }, i) => {
             return (
               <Item asChild key={i}>

@@ -14,9 +14,26 @@ import {
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu'
 import { cn } from '@/components/ui'
-import { useMediaQuery } from '@/components/ui/hooks/use-media-query'
-import { cssVariables } from '@/theme/variables'
 import { withStaticNavItems } from './staticNavItems'
+
+/**
+ * How many of the leading nav items sit outside the "Plus" menu: two below
+ * `md`, three below `lg`, four above. Each entry pairs a class for the item's
+ * shortcut with the complementary one for its entry in the menu, so exactly one
+ * of the two copies shows at any width and the menu never repeats what is
+ * already on display.
+ *
+ * The counts are deliberately conservative — they hold even for long labels — so
+ * that the split can be plain CSS. Measuring the viewport instead renders one
+ * thing on the server and another in the browser, which breaks hydration.
+ * Tailwind only picks these up as literal strings.
+ */
+const shortcutLadder = [
+  { shortcut: '', menu: 'hidden' },
+  { shortcut: '', menu: 'hidden' },
+  { shortcut: 'max-md:hidden', menu: 'md:hidden' },
+  { shortcut: 'max-lg:hidden', menu: 'lg:hidden' },
+]
 
 function ListItem({ url, isExternal, className, ...rest }: ComponentProps<typeof CMSLink>) {
   return (
@@ -45,45 +62,47 @@ function ListItem({ url, isExternal, className, ...rest }: ComponentProps<typeof
 
 export const DesktopNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   const navItems = withStaticNavItems(data?.navItems)
-  const md = useMediaQuery(`(width <= ${cssVariables.breakpoints.md})`)
-  const lg = useMediaQuery(`(width <= ${cssVariables.breakpoints.lg})`)
-  const maxVisibleItems = md ? 2 : lg ? 3 : 4
-  const alwaysVisibleItems = navItems.slice(0, maxVisibleItems).reverse()
-  const restItems = navItems.slice(maxVisibleItems).reverse()
+  const laddered = navItems.slice(0, shortcutLadder.length)
+
+  /* Reversed so the first item to drop out sits next to the "Plus" trigger. */
+  const shortcuts = laddered
+    .map((item, i) => ({ ...item, visibility: shortcutLadder[i].shortcut }))
+    .reverse()
+
+  const menuItems = [
+    ...laddered.map((item, i) => ({ ...item, visibility: shortcutLadder[i].menu })),
+    ...navItems.slice(shortcutLadder.length).map((item) => ({ ...item, visibility: '' })),
+  ]
 
   return (
-    <>
-      <NavigationMenu viewport={md} className="max-sm:hidden">
-        <NavigationMenuList className="flex-wrap">
-          {restItems.length > 0 && (
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>Plus</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[200px] gap-4">
-                  <li>
-                    {restItems.map(({ link }, i) => {
-                      return (
-                        <NavigationMenuLink key={i} asChild>
-                          <ListItem {...link} />
-                        </NavigationMenuLink>
-                      )
-                    })}
+    <NavigationMenu viewport={false} className="max-sm:hidden">
+      <NavigationMenuList className="flex-wrap">
+        <NavigationMenuItem>
+          <NavigationMenuTrigger>Plus</NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <ul className="grid w-[200px] gap-4">
+              {menuItems.map(({ link, visibility }, i) => {
+                return (
+                  <li className={visibility} key={i}>
+                    <NavigationMenuLink asChild>
+                      <ListItem {...link} />
+                    </NavigationMenuLink>
                   </li>
-                </ul>
-              </NavigationMenuContent>
+                )
+              })}
+            </ul>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+        {shortcuts.map(({ link, visibility }, i) => {
+          return (
+            <NavigationMenuItem key={i} className={visibility}>
+              <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                <ListItem {...link} />
+              </NavigationMenuLink>
             </NavigationMenuItem>
-          )}
-          {alwaysVisibleItems.map(({ link }, i) => {
-            return (
-              <NavigationMenuItem key={i}>
-                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <ListItem {...link} />
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            )
-          })}
-        </NavigationMenuList>
-      </NavigationMenu>
-    </>
+          )
+        })}
+      </NavigationMenuList>
+    </NavigationMenu>
   )
 }
