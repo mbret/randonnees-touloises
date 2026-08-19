@@ -99,10 +99,15 @@ export const plugins: Plugin[] = [
   payloadCloudPlugin(),
   ecommercePlugin({
     access: {
-      adminOnly,
       adminOnlyFieldAccess,
-      adminOrCustomerOwner,
       adminOrPublishedStatus,
+      // Renamed in @payloadcms/plugin-ecommerce 3.8x: `adminOnly` -> `isAdmin`,
+      // `adminOrCustomerOwner` -> `isDocumentOwner`.
+      isAdmin: adminOnly,
+      isDocumentOwner: adminOrCustomerOwner,
+      // Deprecated in favour of `isCustomer`, but kept: `isCustomer` means
+      // "authenticated and not an admin", while this checks for an explicit
+      // `customer` role. Switching would widen field access.
       customerOnlyFieldAccess,
     },
     customers: {
