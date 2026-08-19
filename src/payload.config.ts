@@ -49,6 +49,15 @@ if (process.env.NODE_ENV !== 'production' && !process.env.ALLOW_REMOTE_DB && con
   }
 }
 
+/**
+ * The Blob store is shared by every environment — unlike the database, there is
+ * no separate dev store — so keep it out of local runs: without the adapter,
+ * Payload stores uploads on disk under the collection's `staticDir`, and a local
+ * upload or delete can no longer overwrite the files production serves. Set
+ * USE_BLOB_STORAGE=1 to exercise the Blob code path deliberately.
+ */
+const useBlobStorage = process.env.NODE_ENV === 'production' || process.env.USE_BLOB_STORAGE === '1'
+
 export default buildConfig({
   admin: {
     components: {
@@ -112,10 +121,14 @@ export default buildConfig({
   globals: [Header, Footer, General, TeamDirectoryConfig],
   plugins: [
     ...plugins,
+    // Registered either way so the generated admin import map does not depend on
+    // the environment; `enabled: false` leaves the config untouched, which is
+    // what makes Payload fall back to disk storage.
     vercelBlobStorage({
       collections: {
         media: true,
       },
+      enabled: useBlobStorage,
       token: process.env.BLOB_READ_WRITE_TOKEN || '',
     }),
   ],
