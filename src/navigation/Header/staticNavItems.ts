@@ -21,6 +21,10 @@ export const staticNavItems: HeaderNavItem[] = [
     id: 'static-animation-team',
     link: { label: 'Équipe d’animation', type: 'custom', url: '/animation-team' },
   },
+  {
+    id: 'static-trombinoscope',
+    link: { label: 'Trombinoscope', type: 'custom', url: '/trombinoscope' },
+  },
 ]
 
 const staticUrls = new Set(
