@@ -1,8 +1,7 @@
 import type { StaticTeamMember } from '@/data/teams'
 import type { TeamMember } from '@/components/TeamSection/TeamSection'
 
-import configPromise from '@payload-config'
-import { getPayload } from 'payload'
+import { getMediaByFilenames } from '@/utilities/getMediaByFilenames'
 
 /**
  * Turn the filename each static member carries into the media document
@@ -19,15 +18,7 @@ export const resolveTeamPhotos = async (members: StaticTeamMember[]): Promise<Te
 
   if (filenames.length === 0) return members.map(({ photo: _photo, ...member }) => member)
 
-  const payload = await getPayload({ config: configPromise })
-  const { docs } = await payload.find({
-    collection: 'media',
-    depth: 0,
-    pagination: false,
-    where: { filename: { in: filenames } },
-  })
-
-  const byFilename = new Map(docs.map((doc) => [doc.filename, doc]))
+  const byFilename = await getMediaByFilenames(filenames)
 
   return members.map(({ photo, ...member }) => ({
     ...member,

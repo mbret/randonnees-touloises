@@ -13,6 +13,7 @@ import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Media as MediaType } from '@/payload-types'
 import { Media } from '../Media'
+import { getInitials } from '@/utilities/getInitials'
 import { Fragment } from 'react'
 
 export type TeamMember = {
@@ -74,14 +75,6 @@ const getLinkForContact = (
       return <a href={value ?? '#'}>{<WebhookIcon className="size-5" />}</a>
   }
 }
-const getInitials = (name?: string | null) => {
-  const words = name?.trim().split(/\s+/).filter(Boolean) ?? []
-
-  if (words.length === 0) return ''
-
-  return [words[0], words[words.length - 1]].map((word) => word?.[0]?.toUpperCase()).join('')
-}
-
 export const TeamSection = ({ teamMembers }: { teamMembers: TeamMember[] }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 lg:gap-y-10 xl:grid-cols-5">
