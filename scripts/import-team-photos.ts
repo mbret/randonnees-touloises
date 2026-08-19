@@ -4,7 +4,7 @@
  *
  *   DRY_RUN=1 pnpm payload run scripts/import-team-photos.ts
  *   pnpm payload run scripts/import-team-photos.ts
- *   POSTGRES_URL=<production url> ALLOW_REMOTE_DB=1 USE_BLOB_STORAGE=1 \
+ *   POSTGRES_URL=<production url> ALLOW_REMOTE_DB=1 USE_REMOTE_STORAGE=1 \
  *     pnpm payload run scripts/import-team-photos.ts
  *
  * Unlike the trombinoscope, these pages caption every portrait with the member's
@@ -13,9 +13,9 @@
  * filename rather than by id, because local and production ids are independent
  * sequences.
  *
- * USE_BLOB_STORAGE=1 matters for a production run: without it the config leaves
- * the Blob adapter out and the files would be written to this machine's disk
- * while the production rows expect them in the store.
+ * USE_REMOTE_STORAGE=1 matters for a production run: without it the config leaves
+ * the remote adapter out and the files would be written to this machine's disk
+ * while the production rows expect them in the bucket.
  */
 const SOURCE_PAGES = [
   { prefix: 'conseil', url: 'https://www.randonnees-touloises.net/conseil-d-administration' },

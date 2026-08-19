@@ -4,7 +4,7 @@
  *
  *   DRY_RUN=1 pnpm payload run scripts/import-trombinoscope.ts
  *   pnpm payload run scripts/import-trombinoscope.ts
- *   POSTGRES_URL=<production url> ALLOW_REMOTE_DB=1 USE_BLOB_STORAGE=1 \
+ *   POSTGRES_URL=<production url> ALLOW_REMOTE_DB=1 USE_REMOTE_STORAGE=1 \
  *     pnpm payload run scripts/import-trombinoscope.ts
  *
  * The gallery page itself renders only its first 50 items (data-limit="50"), so
@@ -16,10 +16,10 @@
  * forward extra argv to a script. DRY_RUN=1 reports without writing, LIMIT=N
  * takes the first N portraits, PRUNE=1 additionally deletes trombinoscope media
  * that the sitemap no longer lists, and a remote database needs ALLOW_REMOTE_DB=1
- * — plus USE_BLOB_STORAGE=1, or the files would land on this machine's disk
- * while the production rows expect them in the Blob store.
+ * — plus USE_REMOTE_STORAGE=1, or the files would land on this machine's disk
+ * while the production rows expect them in the bucket.
  *
- * Reruns are safe: media are matched on filename and skipped, and blob keys are
+ * Reruns are safe: media are matched on filename and skipped, and object keys are
  * the filenames, so a re-upload overwrites rather than duplicating.
  */
 const SITEMAP_URL = 'https://www.randonnees-touloises.net/sitemap.xml'
@@ -242,7 +242,13 @@ const main = async () => {
   }
 
   // Pruning keeps only what this run accounted for, so an incomplete run would
-  // read like the site had dropped the portraits it never reached.
+  // read like the site had dropped the portraits it never reached. LIMIT makes
+  // every run incomplete by definition, hence its own refusal.
+  if (limit) {
+    console.error('Refusing to prune a LIMIT-ed run.')
+    process.exit(1)
+  }
+
   if (portraits.length !== itemUrls.length || keptIds.size !== portraits.length) {
     console.error(
       `Refusing to prune: parsed ${portraits.length} of ${itemUrls.length} sitemap entries, ` +

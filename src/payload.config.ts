@@ -1,4 +1,4 @@
-import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
+import { s3Storage } from '@payloadcms/storage-s3'
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 
@@ -50,13 +50,23 @@ if (process.env.NODE_ENV !== 'production' && !process.env.ALLOW_REMOTE_DB && con
 }
 
 /**
- * The Blob store is shared by every environment — unlike the database, there is
- * no separate dev store — so keep it out of local runs: without the adapter,
- * Payload stores uploads on disk under the collection's `staticDir`, and a local
- * upload or delete can no longer overwrite the files production serves. Set
- * USE_BLOB_STORAGE=1 to exercise the Blob code path deliberately.
+ * Media lives in Cloudflare R2 in production. One bucket serves every
+ * environment, so keep local runs off it — without the adapter Payload stores
+ * uploads on disk under the collection's `staticDir`, and a local upload or
+ * delete can no longer touch the files production serves. Set
+ * USE_REMOTE_STORAGE=1 for the occasions a workstation does need the bucket,
+ * such as importing media into production.
  */
-const useBlobStorage = process.env.NODE_ENV === 'production' || process.env.USE_BLOB_STORAGE === '1'
+const wantsRemoteStorage =
+  process.env.NODE_ENV === 'production' || process.env.USE_REMOTE_STORAGE === '1'
+
+/**
+ * Also require the credentials to be there: a deploy that reaches production
+ * before the bucket variables are set should fall back to disk — media 404s,
+ * the same as an empty bucket — rather than have every request fail inside an
+ * S3 client that has nothing to talk to.
+ */
+const useRemoteStorage = wantsRemoteStorage && Boolean(process.env.R2_BUCKET)
 
 export default buildConfig({
   admin: {
@@ -124,12 +134,23 @@ export default buildConfig({
     // Registered either way so the generated admin import map does not depend on
     // the environment; `enabled: false` leaves the config untouched, which is
     // what makes Payload fall back to disk storage.
-    vercelBlobStorage({
+    s3Storage({
+      bucket: process.env.R2_BUCKET || '',
       collections: {
         media: true,
       },
-      enabled: useBlobStorage,
-      token: process.env.BLOB_READ_WRITE_TOKEN || '',
+      config: {
+        credentials: {
+          accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+        },
+        endpoint: process.env.R2_ENDPOINT || '',
+        // R2 has no regions, and accepts the bucket in the path rather than in
+        // the hostname.
+        forcePathStyle: true,
+        region: 'auto',
+      },
+      enabled: useRemoteStorage,
     }),
   ],
   secret: process.env.PAYLOAD_SECRET,
