@@ -13,18 +13,14 @@ import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import { draftMode } from 'next/headers'
 import { getServerSideURL } from '@/utilities/getURL'
 import './globals.css'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
 import { ThemeProvider } from '@/theme/ThemeProvider'
 import { Favicon } from '@/metadata/Favicon'
 import { MediaProvider } from '@/metadata/MediaProvider'
+import { getCachedMedias } from '@/metadata/getMedias'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { isEnabled } = await draftMode()
-  const payload = await getPayload({ config: configPromise })
-  const { docs } = await payload.find({
-    collection: 'media',
-  })
+  const siteAssets = await getCachedMedias()()
 
   return (
     <html className={cn(GeistSans.variable, GeistMono.variable)} lang="fr" suppressHydrationWarning>
@@ -38,7 +34,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           enableSystem
           disableTransitionOnChange
         >
-          <MediaProvider media={docs}>
+          <MediaProvider media={siteAssets}>
             <Providers>
               <AdminBar
                 adminBarProps={{
