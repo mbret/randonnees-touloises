@@ -7,6 +7,16 @@ import { getInitials } from '@/utilities/getInitials'
 import { getMediaByFilenames } from '@/utilities/getMediaByFilenames'
 import React from 'react'
 
+/**
+ * Prerendered, then refreshed on a schedule: the portraits come from the media
+ * collection, so a page baked at build time keeps whatever the collection held
+ * then — an empty one renders every member as initials until the next deploy.
+ * Ten minutes, matching the posts and events listings.
+ */
+export const dynamic = 'force-static'
+
+export const revalidate = 600
+
 export default async function Page() {
   const portraits = await getMediaByFilenames(trombinoscope.map(({ photo }) => photo))
 

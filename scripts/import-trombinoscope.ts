@@ -128,6 +128,37 @@ const describeTarget = () => {
 const isLocal = (target: string) =>
   /^(localhost|127\.0\.0\.1|host\.docker\.internal)[:/]/.test(target)
 
+/**
+ * Payload's getSafeFileName checks the local upload directory as well as the
+ * database, so a file sitting in public/media makes it store `name-1.jpg` even
+ * when the target is a remote bucket and another database entirely. Every name
+ * would then drift from what src/data refers to, silently.
+ */
+const assertLocalMediaCannotShadow = async (filenames: string[]) => {
+  const { access } = await import('fs/promises')
+  const path = await import('path')
+  const staticDir = path.resolve(process.cwd(), 'public/media')
+  const shadowing: string[] = []
+
+  for (const filename of filenames) {
+    const exists = await access(path.join(staticDir, filename)).then(
+      () => true,
+      () => false,
+    )
+
+    if (exists) shadowing.push(filename)
+  }
+
+  if (shadowing.length === 0) return
+
+  console.error(
+    `\n${shadowing.length} of these files also exist in public/media, which would make ` +
+      `Payload rename every upload (${shadowing[0]} -> a "-1" variant).\n` +
+      `Move public/media aside for the duration of a remote import, then move it back.`,
+  )
+  process.exit(1)
+}
+
 const main = async () => {
   const dryRun = process.env.DRY_RUN === '1'
   const prune = process.env.PRUNE === '1'
@@ -177,6 +208,10 @@ const main = async () => {
       `\nRefusing to write to ${target}: set ALLOW_REMOTE_DB=1 to import into a non-local database.`,
     )
     process.exit(1)
+  }
+
+  if (process.env.USE_REMOTE_STORAGE === '1') {
+    await assertLocalMediaCannotShadow(portraits.map(({ filename }) => filename))
   }
 
   const { getPayload } = await import('payload')
