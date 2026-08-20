@@ -1,4 +1,5 @@
 import * as React from "react"
+import Link from "next/link"
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -39,27 +40,47 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
 
 type PaginationLinkProps = {
   isActive?: boolean
+  /** Omitted when the control has nowhere to go, e.g. "previous" on page 1. */
+  href?: React.ComponentProps<typeof Link>["href"]
 } & Pick<React.ComponentProps<typeof Button>, "size"> &
-  React.ComponentProps<"a">
+  Omit<React.ComponentProps<typeof Link>, "href">
 
 function PaginationLink({
   className,
   isActive,
   size = "icon",
+  href,
   ...props
 }: PaginationLinkProps) {
+  const classes = cn(
+    buttonVariants({
+      variant: isActive ? "outline" : "ghost",
+      size,
+    }),
+    className
+  )
+
+  // A `next/link` rather than a bare anchor, so the destination is prefetched
+  // and the navigation stays client side. Without a destination there is nothing
+  // to link to, so the control renders inert instead of pointing nowhere.
+  if (href === undefined) {
+    return (
+      <span
+        aria-disabled
+        data-slot="pagination-link"
+        className={cn(classes, "pointer-events-none opacity-50")}
+        {...(props as React.ComponentProps<"span">)}
+      />
+    )
+  }
+
   return (
-    <a
+    <Link
       aria-current={isActive ? "page" : undefined}
       data-slot="pagination-link"
       data-active={isActive}
-      className={cn(
-        buttonVariants({
-          variant: isActive ? "outline" : "ghost",
-          size,
-        }),
-        className
-      )}
+      className={classes}
+      href={href}
       {...props}
     />
   )
