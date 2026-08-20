@@ -9,7 +9,6 @@ import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import { getPayload } from 'payload'
 import React from 'react'
 import PageClient from './page.client'
-import { headers as getHeaders } from 'next/headers.js'
 
 export const dynamic = 'force-static'
 
@@ -21,14 +20,11 @@ const DESCRIPTION =
 
 export default async function Page() {
   const payload = await getPayload({ config: configPromise })
-  const headers = await getHeaders()
-  const { user } = await payload.auth({ headers })
 
   const posts = await payload.find({
     collection: 'posts',
     depth: 1,
     limit: 12,
-    user,
     overrideAccess: false,
     select: {
       title: true,

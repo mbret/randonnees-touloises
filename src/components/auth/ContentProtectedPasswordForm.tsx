@@ -29,6 +29,8 @@ export const ContentProtectedPasswordForm = ({ general }: { general: General }) 
   })
 
   function onSubmit(data: z.infer<typeof formSchema>) {
+    // Compared here in the browser, which is what puts the password in the page.
+    // Soft lock, known — see the note on `WithContentProtectedPassword`.
     if (data.password === general.contentPassword) {
       document.cookie = `contentPassword=${encodeURIComponent(data.password)}; path=/; max-age=604800; SameSite=Lax`
 

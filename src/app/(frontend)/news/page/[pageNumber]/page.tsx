@@ -17,6 +17,9 @@ const TITLE = 'Actualités'
 const DESCRIPTION =
   'Les actualités, comptes-rendus de sorties et informations de la vie associative des Randonnées Touloises.'
 
+/** Posts per page, for both the query and the page numbers generated below. */
+const PER_PAGE = 12
+
 type Args = {
   params: Promise<{
     pageNumber: string
@@ -34,7 +37,7 @@ export default async function Page({ params: paramsPromise }: Args) {
   const posts = await payload.find({
     collection: 'posts',
     depth: 1,
-    limit: 12,
+    limit: PER_PAGE,
     page: sanitizedPageNumber,
     overrideAccess: false,
     where: withoutPrograms,
@@ -53,7 +56,7 @@ export default async function Page({ params: paramsPromise }: Args) {
         <PageRange
           collection="posts"
           currentPage={posts.page}
-          limit={12}
+          limit={PER_PAGE}
           totalDocs={posts.totalDocs}
         />
       </div>
@@ -92,7 +95,9 @@ export async function generateStaticParams() {
     where: withoutPrograms,
   })
 
-  const totalPages = Math.ceil(totalDocs / 10)
+  // Page one always exists, even before anything is published: the listing
+  // renders empty rather than being served on demand.
+  const totalPages = Math.max(1, Math.ceil(totalDocs / PER_PAGE))
 
   const pages: { pageNumber: string }[] = []
 
