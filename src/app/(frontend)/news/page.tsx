@@ -5,6 +5,7 @@ import { PageRange } from '@/components/PageRange'
 import { Pagination } from '@/components/Pagination'
 import configPromise from '@payload-config'
 import { withoutPrograms } from '@/components/programs/filters'
+import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import { getPayload } from 'payload'
 import React from 'react'
 import PageClient from './page.client'
@@ -13,6 +14,10 @@ import { headers as getHeaders } from 'next/headers.js'
 export const dynamic = 'force-static'
 
 export const revalidate = 600
+
+const TITLE = 'Actualités'
+const DESCRIPTION =
+  'Les actualités, comptes-rendus de sorties et informations de la vie associative des Randonnées Touloises.'
 
 export default async function Page() {
   const payload = await getPayload({ config: configPromise })
@@ -38,7 +43,7 @@ export default async function Page() {
       <PageClient />
       <div className="container mx-auto mb-16">
         <div className="prose dark:prose-invert max-w-none">
-          <h1>Actualités</h1>
+          <h1>{TITLE}</h1>
         </div>
       </div>
 
@@ -62,8 +67,12 @@ export default async function Page() {
   )
 }
 
-export function generateMetadata(): Metadata {
-  return {
-    title: `Actualités`,
-  }
+export const metadata: Metadata = {
+  description: DESCRIPTION,
+  openGraph: mergeOpenGraph({
+    description: DESCRIPTION,
+    title: TITLE,
+    url: '/news',
+  }),
+  title: TITLE,
 }
