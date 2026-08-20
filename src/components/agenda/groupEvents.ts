@@ -1,5 +1,7 @@
 import type { Event } from '@/payload-types'
 
+import { todayInFrance } from '@/utilities/parisDay'
+
 /**
  * One event as the club announces it in its monthly programme.
  *
@@ -53,20 +55,10 @@ const formatDay = (date: string, options: Intl.DateTimeFormatOptions) =>
   )
 
 /**
- * The calendar day an instant falls on in Toul, as `YYYY-MM-DD`.
- *
- * This is how a stored timestamp is turned back into the day an editor meant.
- * Payload's `dayOnly` picker sends midnight in the editor's own timezone, so a
- * date chosen in France is stored as 22:00 or 23:00 UTC the day before — reading
- * the ISO string's first ten characters would be a day out. Formatting the
- * instant in Paris recovers the intended day, and does so whether the value was
- * stored as Paris midnight or as UTC midnight.
+ * Re-exported so the agenda's callers keep importing them from here; the
+ * programme reads the same stored-timestamp-to-Paris-day rule.
  */
-export const dayInFrance = (value: Date | string) =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' }).format(new Date(value))
-
-/** Today in Toul as `YYYY-MM-DD`, so past events drop off on the right day. */
-export const todayInFrance = () => dayInFrance(new Date())
+export { dayInFrance, todayInFrance } from '@/utilities/parisDay'
 
 /**
  * Turns a flat list of events into the month → day → events shape the agenda

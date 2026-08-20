@@ -33,6 +33,7 @@ const shortcutLadder = [
   { shortcut: '', menu: 'hidden' },
   { shortcut: 'max-md:hidden', menu: 'md:hidden' },
   { shortcut: 'max-lg:hidden', menu: 'lg:hidden' },
+  { shortcut: 'max-xl:hidden', menu: 'xl:hidden' },
 ]
 
 function ListItem({ url, isExternal, className, ...rest }: ComponentProps<typeof CMSLink>) {

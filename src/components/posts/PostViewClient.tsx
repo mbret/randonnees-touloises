@@ -2,14 +2,16 @@
 import { useHeaderTheme } from '@/navigation/Header/HeaderThemeProvider'
 import React, { useEffect } from 'react'
 
-const PageClient: React.FC = () => {
-  /* Force the header to be dark mode while we have an image behind it */
+/**
+ * The header sits over the hero image on a post, so it is forced dark for the
+ * length of the page. Shared by both namespaces a post can be served from.
+ */
+export const PostViewClient: React.FC = () => {
   const { setHeaderTheme } = useHeaderTheme()
 
   useEffect(() => {
     setHeaderTheme('dark')
   }, [setHeaderTheme])
+
   return <React.Fragment />
 }
-
-export default PageClient

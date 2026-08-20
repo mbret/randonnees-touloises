@@ -1,44 +1,32 @@
 'use client'
 import useClickableCard from '@/utilities/useClickableCard'
 import Link from 'next/link'
-import React, { Fragment, Ref } from 'react'
+import React, { Ref } from 'react'
 import type { Media as MediaType, Post } from '@/payload-types'
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Media } from '../Media'
 import { cn } from '../ui/utils'
+import { postPath } from '@/utilities/postPath'
 
-export type CardPostData = Pick<Post, 'slug' | 'categories' | 'meta' | 'title' | 'heroImage'>
+export type CardPostData = Pick<Post, 'slug' | 'meta' | 'title' | 'heroImage' | 'schedule'>
 
 export const BlogCard: React.FC<{
   alignItems?: 'center'
   className?: string
   doc?: CardPostData
-  relationTo: 'posts' | 'events'
-  showCategories?: boolean
   title?: string
   authors?: { name: string; avatarUrl?: string }[]
   media?: MediaType
   publishedAt?: string | null
-}> = ({
-  doc,
-  relationTo,
-  showCategories,
-  title: titleFromProps,
-  authors,
-  media,
-  publishedAt,
-  className,
-  ...rest
-}) => {
+}> = ({ doc, title: titleFromProps, authors, media, publishedAt, className, ...rest }) => {
   const { card, link } = useClickableCard({})
-  const { slug, categories, meta, title } = doc || {}
+  const { schedule, slug, meta, title } = doc || {}
   const { description } = meta || {}
-  const hasCategories = categories && Array.isArray(categories) && categories.length > 0
   const titleToUse = titleFromProps || title
   const sanitizedDescription = description?.replace(/\s/g, ' ') // replace non-breaking space with white space
-  const href = `/${relationTo}/${slug}`
+  const href = postPath({ schedule, slug: slug ?? '' })
 
   return (
     <Card
@@ -47,7 +35,6 @@ export const BlogCard: React.FC<{
       {...rest}
     >
       <CardContent className="relative w-full px-0">
-        {!media && <div className="">No image</div>}
         {media && typeof media !== 'string' && (
           <Media
             resource={media}
@@ -56,37 +43,11 @@ export const BlogCard: React.FC<{
         )}
       </CardContent>
       <CardHeader>
-        {showCategories && hasCategories && (
-          <div className="uppercase text-sm mb-4">
-            {showCategories && hasCategories && (
-              <div>
-                {categories?.map((category, index) => {
-                  if (typeof category === 'object') {
-                    const { title: titleFromCategory } = category
-
-                    const categoryTitle = titleFromCategory || 'Untitled category'
-
-                    const isLast = index === categories.length - 1
-
-                    return (
-                      <Fragment key={index}>
-                        {categoryTitle}
-                        {!isLast && <Fragment>, &nbsp;</Fragment>}
-                      </Fragment>
-                    )
-                  }
-
-                  return null
-                })}
-              </div>
-            )}
-          </div>
-        )}
         {publishedAt && (
           <div className="text-muted-foreground text-xs">
-            {new Date(publishedAt).toLocaleDateString(undefined, {
-              month: 'short',
+            {new Date(publishedAt).toLocaleDateString('fr-FR', {
               day: 'numeric',
+              month: 'short',
               year: 'numeric',
             })}
           </div>

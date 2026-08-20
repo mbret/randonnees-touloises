@@ -14,6 +14,10 @@ export const staticNavItems: HeaderNavItem[] = [
   { id: 'static-about', link: { label: 'À propos', type: 'custom', url: '/about' } },
   { id: 'static-activities', link: { label: 'Nos activités', type: 'custom', url: '/activities' } },
   {
+    id: 'static-programs',
+    link: { label: 'Programme hebdomadaire', type: 'custom', url: '/programs' },
+  },
+  {
     id: 'static-board',
     link: { label: 'Conseil d’administration', type: 'custom', url: '/board' },
   },

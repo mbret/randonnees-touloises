@@ -14,6 +14,7 @@ import {
 import { CodeBlock, CodeBlockProps } from '@/blocks/Code/Component'
 
 import type {
+  Post,
   BannerBlock as BannerBlockProps,
   CallToActionBlock as CTABlockProps,
   MediaBlock as MediaBlockProps,
@@ -21,6 +22,7 @@ import type {
 import { BannerBlock } from '@/blocks/Banner/Component'
 import { CallToActionBlock } from '@/blocks/CallToAction/Component'
 import { cn } from '@/components/ui'
+import { postPath } from '@/utilities/postPath'
 
 type NodeTypes =
   | DefaultNodeTypes
@@ -31,8 +33,14 @@ const internalDocToHref = ({ linkNode }: { linkNode: SerializedLinkNode }) => {
   if (typeof value !== 'object') {
     throw new Error('Expected value to be an object')
   }
-  const slug = value.slug
-  return relationTo === 'posts' ? `/posts/${slug}` : `/${slug}`
+  const slug = String(value.slug)
+
+  // A post's namespace depends on its schedule, which the link node carries only
+  // when the reference was populated deeply enough; without it the path falls to
+  // /news, and that route redirects a dated post to its own address anyway.
+  return relationTo === 'posts'
+    ? postPath({ schedule: value.schedule as Post['schedule'], slug })
+    : `/${slug}`
 }
 
 const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) => ({

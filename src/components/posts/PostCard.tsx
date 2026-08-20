@@ -8,15 +8,13 @@ import { useMedias } from '@/metadata/MediaProvider'
 
 export type CardPostData = Pick<
   Post,
-  'slug' | 'categories' | 'meta' | 'title' | 'populatedAuthors' | 'heroImage' | 'publishedAt'
+  'slug' | 'meta' | 'title' | 'populatedAuthors' | 'heroImage' | 'publishedAt' | 'schedule'
 >
 
 export const PostCard: React.FC<{
   alignItems?: 'center'
   className?: string
   doc?: CardPostData
-  relationTo: 'posts' | 'events'
-  showCategories?: boolean
   title?: string
 }> = ({ ...rest }) => {
   const medias = useMedias()
