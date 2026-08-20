@@ -1,0 +1,24 @@
+import type { Post } from '@/payload-types'
+
+/**
+ * Where a post lives.
+ *
+ * One collection, two namespaces: a post carrying a date is a programme entry
+ * and belongs under `/programs`, a post without one is news and belongs under
+ * `/news`. The same `schedule.startDate` that decides which section lists it
+ * decides which URL is its own, so a reader who arrives from the programme stays
+ * in the programme, and every document still has exactly one address.
+ *
+ * The other namespace redirects rather than rendering, so an entry that gains or
+ * loses a date keeps its old links working.
+ */
+export const NEWS_BASE = '/news'
+export const PROGRAMS_BASE = '/programs'
+
+type Addressable = Pick<Post, 'slug'> & Partial<Pick<Post, 'schedule'>>
+
+export const isProgramEntry = (post: Partial<Pick<Post, 'schedule'>>) =>
+  Boolean(post.schedule?.startDate)
+
+export const postPath = (post: Addressable) =>
+  `${isProgramEntry(post) ? PROGRAMS_BASE : NEWS_BASE}/${post.slug}`

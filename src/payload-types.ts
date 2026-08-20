@@ -306,18 +306,26 @@ export interface Post {
     [k: string]: unknown;
   };
   relatedPosts?: (number | Post)[] | null;
-  categories?: (number | Category)[] | null;
-  meta?: {
-    title?: string | null;
+  meta: {
+    title: string;
     /**
      * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
      */
     image?: (number | null) | Media;
-    description?: string | null;
+    description: string;
+  };
+  /**
+   * Une date place la publication au programme. Sans date, c’est une actualité.
+   */
+  schedule?: {
+    startDate?: string | null;
+    /**
+     * Pour les séjours et les week-ends.
+     */
+    endDate?: string | null;
   };
   publishedAt?: string | null;
   authors?: (number | User)[] | null;
-  visibility?: ('admin' | 'customer')[] | null;
   requireContentPassword?: boolean | null;
   populatedAuthors?:
     | {
@@ -425,30 +433,6 @@ export interface Media {
       filename?: string | null;
     };
   };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
- */
-export interface Category {
-  id: number;
-  title: string;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
-  slug: string;
-  parent?: (number | null) | Category;
-  breadcrumbs?:
-    | {
-        doc?: (number | null) | Category;
-        url?: string | null;
-        label?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -774,6 +758,30 @@ export interface Variant {
   createdAt: string;
   deletedAt?: string | null;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  title: string;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  parent?: (number | null) | Category;
+  breadcrumbs?:
+    | {
+        doc?: (number | null) | Category;
+        url?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1289,19 +1297,14 @@ export interface Search {
     value: number | Post;
   };
   slug?: string | null;
+  schedule?: {
+    startDate?: string | null;
+  };
   meta?: {
     title?: string | null;
     description?: string | null;
     image?: (number | null) | Media;
   };
-  categories?:
-    | {
-        relationTo?: string | null;
-        categoryID?: string | null;
-        title?: string | null;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1709,7 +1712,6 @@ export interface PostsSelect<T extends boolean = true> {
   heroImage?: T;
   content?: T;
   relatedPosts?: T;
-  categories?: T;
   meta?:
     | T
     | {
@@ -1717,9 +1719,14 @@ export interface PostsSelect<T extends boolean = true> {
         image?: T;
         description?: T;
       };
+  schedule?:
+    | T
+    | {
+        startDate?: T;
+        endDate?: T;
+      };
   publishedAt?: T;
   authors?: T;
-  visibility?: T;
   requireContentPassword?: T;
   populatedAuthors?:
     | T
@@ -2105,20 +2112,17 @@ export interface SearchSelect<T extends boolean = true> {
   priority?: T;
   doc?: T;
   slug?: T;
+  schedule?:
+    | T
+    | {
+        startDate?: T;
+      };
   meta?:
     | T
     | {
         title?: T;
         description?: T;
         image?: T;
-      };
-  categories?:
-    | T
-    | {
-        relationTo?: T;
-        categoryID?: T;
-        title?: T;
-        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;

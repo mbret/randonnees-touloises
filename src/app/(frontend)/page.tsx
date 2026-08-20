@@ -2,6 +2,7 @@ import type { Metadata } from 'next/types'
 
 import { HomeAgenda } from '@/components/agenda/HomeAgenda'
 import { HomeHero } from '@/components/home/HomeHero'
+import { HomePrograms } from '@/components/programs/HomePrograms'
 import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import { SEO_DESCRIPTION, SEO_TITLE } from '@/seo/constants'
 import React from 'react'
@@ -17,6 +18,7 @@ export default function Page() {
     <>
       <HomeHero />
       <HomeAgenda />
+      <HomePrograms />
     </>
   )
 }

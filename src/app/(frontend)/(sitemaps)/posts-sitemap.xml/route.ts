@@ -3,6 +3,8 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { unstable_cache } from 'next/cache'
 
+import { postPath } from '@/utilities/postPath'
+
 const getPostsSitemap = unstable_cache(
   async () => {
     const payload = await getPayload({ config })
@@ -24,6 +26,7 @@ const getPostsSitemap = unstable_cache(
         },
       },
       select: {
+        schedule: true,
         slug: true,
         updatedAt: true,
       },
@@ -35,7 +38,7 @@ const getPostsSitemap = unstable_cache(
       ? results.docs
           .filter((post) => Boolean(post?.slug))
           .map((post) => ({
-            loc: `${SITE_URL}/posts/${post?.slug}`,
+            loc: `${SITE_URL}${postPath(post)}`,
             lastmod: post.updatedAt || dateFallback,
           }))
       : []

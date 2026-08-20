@@ -13,6 +13,7 @@ import { beforeSyncWithSearch } from '@/search/beforeSync'
 import { ecommercePlugin } from '@payloadcms/plugin-ecommerce'
 import { Page, Post } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
+import { SEO_TITLE } from '@/seo/constants'
 import { adminOnly } from '@/access/adminOnly'
 import { adminOrCustomerOwner } from '@/access/adminOrCustomerOwner'
 import { adminOrPublishedStatus } from '@/access/adminOrPublishedStatus'
@@ -20,8 +21,13 @@ import { customerOnlyFieldAccess } from '@/access/customerOnlyFieldAccess'
 import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
 import { ProductsCollection } from '@/collections/Product'
 
+/**
+ * What the Generate button writes into `meta.title`: the document's own title and
+ * nothing else. `generateMeta` appends the site name when it renders the tag, so
+ * suffixing here too would print it twice.
+ */
 const generateTitle: GenerateTitle<Post | Page> = ({ doc }) => {
-  return doc?.title ? `${doc.title} | Payload Website Template` : 'Payload Website Template'
+  return doc?.title || SEO_TITLE
 }
 
 const generateURL: GenerateURL<Post | Page> = ({ doc }) => {

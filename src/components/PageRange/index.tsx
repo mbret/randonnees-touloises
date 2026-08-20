@@ -7,12 +7,8 @@ const defaultLabels = {
 
 const defaultCollectionLabels = {
   posts: {
-    plural: 'Posts',
-    singular: 'Post',
-  },
-  events: {
-    plural: 'Événements',
-    singular: 'Événement',
+    plural: 'actualités',
+    singular: 'actualité',
   },
 }
 

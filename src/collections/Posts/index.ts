@@ -15,6 +15,7 @@ import { Banner } from '../../blocks/Banner/config'
 import { Code } from '../../blocks/Code/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
+import { fillMeta } from './hooks/fillMeta'
 import { populateAuthors } from './hooks/populateAuthors'
 import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
 
@@ -26,7 +27,6 @@ import {
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
 import { slugField } from 'payload'
-import { visibilityField } from '@/fields/visibility'
 import { checkRole } from '@/access/utilities'
 
 export const Posts: CollectionConfig<'posts'> = {
@@ -40,31 +40,10 @@ export const Posts: CollectionConfig<'posts'> = {
         return true
       }
 
-      const basePublishedQuery = {
+      return {
         _status: {
           equals: 'published',
         },
-      }
-
-      const noVisibilitySet = { visibility: { exists: false } }
-
-      // If user is authenticated, check their roles against visibility
-      if (user) {
-        const userRoles = user.roles || []
-
-        return {
-          and: [
-            basePublishedQuery,
-            {
-              or: [noVisibilitySet, { visibility: { in: userRoles } }],
-            },
-          ],
-        }
-      }
-
-      // Unauthenticated users: only published posts with no visibility restrictions
-      return {
-        and: [basePublishedQuery, noVisibilitySet],
       }
     },
     update: authenticated,
@@ -75,7 +54,7 @@ export const Posts: CollectionConfig<'posts'> = {
   defaultPopulate: {
     title: true,
     slug: true,
-    categories: true,
+    schedule: true,
     meta: {
       image: true,
       description: true,
@@ -154,15 +133,6 @@ export const Posts: CollectionConfig<'posts'> = {
               hasMany: true,
               relationTo: 'posts',
             },
-            {
-              name: 'categories',
-              type: 'relationship',
-              admin: {
-                position: 'sidebar',
-              },
-              hasMany: true,
-              relationTo: 'categories',
-            },
           ],
           label: 'Meta',
         },
@@ -177,12 +147,13 @@ export const Posts: CollectionConfig<'posts'> = {
             }),
             MetaTitleField({
               hasGenerateFn: true,
+              overrides: { required: true },
             }),
             MetaImageField({
               relationTo: 'media',
             }),
 
-            MetaDescriptionField({}),
+            MetaDescriptionField({ overrides: { required: true } }),
             PreviewField({
               // if the `generateUrl` function is configured
               hasGenerateFn: true,
@@ -192,6 +163,39 @@ export const Posts: CollectionConfig<'posts'> = {
               descriptionPath: 'meta.description',
             }),
           ],
+        },
+      ],
+    },
+    {
+      name: 'schedule',
+      type: 'group',
+      label: 'Au programme',
+      admin: {
+        position: 'sidebar',
+        description: 'Une date place la publication au programme. Sans date, c’est une actualité.',
+      },
+      fields: [
+        {
+          name: 'startDate',
+          type: 'date',
+          index: true,
+          label: 'Date',
+          admin: {
+            date: {
+              pickerAppearance: 'dayOnly',
+            },
+          },
+        },
+        {
+          name: 'endDate',
+          type: 'date',
+          label: 'Date de fin',
+          admin: {
+            date: {
+              pickerAppearance: 'dayOnly',
+            },
+            description: 'Pour les séjours et les week-ends.',
+          },
         },
       ],
     },
@@ -223,12 +227,6 @@ export const Posts: CollectionConfig<'posts'> = {
       },
       hasMany: true,
       relationTo: 'users',
-    },
-    {
-      ...visibilityField,
-      admin: {
-        position: 'sidebar',
-      },
     },
     {
       name: 'requireContentPassword',
@@ -266,6 +264,7 @@ export const Posts: CollectionConfig<'posts'> = {
     slugField(),
   ],
   hooks: {
+    beforeValidate: [fillMeta],
     afterChange: [revalidatePost],
     afterRead: [populateAuthors],
     afterDelete: [revalidateDelete],

@@ -10,6 +10,22 @@ export const searchFields: Field[] = [
     },
   },
   {
+    // A result links to /programs or /news depending on this, so the index has
+    // to carry it or every programme entry would be linked through a redirect.
+    name: 'schedule',
+    label: 'Schedule',
+    type: 'group',
+    admin: {
+      readOnly: true,
+    },
+    fields: [
+      {
+        name: 'startDate',
+        type: 'date',
+      },
+    ],
+  },
+  {
     name: 'meta',
     label: 'Meta',
     type: 'group',
@@ -33,28 +49,6 @@ export const searchFields: Field[] = [
         label: 'Image',
         type: 'upload',
         relationTo: 'media',
-      },
-    ],
-  },
-  {
-    label: 'Categories',
-    name: 'categories',
-    type: 'array',
-    admin: {
-      readOnly: true,
-    },
-    fields: [
-      {
-        name: 'relationTo',
-        type: 'text',
-      },
-      {
-        name: 'categoryID',
-        type: 'text',
-      },
-      {
-        name: 'title',
-        type: 'text',
       },
     ],
   },
