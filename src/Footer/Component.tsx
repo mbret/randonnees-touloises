@@ -17,7 +17,7 @@ export async function Footer() {
         </p>
       </div>
       {/* <div className="container mx-auto py-8 gap-8 flex flex-row justify-center">
-        <Link href="https://www.ffrandonnee.fr/" target="_blank">
+        <Link href="https://www.ffrandonnee.fr/" rel="noopener noreferrer" target="_blank">
           <FederationLogo />
         </Link>
       </div> */}
