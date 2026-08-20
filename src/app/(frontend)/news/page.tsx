@@ -6,6 +6,7 @@ import { Pagination } from '@/components/Pagination'
 import configPromise from '@payload-config'
 import { withoutPrograms } from '@/components/programs/filters'
 import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { NEWS_PAGE_SIZE } from '@/utilities/postPath'
 import { getPayload } from 'payload'
 import React from 'react'
 import PageClient from './page.client'
@@ -24,7 +25,7 @@ export default async function Page() {
   const posts = await payload.find({
     collection: 'posts',
     depth: 1,
-    limit: 12,
+    limit: NEWS_PAGE_SIZE,
     overrideAccess: false,
     select: {
       title: true,
@@ -47,7 +48,7 @@ export default async function Page() {
         <PageRange
           collection="posts"
           currentPage={posts.page}
-          limit={12}
+          limit={NEWS_PAGE_SIZE}
           totalDocs={posts.totalDocs}
         />
       </div>

@@ -22,3 +22,16 @@ export const isProgramEntry = (post: Partial<Pick<Post, 'schedule'>>) =>
 
 export const postPath = (post: Addressable) =>
   `${isProgramEntry(post) ? PROGRAMS_BASE : NEWS_BASE}/${post.slug}`
+
+/**
+ * How many posts a page of the Actualités listing holds.
+ *
+ * The listing, its numbered pages and the sitemap each have to divide the posts
+ * the same way or they disagree about how many pages exist — which is how the
+ * sitemap ends up advertising a page the listing never fills.
+ */
+export const NEWS_PAGE_SIZE = 12
+
+/** Where a page of the Actualités listing lives. Page 1 is `/news` itself. */
+export const newsPagePath = (pageNumber: number) =>
+  pageNumber > 1 ? `${NEWS_BASE}/page/${pageNumber}` : NEWS_BASE

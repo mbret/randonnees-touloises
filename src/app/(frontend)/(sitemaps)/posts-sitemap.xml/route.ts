@@ -3,13 +3,12 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { unstable_cache } from 'next/cache'
 
+import { postsSitemapEntries } from '@/seo/sitemap'
 import { getServerSideURL } from '@/utilities/getURL'
-import { postPath } from '@/utilities/postPath'
 
 const getPostsSitemap = unstable_cache(
   async () => {
     const payload = await getPayload({ config })
-    const SITE_URL = getServerSideURL()
 
     const results = await payload.find({
       collection: 'posts',
@@ -30,18 +29,7 @@ const getPostsSitemap = unstable_cache(
       },
     })
 
-    const dateFallback = new Date().toISOString()
-
-    const sitemap = results.docs
-      ? results.docs
-          .filter((post) => Boolean(post?.slug))
-          .map((post) => ({
-            loc: `${SITE_URL}${postPath(post)}`,
-            lastmod: post.updatedAt || dateFallback,
-          }))
-      : []
-
-    return sitemap
+    return postsSitemapEntries({ posts: results.docs ?? [], siteUrl: getServerSideURL() })
   },
   ['posts-sitemap'],
   {
