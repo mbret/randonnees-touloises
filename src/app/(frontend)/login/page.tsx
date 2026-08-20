@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { SEO_NOINDEX } from '@/seo/constants'
 import Link from 'next/link'
 import React from 'react'
 
@@ -41,5 +42,6 @@ export const metadata: Metadata = {
     title: 'Login',
     url: '/login',
   },
+  robots: SEO_NOINDEX,
   title: 'Login',
 }

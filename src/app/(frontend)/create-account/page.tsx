@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { SEO_NOINDEX } from '@/seo/constants'
 import { RenderParams } from '@/components/common/RenderParams/RenderParams'
 import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import React from 'react'
@@ -34,5 +35,6 @@ export const metadata: Metadata = {
     title: 'Account',
     url: '/account',
   }),
+  robots: SEO_NOINDEX,
   title: 'Account',
 }
