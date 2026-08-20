@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { SEO_NOINDEX } from '@/seo/constants'
 import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import React from 'react'
 
@@ -19,5 +20,6 @@ export const metadata: Metadata = {
     title: 'Logout',
     url: '/logout',
   }),
+  robots: SEO_NOINDEX,
   title: 'Logout',
 }
