@@ -2,7 +2,7 @@ import type { Metadata } from 'next/types'
 
 import { Media } from '@/components/Media'
 import { trombinoscope } from '@/data/trombinoscope'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import { getInitials } from '@/utilities/getInitials'
 import { getMediaByFilenames } from '@/utilities/getMediaByFilenames'
 import React from 'react'
@@ -71,8 +71,6 @@ export default async function Page() {
 export const metadata: Metadata = {
   description:
     'Le trombinoscope des Randonnées Touloises : les visages des adhérentes et adhérents de l’association.',
-  openGraph: mergeOpenGraph({
-    url: '/trombinoscope',
-  }),
+  ...servedAt('/trombinoscope'),
   title: 'Trombinoscope',
 }

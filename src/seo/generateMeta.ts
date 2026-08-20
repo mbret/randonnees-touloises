@@ -4,7 +4,7 @@ import type { Page, Post } from '../payload-types'
 
 import { absoluteUrl } from './absoluteUrl'
 import { getImageURL } from './imageUrl'
-import { mergeOpenGraph } from './mergeOpenGraph'
+import { servedAt } from './servedAt'
 import { pagePath } from '../utilities/pagePath'
 import { postPath } from '../utilities/postPath'
 
@@ -41,7 +41,9 @@ export const generateMeta = async (args: MetaSource): Promise<Metadata> => {
 
   return {
     description: doc?.meta?.description,
-    openGraph: mergeOpenGraph({
+    // A document is reachable at exactly one address, so the canonical it
+    // points at itself with is the same one `og:url` names.
+    ...servedAt(getDocumentURL(args), {
       description: doc?.meta?.description || '',
       images: ogImage
         ? [
@@ -50,7 +52,6 @@ export const generateMeta = async (args: MetaSource): Promise<Metadata> => {
             },
           ]
         : undefined,
-      url: getDocumentURL(args),
     }),
     // Bare on purpose: the root layout's title template appends the site name.
     // A document with no title of its own leaves the key out altogether rather

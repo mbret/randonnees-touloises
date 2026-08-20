@@ -1,7 +1,7 @@
 import type { Metadata } from 'next/types'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
@@ -89,8 +89,6 @@ export default function Page() {
 export const metadata: Metadata = {
   description:
     'Créée en 1987, Randonnées Touloises est le premier club de Meurthe-et-Moselle en nombre de licenciés à la FFRandonnée : 260 adhérents, 20 animateurs diplômés, label Santé.',
-  openGraph: mergeOpenGraph({
-    url: '/about',
-  }),
+  ...servedAt('/about'),
   title: 'À propos de nous',
 }

@@ -3,7 +3,7 @@ import type { Metadata } from 'next/types'
 import { TeamSection } from '@/components/TeamSection/TeamSection'
 import { boardMembers } from '@/data/teams'
 import { resolveTeamPhotos } from '@/utilities/resolveTeamPhotos'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import React from 'react'
 
 /**
@@ -38,8 +38,6 @@ export default async function Page() {
 export const metadata: Metadata = {
   description:
     'Les membres du conseil d’administration de l’association Randonnées Touloises et leurs fonctions.',
-  openGraph: mergeOpenGraph({
-    url: '/board',
-  }),
+  ...servedAt('/board'),
   title: 'Conseil d’administration',
 }

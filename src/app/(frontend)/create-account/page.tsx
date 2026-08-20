@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 import { SEO_NOINDEX } from '@/seo/constants'
 import { RenderParams } from '@/components/common/RenderParams/RenderParams'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import React from 'react'
 import { headers as getHeaders } from 'next/headers'
 import configPromise from '@payload-config'
@@ -31,9 +31,7 @@ export default async function CreateAccount() {
 
 export const metadata: Metadata = {
   description: 'Créez votre compte pour accéder à votre espace adhérent des Randonnées Touloises.',
-  openGraph: mergeOpenGraph({
-    url: '/create-account',
-  }),
+  ...servedAt('/create-account'),
   robots: SEO_NOINDEX,
   title: 'Créer un compte',
 }

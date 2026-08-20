@@ -1,7 +1,7 @@
 import type { Metadata } from 'next/types'
 
 import { ContactForm } from '@/components/contacts/ContactForm'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import React from 'react'
 
 export default function Page() {
@@ -36,8 +36,6 @@ export default function Page() {
 
 export const metadata: Metadata = {
   description: 'Contactez l’association Randonnées Touloises.',
-  openGraph: mergeOpenGraph({
-    url: '/contact',
-  }),
+  ...servedAt('/contact'),
   title: 'Contact',
 }

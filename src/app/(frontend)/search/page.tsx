@@ -1,7 +1,7 @@
 import type { Metadata } from 'next/types'
 
 import { CollectionArchive } from '@/components/CollectionArchive'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import React from 'react'
@@ -89,9 +89,8 @@ export default async function Page({ searchParams: searchParamsPromise }: Args) 
 export function generateMetadata(): Metadata {
   return {
     description: DESCRIPTION,
-    openGraph: mergeOpenGraph({
+    ...servedAt('/search', {
       description: DESCRIPTION,
-      url: '/search',
     }),
     title: TITLE,
   }

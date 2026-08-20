@@ -1,6 +1,6 @@
 import type { Metadata } from 'next/types'
 
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import Link from 'next/link'
 import React from 'react'
 
@@ -457,8 +457,6 @@ export default function Page() {
 export const metadata: Metadata = {
   description:
     'Règlement intérieur de l’association Randonnées Touloises : adhésion, administration, animateurs, animations et séjours.',
-  openGraph: mergeOpenGraph({
-    url: '/terms',
-  }),
+  ...servedAt('/terms'),
   title: 'Règlement intérieur',
 }

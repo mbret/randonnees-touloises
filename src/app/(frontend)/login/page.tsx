@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { SEO_NOINDEX } from '@/seo/constants'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import React from 'react'
 
 import { headers as getHeaders } from 'next/headers'
@@ -38,9 +38,7 @@ export default async function Login() {
 
 export const metadata: Metadata = {
   description: 'Connectez-vous à votre espace adhérent des Randonnées Touloises.',
-  openGraph: mergeOpenGraph({
-    url: '/login',
-  }),
+  ...servedAt('/login'),
   robots: SEO_NOINDEX,
   title: 'Connexion',
 }

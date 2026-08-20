@@ -5,8 +5,8 @@ import { PageRange } from '@/components/PageRange'
 import { Pagination } from '@/components/Pagination'
 import configPromise from '@payload-config'
 import { withoutPrograms } from '@/components/programs/filters'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
-import { NEWS_PAGE_SIZE } from '@/utilities/postPath'
+import { servedAt } from '@/seo/servedAt'
+import { NEWS_BASE, newsPagePath, NEWS_PAGE_SIZE } from '@/utilities/postPath'
 import { getPayload } from 'payload'
 import React from 'react'
 import PageClient from './page.client'
@@ -72,13 +72,21 @@ export default async function Page({ params: paramsPromise }: Args) {
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { pageNumber } = await paramsPromise
-  const title = pageNumber ? `${TITLE} — page ${pageNumber}` : TITLE
+
+  /**
+   * Page one of the listing is `/news/page/1`, and it serves exactly what
+   * `/news` serves. Both the canonical and the title name `/news` instead, so
+   * the duplicate points at the address the sitemap advertises rather than
+   * competing with it.
+   */
+  const page = Number(pageNumber)
+  const path = newsPagePath(page)
+  const title = path === NEWS_BASE ? TITLE : `${TITLE} — page ${page}`
 
   return {
     description: DESCRIPTION,
-    openGraph: mergeOpenGraph({
+    ...servedAt(path, {
       description: DESCRIPTION,
-      url: pageNumber ? `/news/page/${pageNumber}` : '/news',
     }),
     title,
   }

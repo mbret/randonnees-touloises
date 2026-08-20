@@ -1,6 +1,6 @@
 import type { Metadata } from 'next/types'
 
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import React from 'react'
 
 export default function Page() {
@@ -117,8 +117,6 @@ export default function Page() {
 export const metadata: Metadata = {
   description:
     'Politique de confidentialité de l’association Randonnées Touloises : données collectées, finalités, conservation et vos droits (RGPD).',
-  openGraph: mergeOpenGraph({
-    url: '/privacy',
-  }),
+  ...servedAt('/privacy'),
   title: 'Politique de confidentialité',
 }

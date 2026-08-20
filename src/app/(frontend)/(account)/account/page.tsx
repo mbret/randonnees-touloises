@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 import { SEO_NOINDEX } from '@/seo/constants'
 import { Button } from '@/components/ui/button'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import Link from 'next/link'
 import { headers as getHeaders } from 'next/headers.js'
 import configPromise from '@payload-config'
@@ -48,9 +48,7 @@ export default async function AccountPage() {
 
 export const metadata: Metadata = {
   description: 'Create an account or log in to your existing account.',
-  openGraph: mergeOpenGraph({
-    url: '/account',
-  }),
+  ...servedAt('/account'),
   robots: SEO_NOINDEX,
   title: 'Account',
 }
