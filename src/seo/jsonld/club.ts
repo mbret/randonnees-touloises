@@ -1,7 +1,7 @@
-import type { JsonLdNode } from './structuredData'
+import type { JsonLdNode } from './serialize'
 
-import { absoluteUrl } from './absoluteUrl'
-import { SEO_IMAGE, SEO_SITE_NAME, SEO_TITLE } from './constants'
+import { absoluteUrl } from '../absoluteUrl'
+import { SEO_IMAGE, SEO_SITE_NAME, SEO_TITLE } from '../constants'
 
 /**
  * The node every page points at for "who publishes this".

@@ -2,10 +2,10 @@ import { describe, it, expect, beforeAll } from 'vitest'
 
 import type { Page, Post } from '@/payload-types'
 
-import { breadcrumbJsonLd, pageTrail, postTrail } from '@/seo/breadcrumbs'
-import { clubJsonLd } from '@/seo/club'
-import { programEventJsonLd } from '@/seo/event'
-import { serializeJsonLd } from '@/seo/structuredData'
+import { breadcrumbJsonLd, pageTrail, postTrail } from '@/seo/jsonld/breadcrumbs'
+import { clubJsonLd } from '@/seo/jsonld/club'
+import { programEventJsonLd } from '@/seo/jsonld/event'
+import { serializeJsonLd } from '@/seo/jsonld/serialize'
 
 // The builders read the server URL at call time, so pin it before anything asks
 // for an absolute URL.

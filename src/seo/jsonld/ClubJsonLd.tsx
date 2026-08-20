@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { absoluteUrl } from './absoluteUrl'
+import { absoluteUrl } from '../absoluteUrl'
 import { clubJsonLd } from './club'
 import { getCachedMedias } from '@/metadata/getMedias'
 import { JsonLd } from './JsonLd'

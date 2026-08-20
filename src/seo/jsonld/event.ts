@@ -1,12 +1,12 @@
-import type { Post } from '../payload-types'
-import type { JsonLdNode } from './structuredData'
+import type { Post } from '@/payload-types'
+import type { JsonLdNode } from './serialize'
 
-import { absoluteUrl } from './absoluteUrl'
+import { absoluteUrl } from '../absoluteUrl'
 import { CLUB, clubId } from './club'
-import { dayInFrance } from '../utilities/parisDay'
-import { getImageURL } from './imageUrl'
-import { postPath } from '../utilities/postPath'
-import { SEO_SITE_NAME } from './constants'
+import { dayInFrance } from '@/utilities/parisDay'
+import { getImageURL } from '../imageUrl'
+import { postPath } from '@/utilities/postPath'
+import { SEO_SITE_NAME } from '../constants'
 
 /**
  * A programme entry as an `Event`.

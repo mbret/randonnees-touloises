@@ -1,9 +1,9 @@
-import type { Page, Post } from '../payload-types'
-import type { JsonLdNode } from './structuredData'
+import type { Page, Post } from '@/payload-types'
+import type { JsonLdNode } from './serialize'
 
-import { absoluteUrl } from './absoluteUrl'
-import { HOME_SLUG, pagePath } from '../utilities/pagePath'
-import { isProgramEntry, NEWS_BASE, postPath, PROGRAMS_BASE } from '../utilities/postPath'
+import { absoluteUrl } from '../absoluteUrl'
+import { HOME_SLUG, pagePath } from '@/utilities/pagePath'
+import { isProgramEntry, NEWS_BASE, postPath, PROGRAMS_BASE } from '@/utilities/postPath'
 
 /** One step of a trail: what the site calls it, and where it lives. */
 export type Crumb = { name: string; path: string }

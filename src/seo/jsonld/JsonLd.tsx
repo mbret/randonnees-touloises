@@ -1,8 +1,8 @@
 import React from 'react'
 
-import type { JsonLdNode } from './structuredData'
+import type { JsonLdNode } from './serialize'
 
-import { serializeJsonLd } from './structuredData'
+import { serializeJsonLd } from './serialize'
 
 /**
  * A JSON-LD block, as a plain `<script>` rather than through `next/script`:
