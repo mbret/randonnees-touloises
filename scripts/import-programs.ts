@@ -159,6 +159,39 @@ const describeTarget = () => {
 const isLocal = (target: string) =>
   /^(localhost|127\.0\.0\.1|host\.docker\.internal)[:/]/.test(target)
 
+/**
+ * Payload's getSafeFileName checks the local upload directory as well as the
+ * database, so a file sitting in public/media makes it store `name-1.pdf` even
+ * when the target is a remote bucket and another database entirely. The links in
+ * the bodies are built from whatever url Payload returns, so nothing would break
+ * visibly — every filename in production would simply drift from what
+ * scripts/data/programs.ts says, silently.
+ */
+const assertLocalMediaCannotShadow = async (filenames: string[]) => {
+  const { access } = await import('fs/promises')
+  const path = await import('path')
+  const staticDir = path.resolve(process.cwd(), 'public/media')
+  const shadowing: string[] = []
+
+  for (const filename of filenames) {
+    const exists = await access(path.join(staticDir, filename)).then(
+      () => true,
+      () => false,
+    )
+
+    if (exists) shadowing.push(filename)
+  }
+
+  if (shadowing.length === 0) return
+
+  console.error(
+    `\n${shadowing.length} of the files this imports also exist in public/media, which would make ` +
+      `Payload rename every upload (${shadowing[0]} -> a "-1" variant).\n` +
+      `Move public/media aside for the duration of a remote import, then move it back.`,
+  )
+  process.exit(1)
+}
+
 const main = async () => {
   const dryRun = process.env.DRY_RUN === '1'
   const skipExisting = process.env.SKIP_EXISTING === '1'
@@ -171,6 +204,13 @@ const main = async () => {
       `Refusing to write to ${target}: set ALLOW_REMOTE_DB=1 to import into a non-local database.`,
     )
     process.exit(1)
+  }
+
+  // Only a run that writes to the bucket can be shadowed by the local directory.
+  if (process.env.USE_REMOTE_STORAGE === '1') {
+    await assertLocalMediaCannotShadow(
+      entries.flatMap((entry) => entry.files ?? []).map((file) => file.filename),
+    )
   }
 
   const { default: config } = await import('@payload-config')

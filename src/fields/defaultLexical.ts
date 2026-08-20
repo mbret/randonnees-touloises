@@ -16,7 +16,10 @@ export const defaultLexical = lexicalEditor({
     BoldFeature(),
     ItalicFeature(),
     LinkFeature({
-      enabledCollections: ['pages', 'posts'],
+      // Media is here so an editor links a PDF by picking it rather than by
+      // copying its URL out of the admin, where the address of the file and the
+      // address of the page that edits it look equally copyable.
+      enabledCollections: ['pages', 'posts', 'media'],
       fields: ({ defaultFields }) => {
         const defaultFieldsWithoutUrl = defaultFields.filter((field) => {
           if ('name' in field && field.name === 'url') return false

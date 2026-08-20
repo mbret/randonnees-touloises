@@ -33,6 +33,10 @@ const internalDocToHref = ({ linkNode }: { linkNode: SerializedLinkNode }) => {
   if (typeof value !== 'object') {
     throw new Error('Expected value to be an object')
   }
+  // Media has no slug: its link is the path the upload adapter serves, which is
+  // the same locally and from the bucket.
+  if (relationTo === 'media') return String(value.url ?? '')
+
   const slug = String(value.slug)
 
   // A post's namespace depends on its schedule, which the link node carries only
