@@ -39,7 +39,6 @@ export default async function Login() {
 export const metadata: Metadata = {
   description: 'Connectez-vous à votre espace adhérent des Randonnées Touloises.',
   openGraph: mergeOpenGraph({
-    title: 'Connexion',
     url: '/login',
   }),
   robots: SEO_NOINDEX,

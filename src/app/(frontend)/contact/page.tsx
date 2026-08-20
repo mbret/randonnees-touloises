@@ -37,7 +37,6 @@ export default function Page() {
 export const metadata: Metadata = {
   description: 'Contactez l’association Randonnées Touloises.',
   openGraph: mergeOpenGraph({
-    title: 'Contact',
     url: '/contact',
   }),
   title: 'Contact',

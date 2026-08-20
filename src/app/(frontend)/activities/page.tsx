@@ -82,7 +82,6 @@ export const metadata: Metadata = {
   description:
     'Randonnées pédestres de tous niveaux, marche nordique, sorties à la journée et séjours : découvrez les activités des Randonnées Touloises.',
   openGraph: mergeOpenGraph({
-    title: 'Nos activités',
     url: '/activities',
   }),
   title: 'Nos activités',

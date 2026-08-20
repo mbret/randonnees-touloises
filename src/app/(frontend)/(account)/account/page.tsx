@@ -49,7 +49,6 @@ export default async function AccountPage() {
 export const metadata: Metadata = {
   description: 'Create an account or log in to your existing account.',
   openGraph: mergeOpenGraph({
-    title: 'Account',
     url: '/account',
   }),
   robots: SEO_NOINDEX,

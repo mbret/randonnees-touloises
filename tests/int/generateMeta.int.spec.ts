@@ -55,3 +55,27 @@ describe('generateMeta og:url', () => {
     expect(await ogUrl({ collection: 'posts', doc: { slug: undefined } })).toBe(`${SERVER_URL}/`)
   })
 })
+
+describe('generateMeta title', () => {
+  const titleOf = async (...args: Parameters<typeof generateMeta>) =>
+    (await generateMeta(...args)).title
+
+  it("leaves the document's own title bare for the layout template to brand", async () => {
+    expect(await titleOf({ collection: 'posts', doc: post({}) })).toBe('Marche Breathwalk')
+  })
+
+  // Next reads an explicit `title: undefined` as an empty title tag, so the key
+  // has to be absent for the layout's default to apply.
+  it('leaves the key out when the document has no title, so the layout default applies', async () => {
+    expect(
+      await generateMeta({ collection: 'pages', doc: { slug: 'qui-sommes-nous' } }),
+    ).not.toHaveProperty('title')
+    expect(await generateMeta({ collection: 'posts', doc: null })).not.toHaveProperty('title')
+  })
+
+  it('names no open graph title, so it inherits the branded one', async () => {
+    const meta = await generateMeta({ collection: 'posts', doc: post({}) })
+
+    expect(meta.openGraph).not.toHaveProperty('title')
+  })
+})

@@ -458,7 +458,6 @@ export const metadata: Metadata = {
   description:
     'Règlement intérieur de l’association Randonnées Touloises : adhésion, administration, animateurs, animations et séjours.',
   openGraph: mergeOpenGraph({
-    title: 'Règlement intérieur',
     url: '/terms',
   }),
   title: 'Règlement intérieur',

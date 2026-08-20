@@ -7,7 +7,6 @@ import { getImageURL } from './imageUrl'
 import { mergeOpenGraph } from './mergeOpenGraph'
 import { pagePath } from '../utilities/pagePath'
 import { postPath } from '../utilities/postPath'
-import { SEO_TITLE } from './constants'
 
 /**
  * The document a page's metadata describes, tagged with the collection it came
@@ -38,8 +37,7 @@ export const generateMeta = async (args: MetaSource): Promise<Metadata> => {
   const { doc } = args
 
   const ogImage = getImageURL(doc?.meta?.image)
-
-  const title = doc?.meta?.title ? doc?.meta?.title + ' | ' + SEO_TITLE : SEO_TITLE
+  const title = doc?.meta?.title
 
   return {
     description: doc?.meta?.description,
@@ -52,9 +50,12 @@ export const generateMeta = async (args: MetaSource): Promise<Metadata> => {
             },
           ]
         : undefined,
-      title,
       url: getDocumentURL(args),
     }),
-    title,
+    // Bare on purpose: the root layout's title template appends the site name.
+    // A document with no title of its own leaves the key out altogether rather
+    // than setting it to `undefined`, which Next reads as an empty title tag
+    // instead of a fallback to the layout's default.
+    ...(title ? { title } : {}),
   }
 }

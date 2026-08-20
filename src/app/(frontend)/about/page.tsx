@@ -90,7 +90,6 @@ export const metadata: Metadata = {
   description:
     'Créée en 1987, Randonnées Touloises est le premier club de Meurthe-et-Moselle en nombre de licenciés à la FFRandonnée : 260 adhérents, 20 animateurs diplômés, label Santé.',
   openGraph: mergeOpenGraph({
-    title: 'À propos de nous',
     url: '/about',
   }),
   title: 'À propos de nous',
