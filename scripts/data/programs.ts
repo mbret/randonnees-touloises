@@ -106,14 +106,23 @@ Restaurant le Brin de Causette. Menu : lasagnes et salade verte avec dessert du 
     content: `Renseignements : Pascal 07 88 26 43 84
 Nombre de places : 10
 [Je m’inscris](https://forms.gle/zrvwKQ3jC4zsXkDQ7)
-Marche Breathwalk — marche consciente de Kundalini Yoga, avec Kundalini Yoga Lorraine.
-Il ne faut pas de connaissances de Yoga, il suffit d’avoir la capacité de marcher pendant 1h30 sans parler, ni bâton ni sac à dos.
-Les bienfaits : respirer c’est la vie, alignement des centres énergétiques (chakras), équilibre du mental et du corps, re-dynamisation, bien-être immédiat.
-Lieu : étangs de Chaudeney.
+![affiche](file:marche-breathwalk-2026.png)
 C’est une marche consciente de Kundalini Yoga : marcher en synchronisant le souffle, les pas et l’attention.
 Une séance comporte 5 étapes : éveil du corps et échauffement ; alignement du corps et conscience de chaque pas ; marche rythmée et consciente ; on récite mentalement un mantra, pratique de mudras (yoga des doigts) ; détente et étirements pour terminer par une méditation guidée.
 C’est une marche SILENCIEUSE : pas de sac à dos, pas de bâtons, pas de bouteille ni de gourde.
 Bien que ce soit une marche de Yoga, il ne faut pas de connaissances particulières, il suffit de pouvoir marcher à un bon rythme sans interruption pendant plus d’une heure.`,
+    files: [
+      {
+        filename: 'marche-breathwalk-2026.png',
+        label:
+          'Marche Breathwalk, marche consciente de Kundalini Yoga. Il ne faut pas de connaissances de Yoga, ' +
+          'il suffit d’avoir la capacité de marcher pendant 1h30 sans parler, ni bâton ni sac à dos. ' +
+          'Les bienfaits : respirer c’est la vie, alignement des centres énergétiques (chakras), équilibre du ' +
+          'mental et du corps, re-dynamisation, bien-être immédiat. Lieu : étangs de Chaudeney. Avec Kundalini ' +
+          'Yoga Lorraine.',
+        url: legacyUpload('6a23bc22c79e3', 'png'),
+      },
+    ],
   },
   {
     title:
@@ -121,18 +130,37 @@ Bien que ce soit une marche de Yoga, il ne faut pas de connaissances particuliè
     slug: 'journee-interclubs',
     startDate: '2026-09-19',
     content: `[Je m’inscris](https://forms.gle/7c5QjegnhgkJ57uL8)
-Rencontre interclubs, rando santé et marche douce, le 19 septembre 2026 au château de St-Max.
-Gratuit. Repas tiré du sac. Transport en autocar possible.
-Départ des autocars depuis les 3 coins du département, les lieux de prise en charge et les horaires étant précisés lors de la confirmation d’inscription : 06h55 Herserange puis passage à Briey, 07h55 Lunéville, 08h20 Toul. Ramassages intermédiaires possibles.
-Le transport en autocar (50 places) sera assuré sous réserve d’un nombre suffisant d’inscrits, sinon envisager le covoiturage.
-9h00 : arrivée des autocars et rendez-vous pour les individuels sur le parvis arrière du château de St Max, pont de la Meurthe. Accueil autour d’un petit café / brioche offert par le comité (salle intérieur château).
-9h30 : présentation des intervenants et de quelques thématiques abordées au cours des randos et dans la journée.
-Départ rando santé (boucle de 4 km) sur les rives de Meurthe avec un professionnel du Sport / Santé / Handicap.
-Départ rando douce (boucle de 6 km) vers l’île du Foulon avec le Centre Permanent d’Initiatives pour l’Environnement (CPIE).
-12h30 : retour des randonneurs au château pour un repas tiré du sac, apéritif commun offert par le comité.
-13h30 : intervention de professionnels de la santé et de l’environnement en lien avec l’activité de rando douce — sport / santé : médecin du sport, professionnel du sport ; info et prévention sur les tiques et la maladie de Lyme : le Centre de Référence des Maladies Vectorielles à Tiques (CRMVT) du CHU et le CPIE.
-16h00 : fin de la journée, retour aux autocars.
-FFRandonnée Meurthe-et-Moselle — 03 83 18 87 36, meurthe-et-moselle@ffrandonnee.fr`,
+![affiche](file:journee-interclubs-2026-affiche.png)
+![programme](file:journee-interclubs-2026-programme.png)`,
+    files: [
+      {
+        filename: 'journee-interclubs-2026-affiche.png',
+        label:
+          'Rencontre interclubs, rando santé et marche douce, le 19 septembre 2026 au château de St-Max. ' +
+          'Gratuit, repas tiré du sac, transport en autocar possible, programme au verso. ' +
+          'FFRandonnée Meurthe-et-Moselle — 03 83 18 87 36, meurthe-et-moselle@ffrandonnee.fr. Inscriptions en ligne.',
+        url: legacyUpload('6a547dc4918b3', 'png'),
+      },
+      {
+        filename: 'journee-interclubs-2026-programme.png',
+        label:
+          'Programme de la journée. Départ des autocars depuis les 3 coins du département, lieux de prise en charge ' +
+          'et horaires précisés lors de la confirmation d’inscription : 06h55 Herserange puis passage à Briey, ' +
+          '07h55 Lunéville, 08h20 Toul, ramassages intermédiaires possibles. Le transport en autocar (50 places) sera ' +
+          'assuré sous réserve d’un nombre suffisant d’inscrits, sinon envisager le covoiturage. 9h00 : arrivée des ' +
+          'autocars et rendez-vous pour les individuels sur le parvis arrière du château de St Max, pont de la Meurthe, ' +
+          'accueil autour d’un petit café/brioche offert par le comité. 9h30 : présentation des intervenants et de ' +
+          'quelques thématiques abordées au cours des randos et dans la journée. Départ rando santé, boucle de 4 km sur ' +
+          'les rives de Meurthe avec un professionnel du Sport/Santé/Handicap. Départ rando douce, boucle de 6 km vers ' +
+          'l’île du Foulon avec le Centre Permanent d’Initiatives pour l’Environnement (CPIE). 12h30 : retour des ' +
+          'randonneurs au château pour un repas tiré du sac, apéritif commun offert par le comité. 13h30 : intervention ' +
+          'de professionnels de la santé et de l’environnement en lien avec l’activité de rando douce — sport/santé : ' +
+          'médecin du sport, professionnel du sport ; info et prévention sur les tiques et la maladie de Lyme : le Centre ' +
+          'de Référence des Maladies Vectorielles à Tiques (CRMVT) du CHU et le CPIE. 16h00 : fin de la journée, retour ' +
+          'aux autocars.',
+        url: legacyUpload('6a547dd6e186f', 'png'),
+      },
+    ],
   },
   {
     title:
