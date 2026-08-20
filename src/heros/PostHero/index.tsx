@@ -64,9 +64,7 @@ export const PostHero: React.FC<{
   const heading = <PostHeading authors={authors || undefined} title={title} when={when} />
 
   if (!media || typeof media === 'string') {
-    return (
-      <header className="container mx-auto lg:grid lg:grid-cols-[1fr_48rem_1fr]">{heading}</header>
-    )
+    return <header className="container lg:grid lg:grid-cols-[1fr_48rem_1fr]">{heading}</header>
   }
 
   return (

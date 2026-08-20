@@ -21,7 +21,7 @@ export async function Footer() {
           <FederationLogo />
         </Link>
       </div> */}
-      <div className="container mx-auto py-8 gap-4 flex flex-col items-center md:grid md:grid-cols-[1fr_auto_1fr]">
+      <div className="container py-8 gap-4 flex flex-col items-center md:grid md:grid-cols-[1fr_auto_1fr]">
         <div className="md:col-start-1 md:row-start-1 md:justify-self-start">
           <ModeToggle />
         </div>

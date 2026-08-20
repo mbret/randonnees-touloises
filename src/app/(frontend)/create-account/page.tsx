@@ -22,9 +22,12 @@ export default async function CreateAccount() {
 
   return (
     <div className="container py-16">
-      <h1 className="text-xl mb-4">Créer un compte</h1>
-      <RenderParams />
-      <CreateAccountForm />
+      {/* Same card width as the other auth screens. */}
+      <div className="max-w-xl mx-auto">
+        <h1 className="text-xl mb-4">Créer un compte</h1>
+        <RenderParams />
+        <CreateAccountForm />
+      </div>
     </div>
   )
 }
