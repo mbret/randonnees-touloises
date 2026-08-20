@@ -1,7 +1,8 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 
+import { SITEMAP_PATH } from '@/seo/sitemap'
 import { isProgramEntry, NEWS_BASE, postPath, PROGRAMS_BASE } from '@/utilities/postPath'
 
 import type { Post } from '../../../payload-types'
@@ -21,7 +22,7 @@ const pathsFor = (post: Partial<Post>) => {
 const revalidate = (paths: Iterable<string>) => {
   for (const path of new Set(paths)) revalidatePath(path)
 
-  revalidateTag('posts-sitemap', { expire: 0 })
+  revalidatePath(SITEMAP_PATH)
 }
 
 export const revalidatePost: CollectionAfterChangeHook<Post> = ({
