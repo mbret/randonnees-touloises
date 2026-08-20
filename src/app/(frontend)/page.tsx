@@ -4,7 +4,7 @@ import { HomeAgenda } from '@/components/agenda/HomeAgenda'
 import { HomeHero } from '@/components/home/HomeHero'
 import { HomePrograms } from '@/components/programs/HomePrograms'
 import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
-import { SEO_DESCRIPTION, SEO_TITLE } from '@/seo/constants'
+import { SEO_DESCRIPTION } from '@/seo/constants'
 import React from 'react'
 
 /**
@@ -28,5 +28,6 @@ export const metadata: Metadata = {
   openGraph: mergeOpenGraph({
     url: '/',
   }),
-  title: SEO_TITLE,
+  // No title: the root layout's default is the site name, which is what the
+  // home page wants, and repeating it here would only invite a second suffix.
 }

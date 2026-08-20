@@ -1,7 +1,12 @@
 import type { Metadata } from 'next'
 import { getServerSideURL } from '../utilities/getURL'
-import { SEO_DESCRIPTION, SEO_IMAGE, SEO_SITE_NAME, SEO_TITLE } from './constants'
+import { SEO_DESCRIPTION, SEO_IMAGE, SEO_SITE_NAME } from './constants'
 
+/**
+ * No title: Next fills an open graph title left empty from the page's own
+ * resolved title, which the root layout has already branded. Naming one here
+ * would be a second place the rule lives, and the two would drift.
+ */
 const defaultOpenGraph: Metadata['openGraph'] = {
   type: 'website',
   description: SEO_DESCRIPTION,
@@ -11,7 +16,6 @@ const defaultOpenGraph: Metadata['openGraph'] = {
     },
   ],
   siteName: SEO_SITE_NAME,
-  title: SEO_TITLE,
 }
 
 export const mergeOpenGraph = (og?: Metadata['openGraph']): Metadata['openGraph'] => {

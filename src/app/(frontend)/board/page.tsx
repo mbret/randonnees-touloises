@@ -39,7 +39,6 @@ export const metadata: Metadata = {
   description:
     'Les membres du conseil d’administration de l’association Randonnées Touloises et leurs fonctions.',
   openGraph: mergeOpenGraph({
-    title: 'Conseil d’administration',
     url: '/board',
   }),
   title: 'Conseil d’administration',

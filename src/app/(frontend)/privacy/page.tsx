@@ -118,7 +118,6 @@ export const metadata: Metadata = {
   description:
     'Politique de confidentialité de l’association Randonnées Touloises : données collectées, finalités, conservation et vos droits (RGPD).',
   openGraph: mergeOpenGraph({
-    title: 'Politique de confidentialité',
     url: '/privacy',
   }),
   title: 'Politique de confidentialité',

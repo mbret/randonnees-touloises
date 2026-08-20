@@ -23,8 +23,8 @@ import { ProductsCollection } from '@/collections/Product'
 
 /**
  * What the Generate button writes into `meta.title`: the document's own title and
- * nothing else. `generateMeta` appends the site name when it renders the tag, so
- * suffixing here too would print it twice.
+ * nothing else. The root layout's title template appends the site name when the
+ * tag is rendered, so suffixing here too would print it twice.
  */
 const generateTitle: GenerateTitle<Post | Page> = ({ doc }) => {
   return doc?.title || SEO_TITLE

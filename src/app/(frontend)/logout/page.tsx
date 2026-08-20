@@ -17,7 +17,6 @@ export default async function Logout() {
 export const metadata: Metadata = {
   description: 'Vous êtes déconnecté de votre espace adhérent des Randonnées Touloises.',
   openGraph: mergeOpenGraph({
-    title: 'Déconnexion',
     url: '/logout',
   }),
   robots: SEO_NOINDEX,

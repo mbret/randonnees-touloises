@@ -78,7 +78,6 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
     description: DESCRIPTION,
     openGraph: mergeOpenGraph({
       description: DESCRIPTION,
-      title,
       url: pageNumber ? `/news/page/${pageNumber}` : '/news',
     }),
     title,

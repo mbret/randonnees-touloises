@@ -42,7 +42,6 @@ export const metadata: Metadata = {
   description:
     'Les animateurs et animatrices diplômés qui encadrent les sorties des Randonnées Touloises.',
   openGraph: mergeOpenGraph({
-    title: 'Équipe d’animation',
     url: '/animation-team',
   }),
   title: 'Équipe d’animation',

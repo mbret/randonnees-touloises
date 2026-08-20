@@ -68,7 +68,6 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   openGraph: mergeOpenGraph({
     description: DESCRIPTION,
-    title: TITLE,
     url: '/news',
   }),
   title: TITLE,

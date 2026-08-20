@@ -32,7 +32,6 @@ export default async function CreateAccount() {
 export const metadata: Metadata = {
   description: 'Créez votre compte pour accéder à votre espace adhérent des Randonnées Touloises.',
   openGraph: mergeOpenGraph({
-    title: 'Créer un compte',
     url: '/create-account',
   }),
   robots: SEO_NOINDEX,

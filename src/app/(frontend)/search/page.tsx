@@ -91,7 +91,6 @@ export function generateMetadata(): Metadata {
     description: DESCRIPTION,
     openGraph: mergeOpenGraph({
       description: DESCRIPTION,
-      title: TITLE,
       url: '/search',
     }),
     title: TITLE,

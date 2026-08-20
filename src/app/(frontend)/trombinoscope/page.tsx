@@ -72,7 +72,6 @@ export const metadata: Metadata = {
   description:
     'Le trombinoscope des Randonnées Touloises : les visages des adhérentes et adhérents de l’association.',
   openGraph: mergeOpenGraph({
-    title: 'Trombinoscope',
     url: '/trombinoscope',
   }),
   title: 'Trombinoscope',

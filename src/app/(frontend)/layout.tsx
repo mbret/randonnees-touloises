@@ -10,6 +10,7 @@ import { Footer } from '@/Footer/Component'
 import { Header } from '@/navigation/Header/Header'
 import { Providers } from '@/providers'
 import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { SEO_TITLE } from '@/seo/constants'
 import { draftMode } from 'next/headers'
 import { getServerSideURL } from '@/utilities/getURL'
 import './globals.css'
@@ -57,4 +58,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 export const metadata: Metadata = {
   metadataBase: new URL(getServerSideURL()),
   openGraph: mergeOpenGraph(),
+  /**
+   * The single place the site name is appended. Every other segment sets its
+   * own bare title and the template brands it exactly once; a segment with no
+   * title of its own falls back to the default. A template does not apply to
+   * the `page.tsx` sitting beside this layout, so the home page reads as the
+   * site name alone rather than twice.
+   */
+  title: {
+    default: SEO_TITLE,
+    template: `%s | ${SEO_TITLE}`,
+  },
 }
