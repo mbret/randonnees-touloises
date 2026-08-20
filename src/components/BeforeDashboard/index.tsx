@@ -40,8 +40,10 @@ const BeforeDashboard: React.FC = () => {
           Contact. Passez le statut à « Traité » quand c’est fait.
         </li>
       </ul>
-      Une modification est visible sur le site dès l’enregistrement. Utilisez{' '}
-      <strong>Aperçu</strong> pour la voir avant de publier.
+      Pages, publications et événements fonctionnent par brouillons : un contenu enregistré comme{' '}
+      <strong>Brouillon</strong> reste invisible pour les visiteurs, il faut{' '}
+      <strong>Publier</strong> pour le mettre en ligne. <strong>Aperçu</strong> montre le brouillon
+      avant sa publication.
     </div>
   )
 }
