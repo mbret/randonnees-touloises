@@ -3,13 +3,7 @@ import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import {
-  DYNAMIC_ROUTES,
-  STATIC_ROUTES,
-  UNINDEXED_ROUTES,
-  pagesSitemapEntries,
-  postsSitemapEntries,
-} from '@/seo/sitemap'
+import { DYNAMIC_ROUTES, STATIC_ROUTES, UNINDEXED_ROUTES, sitemapEntries } from '@/seo/sitemap'
 import { NEWS_PAGE_SIZE } from '@/utilities/postPath'
 
 const FRONTEND = join(process.cwd(), 'src', 'app', '(frontend)')
@@ -28,7 +22,12 @@ const servedRoutes = (dir: string = FRONTEND, segments: string[] = []): string[]
     return entry.name === 'page.tsx' ? [`/${segments.join('/')}`] : []
   })
 
-const locs = (entries: { loc: string }[]) => entries.map((entry) => entry.loc)
+type Args = Parameters<typeof sitemapEntries>[0]
+
+const build = ({ pages = [], posts = [] }: Partial<Omit<Args, 'siteUrl'>>) =>
+  sitemapEntries({ pages, posts, siteUrl: SITE })
+
+const urls = (entries: { url: string }[]) => entries.map((entry) => entry.url)
 
 const post = (slug: string, startDate?: string) => ({
   slug,
@@ -53,9 +52,9 @@ describe('sitemap route coverage', () => {
   })
 })
 
-describe('pagesSitemapEntries', () => {
+describe('sitemapEntries', () => {
   it('advertises every page that is a file rather than a document', () => {
-    expect(locs(pagesSitemapEntries({ docs: [], siteUrl: SITE }))).toEqual([
+    expect(urls(build({}))).toEqual([
       `${SITE}/`,
       `${SITE}/about`,
       `${SITE}/activities`,
@@ -71,72 +70,61 @@ describe('pagesSitemapEntries', () => {
     ])
   })
 
+  it('no longer advertises the retired /posts archive', () => {
+    expect(urls(build({}))).not.toContain(`${SITE}/posts`)
+  })
+
   it('adds the CMS pages and dates them by the document', () => {
-    const entries = pagesSitemapEntries({
-      docs: [{ slug: 'histoire', updatedAt: '2026-02-03T00:00:00.000Z' }],
-      siteUrl: SITE,
-    })
+    const entries = build({ pages: [{ slug: 'histoire', updatedAt: '2026-02-03T00:00:00.000Z' }] })
 
     expect(entries).toContainEqual({
-      loc: `${SITE}/histoire`,
-      lastmod: '2026-02-03T00:00:00.000Z',
+      url: `${SITE}/histoire`,
+      lastModified: '2026-02-03T00:00:00.000Z',
     })
   })
 
   it('gives the CMS home page the root address', () => {
-    const entries = pagesSitemapEntries({ docs: [{ slug: 'home' }], siteUrl: SITE })
-
-    expect(locs(entries).filter((loc) => loc === `${SITE}/`)).toHaveLength(1)
+    expect(urls(build({ pages: [{ slug: 'home' }] })).filter((url) => url === `${SITE}/`)).toEqual([
+      `${SITE}/`,
+    ])
   })
 
   it('drops a document shadowed by a route file rather than listing it twice', () => {
-    const entries = pagesSitemapEntries({
-      docs: [{ slug: 'about', updatedAt: '2026-02-03T00:00:00.000Z' }],
-      siteUrl: SITE,
-    })
+    const entries = build({ pages: [{ slug: 'about', updatedAt: '2026-02-03T00:00:00.000Z' }] })
 
-    expect(entries.filter((entry) => entry.loc === `${SITE}/about`)).toEqual([
-      { loc: `${SITE}/about` },
+    expect(entries.filter((entry) => entry.url === `${SITE}/about`)).toEqual([
+      { url: `${SITE}/about` },
     ])
   })
 
-  it('no longer advertises the retired /posts archive', () => {
-    expect(locs(pagesSitemapEntries({ docs: [], siteUrl: SITE }))).not.toContain(`${SITE}/posts`)
-  })
-})
-
-describe('postsSitemapEntries', () => {
   it('addresses a post by the section its date puts it in', () => {
-    const entries = postsSitemapEntries({
+    const entries = build({
       posts: [post('assemblee-generale'), post('sortie-du-dimanche', '2026-03-01T00:00:00.000Z')],
-      siteUrl: SITE,
     })
 
-    expect(locs(entries)).toEqual([
-      `${SITE}/news/assemblee-generale`,
-      `${SITE}/programs/sortie-du-dimanche`,
-    ])
+    expect(urls(entries)).toContain(`${SITE}/news/assemblee-generale`)
+    expect(urls(entries)).toContain(`${SITE}/programs/sortie-du-dimanche`)
   })
 
   it('skips a post with no slug to be addressed by', () => {
-    expect(locs(postsSitemapEntries({ posts: [{ slug: null }], siteUrl: SITE }))).toEqual([])
+    expect(urls(build({ posts: [{ slug: null }] }))).toEqual(urls(build({})))
   })
 
   it('leaves the numbered pages out while the listing fits on one', () => {
     const posts = Array.from({ length: NEWS_PAGE_SIZE }, (_, index) => post(`news-${index}`))
 
-    expect(locs(postsSitemapEntries({ posts, siteUrl: SITE }))).not.toContain(`${SITE}/news/page/2`)
+    expect(urls(build({ posts }))).not.toContain(`${SITE}/news/page/2`)
   })
 
   it('advertises the numbered pages from 2, since page 1 is /news', () => {
     const posts = Array.from({ length: NEWS_PAGE_SIZE * 2 + 1 }, (_, index) =>
       post(`news-${index}`),
     )
-    const pages = locs(postsSitemapEntries({ posts, siteUrl: SITE })).filter((loc) =>
-      loc.includes('/news/page/'),
-    )
 
-    expect(pages).toEqual([`${SITE}/news/page/2`, `${SITE}/news/page/3`])
+    expect(urls(build({ posts })).filter((url) => url.includes('/news/page/'))).toEqual([
+      `${SITE}/news/page/2`,
+      `${SITE}/news/page/3`,
+    ])
   })
 
   it('counts only the posts the listing paginates', () => {
@@ -147,6 +135,15 @@ describe('postsSitemapEntries', () => {
       ),
     ]
 
-    expect(locs(postsSitemapEntries({ posts, siteUrl: SITE }))).not.toContain(`${SITE}/news/page/2`)
+    expect(urls(build({ posts }))).not.toContain(`${SITE}/news/page/2`)
+  })
+
+  it('advertises each address exactly once', () => {
+    const entries = build({
+      pages: [{ slug: 'home' }, { slug: 'about' }, { slug: 'histoire' }],
+      posts: Array.from({ length: NEWS_PAGE_SIZE * 2 }, (_, index) => post(`news-${index}`)),
+    })
+
+    expect(urls(entries)).toHaveLength(new Set(urls(entries)).size)
   })
 })
