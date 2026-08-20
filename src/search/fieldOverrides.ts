@@ -4,6 +4,7 @@ export const searchFields: Field[] = [
   {
     name: 'slug',
     type: 'text',
+    label: 'Identifiant d’URL',
     index: true,
     admin: {
       readOnly: true,
@@ -13,7 +14,7 @@ export const searchFields: Field[] = [
     // A result links to /programs or /news depending on this, so the index has
     // to carry it or every programme entry would be linked through a redirect.
     name: 'schedule',
-    label: 'Schedule',
+    label: 'Au programme',
     type: 'group',
     admin: {
       readOnly: true,
@@ -22,12 +23,13 @@ export const searchFields: Field[] = [
       {
         name: 'startDate',
         type: 'date',
+        label: 'Date',
       },
     ],
   },
   {
     name: 'meta',
-    label: 'Meta',
+    label: 'Métadonnées',
     type: 'group',
     index: true,
     admin: {
@@ -37,7 +39,7 @@ export const searchFields: Field[] = [
       {
         type: 'text',
         name: 'title',
-        label: 'Title',
+        label: 'Titre',
       },
       {
         type: 'text',

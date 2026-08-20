@@ -140,6 +140,7 @@ export const Events: CollectionConfig<'events'> = {
       // these without a migration once there is more than randonnées in here.
       name: 'categories',
       type: 'relationship',
+      label: 'Catégories',
       admin: {
         position: 'sidebar',
       },

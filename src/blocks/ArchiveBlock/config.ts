@@ -24,19 +24,20 @@ export const Archive: Block = {
           ]
         },
       }),
-      label: 'Intro Content',
+      label: 'Texte d’introduction',
     },
     {
       name: 'populateBy',
       type: 'select',
+      label: 'Remplir à partir de',
       defaultValue: 'collection',
       options: [
         {
-          label: 'Collection',
+          label: 'Automatiquement',
           value: 'collection',
         },
         {
-          label: 'Individual Selection',
+          label: 'Sélection manuelle',
           value: 'selection',
         },
       ],
@@ -48,10 +49,10 @@ export const Archive: Block = {
         condition: (_, siblingData) => siblingData.populateBy === 'collection',
       },
       defaultValue: 'posts',
-      label: 'Collections To Show',
+      label: 'Contenu à afficher',
       options: [
         {
-          label: 'Posts',
+          label: 'Publications',
           value: 'posts',
         },
       ],
@@ -63,7 +64,7 @@ export const Archive: Block = {
         condition: (_, siblingData) => siblingData.populateBy === 'collection',
       },
       hasMany: true,
-      label: 'Categories To Show',
+      label: 'Catégories à afficher',
       relationTo: 'categories',
     },
     {
@@ -74,7 +75,7 @@ export const Archive: Block = {
         step: 1,
       },
       defaultValue: 10,
-      label: 'Limit',
+      label: 'Nombre maximum',
     },
     {
       name: 'selectedDocs',
@@ -83,12 +84,12 @@ export const Archive: Block = {
         condition: (_, siblingData) => siblingData.populateBy === 'selection',
       },
       hasMany: true,
-      label: 'Selection',
+      label: 'Sélection',
       relationTo: ['posts'],
     },
   ],
   labels: {
-    plural: 'Archives',
-    singular: 'Archive',
+    plural: 'Listes de publications',
+    singular: 'Liste de publications',
   },
 }

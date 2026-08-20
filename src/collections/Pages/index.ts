@@ -24,6 +24,10 @@ import { TeamSectionBlockConfig } from '@/blocks/TeamSectionBlock/config'
 
 export const Pages: CollectionConfig<'pages'> = {
   slug: 'pages',
+  labels: {
+    singular: 'Page',
+    plural: 'Pages',
+  },
   access: {
     create: authenticated,
     delete: authenticated,
@@ -59,6 +63,7 @@ export const Pages: CollectionConfig<'pages'> = {
     {
       name: 'title',
       type: 'text',
+      label: 'Titre',
       required: true,
     },
     {
@@ -66,13 +71,14 @@ export const Pages: CollectionConfig<'pages'> = {
       tabs: [
         {
           fields: [hero],
-          label: 'Hero',
+          label: 'En-tête',
         },
         {
           fields: [
             {
               name: 'layout',
               type: 'blocks',
+              label: 'Blocs',
               blocks: [
                 CallToAction,
                 Content,
@@ -87,11 +93,11 @@ export const Pages: CollectionConfig<'pages'> = {
               },
             },
           ],
-          label: 'Content',
+          label: 'Contenu',
         },
         {
           name: 'meta',
-          label: 'SEO',
+          label: 'Référencement',
           fields: [
             OverviewField({
               titlePath: 'meta.title',
@@ -121,6 +127,7 @@ export const Pages: CollectionConfig<'pages'> = {
     {
       name: 'publishedAt',
       type: 'date',
+      label: 'Publié le',
       admin: {
         position: 'sidebar',
       },

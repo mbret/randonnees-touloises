@@ -5,6 +5,7 @@ import { revalidateFooter } from './hooks/revalidateFooter'
 
 export const Footer: GlobalConfig = {
   slug: 'footer',
+  label: 'Pied de page',
   access: {
     read: () => true,
   },
@@ -12,6 +13,11 @@ export const Footer: GlobalConfig = {
     {
       name: 'navItems',
       type: 'array',
+      label: 'Liens du pied de page',
+      labels: {
+        singular: 'Lien',
+        plural: 'Liens',
+      },
       fields: [
         link({
           appearances: false,

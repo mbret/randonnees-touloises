@@ -9,6 +9,10 @@ import { authenticated } from '@/access/authenticated'
 
 export const GalleriesConfig: CollectionConfig = {
   slug: 'gallery',
+  labels: {
+    singular: 'Élément de galerie',
+    plural: 'Galerie',
+  },
   access: {
     create: authenticated,
     delete: authenticated,
@@ -19,10 +23,12 @@ export const GalleriesConfig: CollectionConfig = {
     {
       name: 'name',
       type: 'text',
+      label: 'Nom',
     },
     {
       name: 'caption',
       type: 'richText',
+      label: 'Légende',
       editor: lexicalEditor({
         features: ({ rootFeatures }) => {
           return [...rootFeatures, FixedToolbarFeature(), InlineToolbarFeature()]
@@ -32,15 +38,16 @@ export const GalleriesConfig: CollectionConfig = {
     {
       name: 'mediaSource',
       type: 'radio',
+      label: 'Source du média',
       required: true,
       defaultValue: 'upload',
       options: [
         {
-          label: 'Upload Media',
+          label: 'Fichier envoyé',
           value: 'upload',
         },
         {
-          label: 'External Media',
+          label: 'Média externe',
           value: 'external',
         },
       ],
@@ -51,6 +58,7 @@ export const GalleriesConfig: CollectionConfig = {
     {
       name: 'media',
       type: 'upload',
+      label: 'Fichier',
       relationTo: 'media',
       required: true,
       admin: {
@@ -60,6 +68,7 @@ export const GalleriesConfig: CollectionConfig = {
     {
       name: 'externalMedia',
       type: 'group',
+      label: 'Média externe',
       admin: {
         condition: (data) => data.mediaSource === 'external',
       },
@@ -67,6 +76,7 @@ export const GalleriesConfig: CollectionConfig = {
         {
           name: 'type',
           type: 'select',
+          label: 'Type',
           required: true,
           options: [
             {
@@ -78,11 +88,11 @@ export const GalleriesConfig: CollectionConfig = {
               value: 'vimeo',
             },
             {
-              label: 'External Image',
+              label: 'Image externe',
               value: 'image',
             },
             {
-              label: 'Other',
+              label: 'Autre',
               value: 'other',
             },
           ],
@@ -96,11 +106,12 @@ export const GalleriesConfig: CollectionConfig = {
         {
           name: 'alt',
           type: 'text',
-          label: 'Alt Text',
+          label: 'Texte alternatif',
         },
         {
           name: 'caption',
           type: 'richText',
+          label: 'Légende',
           editor: lexicalEditor({
             features: ({ rootFeatures }) => {
               return [...rootFeatures, FixedToolbarFeature(), InlineToolbarFeature()]

@@ -8,11 +8,11 @@ export type LinkAppearances = 'default' | 'outline'
 
 export const appearanceOptions: Record<LinkAppearances, { label: string; value: string }> = {
   default: {
-    label: 'Default',
+    label: 'Normal',
     value: 'default',
   },
   outline: {
-    label: 'Outline',
+    label: 'Contour',
     value: 'outline',
   },
 }
@@ -27,6 +27,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
   const linkResult: GroupField = {
     name: 'link',
     type: 'group',
+    label: 'Lien',
     admin: {
       hideGutter: true,
     },
@@ -37,6 +38,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
           {
             name: 'type',
             type: 'radio',
+            label: 'Type de lien',
             admin: {
               layout: 'horizontal',
               width: '50%',
@@ -44,11 +46,11 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
             defaultValue: 'reference',
             options: [
               {
-                label: 'Internal link',
+                label: 'Lien interne',
                 value: 'reference',
               },
               {
-                label: 'Custom URL',
+                label: 'Adresse libre',
                 value: 'custom',
               },
             ],
@@ -62,7 +64,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
               },
               width: '50%',
             },
-            label: 'Open in new tab',
+            label: 'Ouvrir dans un nouvel onglet',
           },
         ],
       },
@@ -87,7 +89,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
       admin: {
         condition: (_, siblingData) => siblingData?.type === 'reference',
       },
-      label: 'Document to link to',
+      label: 'Page vers laquelle pointer',
       relationTo: ['pages', 'posts', 'globalPages'],
       required: true,
     },
@@ -97,7 +99,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
       admin: {
         condition: (_, siblingData) => siblingData?.type === 'custom',
       },
-      label: 'Custom URL',
+      label: 'Adresse libre',
       required: true,
     },
   ]
@@ -121,7 +123,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
           admin: {
             width: '50%',
           },
-          label: 'Label',
+          label: 'Texte du lien',
           required: true,
         },
       ],
@@ -140,8 +142,9 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
     linkResult.fields.push({
       name: 'appearance',
       type: 'select',
+      label: 'Apparence',
       admin: {
-        description: 'Choose how the link should be rendered.',
+        description: 'Choisissez la façon dont le lien s’affiche.',
       },
       defaultValue: 'default',
       options: appearanceOptionsToUse,

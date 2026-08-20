@@ -1,4 +1,5 @@
 import { s3Storage } from '@payloadcms/storage-s3'
+import { fr } from '@payloadcms/translations/languages/fr'
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 
@@ -91,19 +92,31 @@ export default buildConfig({
           height: 667,
         },
         {
-          label: 'Tablet',
+          label: 'Tablette',
           name: 'tablet',
           width: 768,
           height: 1024,
         },
         {
-          label: 'Desktop',
+          label: 'Ordinateur',
           name: 'desktop',
           width: 1440,
           height: 900,
         },
       ],
     },
+  },
+  /**
+   * The admin is for the club's committee, who are French. Payload picks the UI
+   * language from the user's stored preference, then the `Accept-Language`
+   * header, then this fallback — so listing French as the only supported
+   * language is what makes the panel French for everyone, whatever their
+   * browser asks for. Add `en` back to `supportedLanguages` to get the
+   * language picker (and English) back.
+   */
+  i18n: {
+    fallbackLanguage: 'fr',
+    supportedLanguages: { fr },
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,

@@ -31,6 +31,10 @@ import { checkRole } from '@/access/utilities'
 
 export const Posts: CollectionConfig<'posts'> = {
   slug: 'posts',
+  labels: {
+    singular: 'Publication',
+    plural: 'Publications',
+  },
   auth: false,
   access: {
     create: authenticated,
@@ -82,6 +86,7 @@ export const Posts: CollectionConfig<'posts'> = {
     {
       name: 'title',
       type: 'text',
+      label: 'Titre',
       required: true,
     },
     {
@@ -92,6 +97,7 @@ export const Posts: CollectionConfig<'posts'> = {
             {
               name: 'heroImage',
               type: 'upload',
+              label: 'Image principale',
               relationTo: 'media',
             },
             {
@@ -113,13 +119,14 @@ export const Posts: CollectionConfig<'posts'> = {
               required: true,
             },
           ],
-          label: 'Content',
+          label: 'Contenu',
         },
         {
           fields: [
             {
               name: 'relatedPosts',
               type: 'relationship',
+              label: 'Publications liées',
               admin: {
                 position: 'sidebar',
               },
@@ -134,11 +141,11 @@ export const Posts: CollectionConfig<'posts'> = {
               relationTo: 'posts',
             },
           ],
-          label: 'Meta',
+          label: 'Liens',
         },
         {
           name: 'meta',
-          label: 'SEO',
+          label: 'Référencement',
           fields: [
             OverviewField({
               titlePath: 'meta.title',
@@ -202,6 +209,7 @@ export const Posts: CollectionConfig<'posts'> = {
     {
       name: 'publishedAt',
       type: 'date',
+      label: 'Publié le',
       admin: {
         date: {
           pickerAppearance: 'dayAndTime',
@@ -222,6 +230,7 @@ export const Posts: CollectionConfig<'posts'> = {
     {
       name: 'authors',
       type: 'relationship',
+      label: 'Auteurs',
       admin: {
         position: 'sidebar',
       },

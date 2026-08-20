@@ -20,19 +20,19 @@ export const hero: Field = {
       label: 'Type',
       options: [
         {
-          label: 'None',
+          label: 'Aucun',
           value: 'none',
         },
         {
-          label: 'High Impact',
+          label: 'Grand format',
           value: 'highImpact',
         },
         {
-          label: 'Medium Impact',
+          label: 'Format moyen',
           value: 'mediumImpact',
         },
         {
-          label: 'Low Impact',
+          label: 'Format réduit',
           value: 'lowImpact',
         },
       ],
@@ -61,6 +61,7 @@ export const hero: Field = {
     {
       name: 'media',
       type: 'upload',
+      label: 'Image',
       admin: {
         condition: (_, { type } = {}) => ['highImpact', 'mediumImpact'].includes(type),
       },
