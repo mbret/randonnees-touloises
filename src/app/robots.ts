@@ -1,11 +1,9 @@
 import type { MetadataRoute } from 'next'
 
+import { absoluteUrl } from '@/seo/absoluteUrl'
 import { SITEMAP_PATH } from '@/seo/sitemap'
-import { getServerSideURL } from '@/utilities/getURL'
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = getServerSideURL()
-
   return {
     rules: {
       userAgent: '*',
@@ -15,6 +13,6 @@ export default function robots(): MetadataRoute.Robots {
       // without a session anyway.
       disallow: '/admin',
     },
-    sitemap: `${siteUrl}${SITEMAP_PATH}`,
+    sitemap: absoluteUrl(SITEMAP_PATH),
   }
 }

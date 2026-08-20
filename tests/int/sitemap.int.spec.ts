@@ -138,6 +138,23 @@ describe('sitemapEntries', () => {
     expect(urls(build({ posts }))).not.toContain(`${SITE}/news/page/2`)
   })
 
+  it('never advertises a page it asks search engines not to index', () => {
+    const entries = build({
+      pages: UNINDEXED_ROUTES.map((route) => ({ slug: route.slice(1) })),
+    })
+
+    for (const route of UNINDEXED_ROUTES) {
+      expect(urls(entries)).not.toContain(`${SITE}${route}`)
+    }
+  })
+
+  it('never advertises /home, which is the root page under another address', () => {
+    const entries = build({ pages: [{ slug: 'home' }] })
+
+    expect(urls(entries)).not.toContain(`${SITE}/home`)
+    expect(urls(entries)).toContain(`${SITE}/`)
+  })
+
   it('advertises each address exactly once', () => {
     const entries = build({
       pages: [{ slug: 'home' }, { slug: 'about' }, { slug: 'histoire' }],

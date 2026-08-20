@@ -86,11 +86,17 @@ const documentEntry = (siteUrl: string, path: string, doc: Documented): SitemapE
   ...(doc.updatedAt ? { lastModified: doc.updatedAt } : {}),
 })
 
+/** Where a `pages` document lives. The home page answers at the root, not at `/home`. */
+const pagePath = (page: { slug: string }) => (page.slug === 'home' ? '/' : `/${page.slug}`)
+
 /**
  * Every address this site wants indexed, exactly once.
  *
  * A `pages` document sharing a slug with a route file never renders — Next
  * serves the more specific file — so the files come first and win a collision.
+ * Where that file is one we keep out of the index, the document is dropped
+ * rather than deduplicated: advertising `/login` because someone happened to
+ * slug a page `login` would put a `noindex` page in the sitemap.
  *
  * The Actualités listing paginates the posts without a date, so how many
  * numbered pages it has is a fact about the posts rather than a separate count.
@@ -110,12 +116,14 @@ export const sitemapEntries = ({
   const newsPages = Math.ceil(
     published.filter((post) => !isProgramEntry(post)).length / NEWS_PAGE_SIZE,
   )
+  const unindexed = new Set<string>(UNINDEXED_ROUTES)
 
   return unique([
     ...STATIC_ROUTES.map((route) => fileEntry(siteUrl, route)),
     ...pages
       .filter(addressable)
-      .map((page) => documentEntry(siteUrl, page.slug === 'home' ? '/' : `/${page.slug}`, page)),
+      .filter((page) => !unindexed.has(pagePath(page)))
+      .map((page) => documentEntry(siteUrl, pagePath(page), page)),
     ...published.map((post) => documentEntry(siteUrl, postPath(post), post)),
     ...Array.from({ length: Math.max(newsPages - 1, 0) }, (_, index) =>
       fileEntry(siteUrl, newsPagePath(index + 2)),
