@@ -10,7 +10,7 @@ import { revalidateTag } from 'next/cache'
 export const revalidateRedirects: CollectionAfterChangeHook = ({ doc, req: { payload } }) => {
   payload.logger.info(`Revalidating redirects`)
 
-  revalidateTag('redirects')
+  revalidateTag('redirects', { expire: 0 })
 
   return doc
 }
@@ -18,7 +18,7 @@ export const revalidateRedirects: CollectionAfterChangeHook = ({ doc, req: { pay
 export const revalidateRedirectsDelete: CollectionAfterDeleteHook = ({ doc, req: { payload } }) => {
   payload.logger.info(`Revalidating redirects after delete`)
 
-  revalidateTag('redirects')
+  revalidateTag('redirects', { expire: 0 })
 
   return doc
 }
