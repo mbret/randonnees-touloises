@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import type { Availability } from './registrationStatus'
 
 import { dayInFrance, todayInFrance } from '@/utilities/parisDay'
+import { publicDescription } from '@/seo/publicText'
 
 /**
  * How far back the query reaches beyond the cutoff day. The database filter can
@@ -21,7 +22,7 @@ export type ProgramEntry = {
   startDate: string
   /** `YYYY-MM-DD`, for the séjours and the week-ends. */
   endDate?: string
-  /** The post's meta description, which `fillMeta` derives from its body. */
+  /** The post's meta description, as the public side of the site may print it. */
   summary?: string
   /** `YYYY-MM-DD`, the last day an inscription is accepted. */
   registrationDeadline?: string
@@ -79,7 +80,7 @@ export const getPrograms = async ({ limit }: { limit?: number } = {}): Promise<P
           : undefined,
         slug: doc.slug,
         startDate,
-        summary: doc.meta?.description ?? undefined,
+        summary: publicDescription(doc.meta),
         title: doc.title,
       },
     ]
