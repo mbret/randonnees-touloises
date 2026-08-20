@@ -2,7 +2,7 @@ import { SelectField } from 'payload'
 
 export const authConditionField: SelectField = {
   name: 'authCondition',
-  label: "Condition d'accès",
+  label: 'Condition d’accès',
   type: 'select',
   options: [
     {

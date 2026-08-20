@@ -14,22 +14,27 @@ import { getClientSideURL } from '@/utilities/getURL'
 
 const baseClass = 'admin-bar'
 
+/**
+ * `@payloadcms/admin-bar` builds its labels as `Edit ${singular}` / `New
+ * ${singular}` and hardcodes "Exit preview mode" — it takes no translations, so
+ * only these nouns can be made French from here.
+ */
 const collectionLabels = {
   pages: {
     plural: 'Pages',
-    singular: 'Page',
+    singular: 'page',
   },
   posts: {
-    plural: 'Posts',
-    singular: 'Post',
+    plural: 'Publications',
+    singular: 'publication',
   },
-  projects: {
-    plural: 'Projects',
-    singular: 'Project',
+  events: {
+    plural: 'Événements',
+    singular: 'événement',
   },
 }
 
-const Title: React.FC = () => <span>Dashboard</span>
+const Title: React.FC = () => <span>Administration</span>
 
 export const AdminBar: React.FC<{
   adminBarProps?: PayloadAdminBarProps
@@ -79,7 +84,7 @@ export const AdminBar: React.FC<{
           collectionSlug={collection}
           collectionLabels={{
             plural: collectionLabels[collection]?.plural || 'Pages',
-            singular: collectionLabels[collection]?.singular || 'Page',
+            singular: collectionLabels[collection]?.singular || 'page',
           }}
           logo={<Title />}
           onAuthChange={onAuthChange}

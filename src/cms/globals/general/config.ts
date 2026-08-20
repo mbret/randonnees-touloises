@@ -2,6 +2,7 @@ import type { GlobalConfig } from 'payload'
 
 export const General: GlobalConfig = {
   slug: 'general',
+  label: 'Réglages généraux',
   access: {
     read: () => true,
   },

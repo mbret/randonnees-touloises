@@ -30,6 +30,7 @@ export const ContactSubmissions: CollectionConfig = {
     {
       name: 'status',
       type: 'select',
+      label: 'Statut',
       defaultValue: 'nouveau',
       options: [
         { label: 'Nouveau', value: 'nouveau' },
@@ -40,12 +41,14 @@ export const ContactSubmissions: CollectionConfig = {
     {
       name: 'nom',
       type: 'text',
+      label: 'Nom',
       admin: { readOnly: true },
       required: true,
     },
     {
       name: 'email',
       type: 'email',
+      label: 'Adresse e-mail',
       admin: { readOnly: true },
       required: true,
     },
@@ -58,6 +61,7 @@ export const ContactSubmissions: CollectionConfig = {
     {
       name: 'message',
       type: 'textarea',
+      label: 'Message',
       admin: { readOnly: true },
     },
   ],

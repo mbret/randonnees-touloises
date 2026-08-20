@@ -11,6 +11,10 @@ import { roleField } from '@/fields/role'
 
 export const Users: CollectionConfig = {
   slug: 'users',
+  labels: {
+    singular: 'Utilisateur',
+    plural: 'Utilisateurs',
+  },
   access: {
     admin: ({ req: { user } }) => checkRole(['admin'], user),
     create: publicAccess,
@@ -19,7 +23,7 @@ export const Users: CollectionConfig = {
     update: adminOrSelf,
   },
   admin: {
-    group: 'Users',
+    group: 'Utilisateurs',
     defaultColumns: ['name', 'email'],
     useAsTitle: 'name',
   },
@@ -28,11 +32,13 @@ export const Users: CollectionConfig = {
     {
       name: 'name',
       type: 'text',
+      label: 'Nom',
     },
     roleField,
     {
       name: 'orders',
       type: 'join',
+      label: 'Commandes',
       collection: 'orders',
       on: 'customer',
       admin: {
@@ -43,6 +49,7 @@ export const Users: CollectionConfig = {
     {
       name: 'cart',
       type: 'join',
+      label: 'Panier',
       collection: 'carts',
       on: 'customer',
       admin: {
@@ -53,6 +60,7 @@ export const Users: CollectionConfig = {
     {
       name: 'addresses',
       type: 'join',
+      label: 'Adresses',
       collection: 'addresses',
       on: 'customer',
       admin: {

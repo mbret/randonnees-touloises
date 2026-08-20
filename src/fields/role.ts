@@ -5,6 +5,7 @@ import { SelectField } from 'payload'
 export const roleField: SelectField = {
   name: 'roles',
   type: 'select',
+  label: 'Rôles',
   access: {
     create: adminOnlyFieldAccess,
     read: adminOnlyFieldAccess,
@@ -17,11 +18,11 @@ export const roleField: SelectField = {
   },
   options: [
     {
-      label: 'admin',
+      label: 'Administrateur',
       value: 'admin',
     },
     {
-      label: 'customer',
+      label: 'Adhérent',
       value: 'customer',
     },
   ],

@@ -254,7 +254,7 @@ export interface Page {
             url?: string | null;
             label: string;
             /**
-             * Choose how the link should be rendered.
+             * Choisissez la façon dont le lien s’affiche.
              */
             appearance?: ('default' | 'outline') | null;
           };
@@ -348,6 +348,9 @@ export interface Post {
  */
 export interface Media {
   id: number;
+  /**
+   * Ce que l’image montre, pour les personnes qui ne la voient pas et pour les moteurs de recherche.
+   */
   alt?: string | null;
   caption?: {
     root: {
@@ -650,7 +653,7 @@ export interface CallToActionBlock {
           url?: string | null;
           label: string;
           /**
-           * Choose how the link should be rendered.
+           * Choisissez la façon dont le lien s’affiche.
            */
           appearance?: ('default' | 'outline') | null;
         };
@@ -718,7 +721,7 @@ export interface ContentBlock {
           url?: string | null;
           label: string;
           /**
-           * Choose how the link should be rendered.
+           * Choisissez la façon dont le lien s’affiche.
            */
           appearance?: ('default' | 'outline') | null;
         };
@@ -1242,7 +1245,7 @@ export interface ContactSubmission {
 export interface Redirect {
   id: number;
   /**
-   * You will need to rebuild the website when changing this field.
+   * Le site doit être reconstruit après une modification de ce champ.
    */
   from: string;
   to?: {

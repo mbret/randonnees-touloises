@@ -22,6 +22,10 @@ import { DefaultDocumentIDType, Where } from 'payload'
 
 export const ProductsCollection: CollectionOverride = ({ defaultCollection }) => ({
   ...defaultCollection,
+  labels: {
+    singular: 'Produit',
+    plural: 'Produits',
+  },
   admin: {
     ...defaultCollection?.admin,
     defaultColumns: ['title', 'enableVariants', '_status', 'variants.variants'],
@@ -54,7 +58,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     meta: true,
   },
   fields: [
-    { name: 'title', type: 'text', required: true },
+    { name: 'title', type: 'text', label: 'Titre', required: true },
     {
       type: 'tabs',
       tabs: [
@@ -80,17 +84,24 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
             {
               name: 'gallery',
               type: 'array',
+              label: 'Galerie',
+              labels: {
+                singular: 'Image',
+                plural: 'Images',
+              },
               minRows: 1,
               fields: [
                 {
                   name: 'image',
                   type: 'upload',
+                  label: 'Image',
                   relationTo: 'media',
                   required: true,
                 },
                 {
                   name: 'variantOption',
                   type: 'relationship',
+                  label: 'Déclinaison',
                   relationTo: 'variantOptions',
                   admin: {
                     condition: (data) => {
@@ -135,10 +146,11 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
             {
               name: 'layout',
               type: 'blocks',
+              label: 'Blocs',
               blocks: [CallToAction, Content, MediaBlock],
             },
           ],
-          label: 'Content',
+          label: 'Contenu',
         },
         {
           fields: [
@@ -146,6 +158,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
             {
               name: 'relatedProducts',
               type: 'relationship',
+              label: 'Produits liés',
               filterOptions: ({ id }) => {
                 if (id) {
                   return {
@@ -166,11 +179,11 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
               relationTo: 'products',
             },
           ],
-          label: 'Product Details',
+          label: 'Détails du produit',
         },
         {
           name: 'meta',
-          label: 'SEO',
+          label: 'Référencement',
           fields: [
             OverviewField({
               titlePath: 'meta.title',
@@ -200,6 +213,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     {
       name: 'categories',
       type: 'relationship',
+      label: 'Catégories',
       admin: {
         position: 'sidebar',
         sortOptions: 'title',
