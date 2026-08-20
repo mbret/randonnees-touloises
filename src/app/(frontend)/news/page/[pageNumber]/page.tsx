@@ -5,12 +5,17 @@ import { PageRange } from '@/components/PageRange'
 import { Pagination } from '@/components/Pagination'
 import configPromise from '@payload-config'
 import { withoutPrograms } from '@/components/programs/filters'
+import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import { getPayload } from 'payload'
 import React from 'react'
 import PageClient from './page.client'
 import { notFound } from 'next/navigation'
 
 export const revalidate = 600
+
+const TITLE = 'Actualités'
+const DESCRIPTION =
+  'Les actualités, comptes-rendus de sorties et informations de la vie associative des Randonnées Touloises.'
 
 type Args = {
   params: Promise<{
@@ -40,7 +45,7 @@ export default async function Page({ params: paramsPromise }: Args) {
       <PageClient />
       <div className="container mx-auto mb-16">
         <div className="prose dark:prose-invert max-w-none">
-          <h1>Actualités</h1>
+          <h1>{TITLE}</h1>
         </div>
       </div>
 
@@ -66,8 +71,16 @@ export default async function Page({ params: paramsPromise }: Args) {
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { pageNumber } = await paramsPromise
+  const title = pageNumber ? `${TITLE} — page ${pageNumber}` : TITLE
+
   return {
-    title: `Actualités — page ${pageNumber || ''}`,
+    description: DESCRIPTION,
+    openGraph: mergeOpenGraph({
+      description: DESCRIPTION,
+      title,
+      url: pageNumber ? `/news/page/${pageNumber}` : '/news',
+    }),
+    title,
   }
 }
 
