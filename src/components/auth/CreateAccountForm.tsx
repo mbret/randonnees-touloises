@@ -48,7 +48,7 @@ export const CreateAccountForm: React.FC = () => {
       })
 
       if (!response.ok) {
-        const message = response.statusText || 'There was an error creating the account.'
+        const message = response.statusText || 'La création du compte a échoué.'
         setError(message)
         return
       }
@@ -63,10 +63,10 @@ export const CreateAccountForm: React.FC = () => {
         await login(data)
         clearTimeout(timer)
         if (redirect) router.push(redirect)
-        else router.push(`/account?success=${encodeURIComponent('Account created successfully')}`)
+        else router.push(`/account?success=${encodeURIComponent('Votre compte a bien été créé.')}`)
       } catch (_) {
         clearTimeout(timer)
-        setError('There was an error with the credentials provided. Please try again.')
+        setError('Les identifiants fournis sont incorrects. Veuillez réessayer.')
       }
     },
     [login, router, searchParams],
@@ -74,23 +74,16 @@ export const CreateAccountForm: React.FC = () => {
 
   return (
     <form className="max-w-lg py-4" onSubmit={handleSubmit(onSubmit)}>
-      <div className="prose dark:prose-invert mb-6">
-        <p>
-          {`This is where new customers can signup and create a new account. To manage all users, `}
-          <Link href="/admin/collections/users">login to the admin dashboard</Link>.
-        </p>
-      </div>
-
       <Message error={error} />
 
       <div className="flex flex-col gap-8 mb-8">
         <FormItem>
           <Label htmlFor="email" className="mb-2">
-            Email Address
+            Adresse e-mail
           </Label>
           <Input
             id="email"
-            {...register('email', { required: 'Email is required.' })}
+            {...register('email', { required: 'L’adresse e-mail est obligatoire.' })}
             type="email"
           />
           {errors.email && <FormError message={errors.email.message} />}
@@ -98,11 +91,11 @@ export const CreateAccountForm: React.FC = () => {
 
         <FormItem>
           <Label htmlFor="password" className="mb-2">
-            New password
+            Mot de passe
           </Label>
           <Input
             id="password"
-            {...register('password', { required: 'Password is required.' })}
+            {...register('password', { required: 'Le mot de passe est obligatoire.' })}
             type="password"
           />
           {errors.password && <FormError message={errors.password.message} />}
@@ -110,13 +103,14 @@ export const CreateAccountForm: React.FC = () => {
 
         <FormItem>
           <Label htmlFor="passwordConfirm" className="mb-2">
-            Confirm Password
+            Confirmez le mot de passe
           </Label>
           <Input
             id="passwordConfirm"
             {...register('passwordConfirm', {
-              required: 'Please confirm your password.',
-              validate: (value) => value === password.current || 'The passwords do not match',
+              required: 'Veuillez confirmer votre mot de passe.',
+              validate: (value) =>
+                value === password.current || 'Les mots de passe ne correspondent pas.',
             })}
             type="password"
           />
@@ -124,13 +118,13 @@ export const CreateAccountForm: React.FC = () => {
         </FormItem>
       </div>
       <Button disabled={loading} type="submit" variant="default">
-        {loading ? 'Processing' : 'Create Account'}
+        {loading ? 'Création…' : 'Créer un compte'}
       </Button>
 
       <div className="prose dark:prose-invert mt-8">
         <p>
-          {'Already have an account? '}
-          <Link href={`/login${allParams}`}>Login</Link>
+          {'Vous avez déjà un compte ? '}
+          <Link href={`/login${allParams}`}>Connectez-vous</Link>
         </p>
       </div>
     </form>

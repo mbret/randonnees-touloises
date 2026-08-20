@@ -17,12 +17,12 @@ export default async function CreateAccount() {
   const { user } = await payload.auth({ headers })
 
   if (user) {
-    redirect(`/account?warning=${encodeURIComponent('You are already logged in.')}`)
+    redirect(`/account?warning=${encodeURIComponent('Vous êtes déjà connecté.')}`)
   }
 
   return (
     <div className="container py-16">
-      <h1 className="text-xl mb-4">Create Account</h1>
+      <h1 className="text-xl mb-4">Créer un compte</h1>
       <RenderParams />
       <CreateAccountForm />
     </div>
@@ -30,11 +30,11 @@ export default async function CreateAccount() {
 }
 
 export const metadata: Metadata = {
-  description: 'Create an account or log in to your existing account.',
+  description: 'Créez votre compte pour accéder à votre espace adhérent des Randonnées Touloises.',
   openGraph: mergeOpenGraph({
-    title: 'Account',
-    url: '/account',
+    title: 'Créer un compte',
+    url: '/create-account',
   }),
   robots: SEO_NOINDEX,
-  title: 'Account',
+  title: 'Créer un compte',
 }
