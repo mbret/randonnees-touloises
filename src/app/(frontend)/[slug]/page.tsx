@@ -7,6 +7,8 @@ import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
 import { homeStatic } from '@/endpoints/seed/home-static'
 
+import { breadcrumbJsonLd, pageTrail } from '@/seo/jsonld/breadcrumbs'
+import { JsonLd } from '@/seo/jsonld/JsonLd'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/seo/generateMeta'
@@ -64,10 +66,14 @@ export default async function Page({ params: paramsPromise }: Args) {
   }
 
   const { hero, layout } = page
+  // Nothing for the home page, which is the root of every trail rather than a
+  // step on one.
+  const breadcrumbs = breadcrumbJsonLd(pageTrail(page))
 
   return (
     <article className="pt-6 pb-12">
       <PageClient />
+      {breadcrumbs && <JsonLd data={breadcrumbs} />}
       {/* Allows redirects for valid pages too */}
       <PayloadRedirects disableNotFound url={url} />
 
