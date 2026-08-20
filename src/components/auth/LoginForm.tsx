@@ -40,7 +40,7 @@ export const LoginForm: React.FC = () => {
       } catch (e) {
         console.error(e)
 
-        setError('There was an error with the credentials provided. Please try again.')
+        setError('Les identifiants fournis sont incorrects. Veuillez réessayer.')
       }
     },
     [login, router],
@@ -51,29 +51,29 @@ export const LoginForm: React.FC = () => {
       <Message className="classes.message" error={error} />
       <div className="flex flex-col gap-8">
         <FormItem>
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Adresse e-mail</Label>
           <Input
             id="email"
             type="email"
-            {...register('email', { required: 'Email is required.' })}
+            {...register('email', { required: 'L’adresse e-mail est obligatoire.' })}
           />
           {errors.email && <FormError message={errors.email.message} />}
         </FormItem>
 
         <FormItem>
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Mot de passe</Label>
           <Input
             id="password"
             type="password"
-            {...register('password', { required: 'Please provide a password.' })}
+            {...register('password', { required: 'Le mot de passe est obligatoire.' })}
           />
           {errors.password && <FormError message={errors.password.message} />}
         </FormItem>
 
         <div className="text-primary/70 mb-6 prose hover:prose-a:text-primary dark:prose-invert">
           <p>
-            Forgot your password?{' '}
-            <Link href={`/recover-password${allParams}`}>Click here to reset it</Link>
+            Mot de passe oublié ?{' '}
+            <Link href={`/recover-password${allParams}`}>Réinitialisez-le ici</Link>
           </p>
         </div>
       </div>
@@ -81,11 +81,11 @@ export const LoginForm: React.FC = () => {
       <div className="flex gap-4 justify-between">
         <Button asChild variant="outline" size="lg">
           <Link href={`/create-account${allParams}`} className="grow max-w-[50%]">
-            Create an account
+            Créer un compte
           </Link>
         </Button>
         <Button className="grow" disabled={isLoading} size="lg" type="submit" variant="default">
-          {isLoading ? 'Processing' : 'Continue'}
+          {isLoading ? 'Connexion…' : 'Se connecter'}
         </Button>
       </div>
     </form>
