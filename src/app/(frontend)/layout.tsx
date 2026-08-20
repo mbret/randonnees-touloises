@@ -14,6 +14,7 @@ import { draftMode } from 'next/headers'
 import { getServerSideURL } from '@/utilities/getURL'
 import './globals.css'
 import { ThemeProvider } from '@/theme/ThemeProvider'
+import { ClubJsonLd } from '@/seo/ClubJsonLd'
 import { Favicon } from '@/metadata/Favicon'
 import { MediaProvider } from '@/metadata/MediaProvider'
 import { getCachedMedias } from '@/metadata/getMedias'
@@ -26,6 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html className={cn(GeistSans.variable, GeistMono.variable)} lang="fr" suppressHydrationWarning>
       <head>
         <Favicon />
+        <ClubJsonLd />
       </head>
       <body className="min-h-screen flex flex-col">
         <ThemeProvider

@@ -5,8 +5,11 @@ import React, { cache } from 'react'
 
 import type { Post } from '@/payload-types'
 
+import { breadcrumbJsonLd, postTrail } from '@/seo/breadcrumbs'
+import { JsonLd } from '@/seo/JsonLd'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { PostHero } from '@/heros/PostHero'
+import { programEventJsonLd } from '@/seo/event'
 import { PostViewClient } from './PostViewClient'
 import { PublishedAt } from './PublishedAt'
 import { RelatedPosts } from '@/blocks/RelatedPosts/Component'
@@ -18,10 +21,20 @@ import { withoutPrograms } from '@/components/programs/filters'
 export async function PostView({ post }: { post: Post }) {
   const { isEnabled: draft } = await draftMode()
 
+  // Structured data for whichever kind of post this is: a dated entry is an
+  // outing a reader can turn up to, an undated one only has its trail. Both sit
+  // inside the password gate, so a post whose body is withheld does not describe
+  // itself to a crawler either.
+  const event = programEventJsonLd(post)
+  const breadcrumbs = breadcrumbJsonLd(postTrail(post))
+
   return (
     <WithContentProtectedPassword required={post.requireContentPassword}>
       <article className="pt-16 pb-16">
         <PostViewClient />
+
+        {event && <JsonLd data={event} />}
+        {breadcrumbs && <JsonLd data={breadcrumbs} />}
 
         {draft && <LivePreviewListener />}
 
