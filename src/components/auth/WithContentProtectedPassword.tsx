@@ -30,18 +30,24 @@ export const WithContentProtectedPassword = async ({
   const general = await getCachedGlobal('general', 1)()
 
   /**
-   * Reading the cookie is what opts the whole route into being rendered per
-   * request, so it is deliberately the last thing touched: a post that is not
-   * gated — or a site with no password set at all — never reaches it, and its
-   * page can be prerendered.
+   * With no password configured there is nothing to check, and skipping the
+   * cookie is what lets these pages be prerendered: reading it opts the whole
+   * route into being rendered per request.
+   *
+   * The test is deliberately the global setting rather than `required`. Whether
+   * a route is static has to be settled by something an editor does not change
+   * per document: a page prerendered while its post was ungated cannot turn
+   * dynamic when the box is ticked later, and it would go on serving the body it
+   * was built with. So every post reads the cookie whenever the site has a
+   * password at all, gated or not.
    */
-  if (!required || !general.contentPassword) {
+  if (!general.contentPassword) {
     return children
   }
 
   const cookieStore = await cookies()
 
-  if (cookieStore.get('contentPassword')?.value !== general.contentPassword) {
+  if (required && cookieStore.get('contentPassword')?.value !== general.contentPassword) {
     return (
       <div className="container flex grow items-center justify-center py-12">
         <ContentProtectedPasswordForm general={general} />

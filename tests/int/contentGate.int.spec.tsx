@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+/** Stands in for whatever the editor typed into the global. Not a credential. */
+const CONFIGURED = 'gate-fixture-value'
+
 const cookieGet = vi.fn()
 const cookies = vi.fn(async () => ({ get: cookieGet }))
-let contentPassword: string | undefined
+let configured: string | undefined
 
 vi.mock('next/headers', () => ({ cookies: () => cookies() }))
 vi.mock('@/utilities/getGlobals', () => ({
-  getCachedGlobal: () => async () => ({ contentPassword }),
+  getCachedGlobal: () => async () => ({ contentPassword: configured }),
 }))
 
 const { WithContentProtectedPassword } = await import(
@@ -21,45 +24,50 @@ const gate = (required: boolean | null | undefined) =>
 beforeEach(() => {
   cookies.mockClear()
   cookieGet.mockReset()
-  contentPassword = undefined
+  configured = undefined
 })
 
 describe('WithContentProtectedPassword', () => {
-  it('passes an ungated post straight through, without reading the cookie', async () => {
-    contentPassword = 'letmein'
+  describe('with nothing configured on the global', () => {
+    it('passes through without reading the cookie, so the page can be prerendered', async () => {
+      expect(await gate(true)).toBe(CHILDREN)
+      expect(cookies).not.toHaveBeenCalled()
+    })
 
-    expect(await gate(false)).toBe(CHILDREN)
-    // The point of the ordering: a cookie read here would opt the whole route
-    // into being rendered per request, so an ungated post must not reach it.
-    expect(cookies).not.toHaveBeenCalled()
+    it('passes an ungated post through too', async () => {
+      expect(await gate(false)).toBe(CHILDREN)
+      expect(cookies).not.toHaveBeenCalled()
+    })
   })
 
-  it('passes through when no password is configured, without reading the cookie', async () => {
-    contentPassword = undefined
+  describe('with a password configured', () => {
+    beforeEach(() => {
+      configured = CONFIGURED
+    })
 
-    expect(await gate(true)).toBe(CHILDREN)
-    expect(cookies).not.toHaveBeenCalled()
-  })
+    it('reads the cookie even for an ungated post, so the rendering mode does not depend on the checkbox', async () => {
+      expect(await gate(false)).toBe(CHILDREN)
+      // Were this skipped, ticking the box on an already-prerendered post would
+      // ask a static route to turn dynamic, which it cannot.
+      expect(cookies).toHaveBeenCalled()
+    })
 
-  it('withholds the body when the cookie is missing', async () => {
-    contentPassword = 'letmein'
-    cookieGet.mockReturnValue(undefined)
+    it('withholds the body when the cookie is missing', async () => {
+      cookieGet.mockReturnValue(undefined)
 
-    expect(await gate(true)).not.toBe(CHILDREN)
-    expect(cookies).toHaveBeenCalled()
-  })
+      expect(await gate(true)).not.toBe(CHILDREN)
+    })
 
-  it('withholds the body when the cookie does not match', async () => {
-    contentPassword = 'letmein'
-    cookieGet.mockReturnValue({ value: 'wrong' })
+    it('withholds the body when the cookie does not match', async () => {
+      cookieGet.mockReturnValue({ value: 'something-else' })
 
-    expect(await gate(true)).not.toBe(CHILDREN)
-  })
+      expect(await gate(true)).not.toBe(CHILDREN)
+    })
 
-  it('serves the body when the cookie matches', async () => {
-    contentPassword = 'letmein'
-    cookieGet.mockReturnValue({ value: 'letmein' })
+    it('serves the body when the cookie matches', async () => {
+      cookieGet.mockReturnValue({ value: CONFIGURED })
 
-    expect(await gate(true)).toBe(CHILDREN)
+      expect(await gate(true)).toBe(CHILDREN)
+    })
   })
 })
