@@ -55,6 +55,10 @@ export const IconCards: Block = {
       type: 'upload',
       label: 'Illustration',
       relationTo: 'media',
+      /* Images only. The media collection accepts any file, and a document or a
+       * sound has no width or height to give `next/image` — picking one would
+       * take the page down at render rather than look wrong. */
+      filterOptions: { mimeType: { contains: 'image' } },
       admin: {
         description:
           'Facultative. Placée à côté des cartes sur grand écran, au-dessus d’elles sur mobile.',

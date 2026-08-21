@@ -62,11 +62,20 @@ export const IconCardsBlock: React.FC<IconCardsBlockProps> = ({ cards, media, me
       <div className={`grid gap-12 items-center ${layout.grid}`}>
         <div className={layout.cards}>{list}</div>
 
+        {/* A fixed width past `lg`, not a share of the viewport: `.container`
+            caps at 64rem, so the column stops growing at 608px — 960px of
+            content, less the 48px gap, two thirds of what is left — however
+            wide the window gets. Asking for `66vw` would have a 1920px screen
+            fetch a rendition twice the size of the space it lands in.
+
+            Phrased as `min-width` to match the `lg` breakpoint the columns
+            actually split on: a `max-width: 1024px` arm also matches at
+            exactly 1024, where the split has already happened. */}
         <Media
           className={layout.media}
           imgClassName="rounded-lg w-full h-auto"
           resource={media}
-          size="(max-width: 1024px) 100vw, 66vw"
+          size="(min-width: 1024px) 608px, 100vw"
         />
       </div>
     </div>
