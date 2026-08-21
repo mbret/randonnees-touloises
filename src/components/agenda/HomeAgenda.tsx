@@ -16,7 +16,7 @@ export async function HomeAgenda() {
 
   return (
     <section className="container scroll-mt-24 py-16 md:py-24" id="agenda">
-      <div className="mx-auto max-w-3xl text-center">
+      <div className="text-center">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Agenda</h2>
         <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
           Sauf modification du parcours pendant la randonnée (cela peut arriver !), les km et D+
@@ -30,7 +30,7 @@ export async function HomeAgenda() {
           Aucun événement n’est programmé pour le moment.
         </p>
       ) : (
-        <div className="mx-auto mt-12 flex max-w-3xl flex-col gap-16">
+        <div className="mt-12 flex flex-col gap-16">
           {months.map((month) => (
             <AgendaMonth key={month.month} previewDays={3} {...month} />
           ))}

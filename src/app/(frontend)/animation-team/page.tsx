@@ -22,17 +22,15 @@ export default async function Page() {
   return (
     <div className="pt-24 pb-24">
       <div className="container">
-        <div className="max-w-6xl mx-auto">
-          <div className="prose dark:prose-invert max-w-3xl mb-12">
-            <h1>Équipe d’animation</h1>
-            <p className="lead">
-              Les animateurs et animatrices diplômés qui encadrent nos sorties. Contactez-les pour
-              toute question sur une randonnée.
-            </p>
-          </div>
-
-          <TeamSection teamMembers={teamMembers} />
+        <div className="prose dark:prose-invert max-w-none mb-12">
+          <h1>Équipe d’animation</h1>
+          <p className="lead">
+            Les animateurs et animatrices diplômés qui encadrent nos sorties. Contactez-les pour
+            toute question sur une randonnée.
+          </p>
         </div>
+
+        <TeamSection teamMembers={teamMembers} />
       </div>
     </div>
   )

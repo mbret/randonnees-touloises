@@ -7,7 +7,7 @@ export default function Page() {
   return (
     <div className="pt-24 pb-24">
       <div className="container">
-        <div className="prose dark:prose-invert max-w-3xl mx-auto">
+        <div className="prose dark:prose-invert max-w-none">
           <h1>Politique de confidentialité</h1>
           <p className="lead">Association Randonnées Touloises</p>
 

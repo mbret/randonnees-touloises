@@ -16,7 +16,7 @@ export default function Page() {
   return (
     <div className="pt-24 pb-24">
       <div className="container">
-        <div className="prose dark:prose-invert max-w-3xl mx-auto">
+        <div className="prose dark:prose-invert max-w-none">
           <h1>Nos activités</h1>
           <p className="lead">
             Les Randonnées Touloises proposent des activités variées tout au long de l’année,

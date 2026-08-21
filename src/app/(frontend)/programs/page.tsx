@@ -20,12 +20,12 @@ export default async function Page() {
 
   return (
     <div className="container pt-24 pb-24">
-      <div className="mx-auto max-w-3xl text-center">
+      <div className="text-center">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{TITLE}</h1>
         <p className="text-muted-foreground mt-4 text-sm leading-relaxed">{DESCRIPTION}</p>
       </div>
 
-      <div className="mx-auto mt-12 max-w-3xl">
+      <div className="mt-12">
         <ProgramList entries={entries} />
       </div>
     </div>
