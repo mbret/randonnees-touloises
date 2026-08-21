@@ -17,10 +17,10 @@
  * Two kinds of row are put right, and the difference matters because one of them
  * is somebody's writing:
  *
- * - A description the old hook derived from the body is re-derived, which is what
- *   also clears the button labels it used to paste in. It is recognised by being
- *   character-for-character what that hook would have produced, so nothing an
- *   editor has since reworked is touched.
+ * - A description that quotes the body is re-derived, which is what also clears
+ *   the button labels the old hook used to paste in. It is recognised by reading
+ *   as the body's opening, which is what a summariser can produce and what an
+ *   author writing for a search result does not.
  * - Any other description only has its contact details taken out. What is left is
  *   still the sentence its author wrote.
  *
@@ -30,38 +30,11 @@
  */
 import type { Post } from '@/payload-types'
 
-import { fillMeta } from '@/collections/Posts/hooks/fillMeta'
-
-/**
- * The description the previous version of `fillMeta` would have derived: every
- * string in the body, spaces collapsed, cut at 155 characters. It lives on here
- * for one reason — a stored description that matches it was written by that hook
- * rather than by a person, and can be re-derived without losing anyone's words.
- */
-const legacySummarise = (node: unknown): string => {
-  const textOf = (value: unknown): string => {
-    if (!value || typeof value !== 'object') return ''
-
-    const { children, root, text } = value as {
-      children?: unknown[]
-      root?: unknown
-      text?: unknown
-    }
-
-    if (typeof text === 'string') return text
-    if (root) return textOf(root)
-
-    return Array.isArray(children) ? children.map(textOf).join(' ') : ''
-  }
-
-  const text = textOf(node).replace(/\s+/g, ' ').trim()
-
-  return text.length <= 155 ? text : `${text.slice(0, 154).trimEnd()}…`
-}
+import { fillMeta, quotesTheBody } from '@/collections/Posts/hooks/fillMeta'
 
 /** What `fillMeta` would write for this post today. */
 const intended = (post: Post) => {
-  const derived = post.meta?.description === legacySummarise(post.content)
+  const derived = quotesTheBody(post.meta?.description ?? '', post.content)
 
   // Blanking the field first is what asks the hook to derive rather than to keep:
   // it fills an empty description and only scrubs a filled one.

@@ -3,7 +3,7 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import type { Post } from '@/payload-types'
 
 import { beforeSyncWithSearch } from '@/search/beforeSync'
-import { fillMeta, summarise } from '@/collections/Posts/hooks/fillMeta'
+import { fillMeta, quotesTheBody, summarise } from '@/collections/Posts/hooks/fillMeta'
 import { generateMeta } from '@/seo/generateMeta'
 import { programEventJsonLd } from '@/seo/jsonld/event'
 import { publicDescription, redactContacts } from '@/seo/publicText'
@@ -178,6 +178,63 @@ describe('fillMeta', () => {
     expect(meta?.description).toBe('Séjour dans les Vosges')
   })
 
+  it('drops a stored description that quotes the body of a gated post', () => {
+    // What the old hook wrote into the row: the body verbatim, buttons and all.
+    const meta = runFillMeta({
+      title: 'Séjour dans les Vosges',
+      content: body(
+        paragraph(text(`Renseignements : Pascal ${PHONE}`)),
+        paragraph(link('Je m’inscris', 'https://forms.gle/x')),
+        paragraph(text('Le code du dossier est vosges2026.')),
+      ),
+      meta: {
+        description: `Renseignements : Pascal ${PHONE} Je m’inscris Le code du dossier est vos…`,
+      },
+      requireContentPassword: true,
+    })
+
+    expect(meta?.description).toBe('Séjour dans les Vosges')
+  })
+
+  it('drops a description derived before the post was gated', () => {
+    // The mistake this is here for: an existing post has the password box ticked
+    // afterwards, and its description was written from the body it now withholds.
+    const content = body(
+      paragraph(text('Le code du dossier est vosges2026.')),
+      paragraph(link('Je m’inscris', 'https://forms.gle/x')),
+    )
+
+    const meta = runFillMeta({
+      title: 'Séjour dans les Vosges',
+      content,
+      meta: { description: summarise(content) },
+      requireContentPassword: true,
+    })
+
+    expect(meta?.description).toBe('Séjour dans les Vosges')
+  })
+
+  it('keeps a description written for the public on a gated post', () => {
+    const meta = runFillMeta({
+      title: 'Séjour dans les Vosges',
+      content: body(paragraph(text('Le code du dossier est vosges2026.'))),
+      meta: { description: 'Trois jours de randonnée, réservé aux adhérents.' },
+      requireContentPassword: true,
+    })
+
+    expect(meta?.description).toBe('Trois jours de randonnée, réservé aux adhérents.')
+  })
+
+  it('leaves a body-derived description alone on a post that is not gated', () => {
+    const meta = runFillMeta({
+      title: 'Marche Breathwalk',
+      content: body(paragraph(text('Une marche consciente au bord des étangs.'))),
+      meta: { description: 'Une marche consciente au bord des…' },
+    })
+
+    expect(meta?.description).toBe('Une marche consciente au bord des…')
+  })
+
   it('reads the gate off the stored post when the write does not carry it', () => {
     const meta = runFillMeta(
       { content: body(paragraph(text('Le code du dossier est vosges2026.'))) },
@@ -265,5 +322,34 @@ describe('a description already stored with a phone number in it', () => {
     } as unknown as Parameters<typeof beforeSyncWithSearch>[0])
 
     expect(synced.meta.description).toBe('Renseignements : Pascal')
+  })
+})
+
+describe('quotesTheBody', () => {
+  const content = body(
+    paragraph(text(`Renseignements : Pascal ${PHONE}`)),
+    paragraph(link('Je m’inscris', 'https://forms.gle/x')),
+    paragraph(text('C’est une marche consciente de Kundalini Yoga.')),
+  )
+
+  it('recognises what a summariser wrote, contact details and buttons included', () => {
+    expect(
+      quotesTheBody(
+        `Renseignements : Pascal ${PHONE} Je m’inscris C’est une marche cons…`,
+        content,
+      ),
+    ).toBe(true)
+  })
+
+  it('recognises what this summariser writes today', () => {
+    expect(quotesTheBody(summarise(content), content)).toBe(true)
+  })
+
+  it('does not mistake an author’s own sentence for the body', () => {
+    expect(quotesTheBody('Une marche silencieuse au bord des étangs.', content)).toBe(false)
+  })
+
+  it('says nothing about an empty description', () => {
+    expect(quotesTheBody('', content)).toBe(false)
   })
 })

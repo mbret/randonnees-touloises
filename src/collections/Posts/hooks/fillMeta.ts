@@ -55,6 +55,45 @@ const proseOf = (node: unknown, siblings = 1): string => {
 }
 
 /**
+ * Every string in a lexical subtree, blocks and button labels included — the
+ * whole of what the body says, rather than the part a description may quote.
+ */
+const allTextOf = (node: unknown): string => {
+  if (!node || typeof node !== 'object') return ''
+
+  const { children, root, text } = node as { children?: unknown[]; root?: unknown; text?: unknown }
+
+  if (root) return allTextOf(root)
+  if (typeof text === 'string') return text
+
+  return Array.isArray(children) ? children.map(allTextOf).join(' ') : ''
+}
+
+/**
+ * Whether a description is the body talking rather than an author.
+ *
+ * A derived summary is, by construction, the opening of the body's own text — so
+ * a stored value that reads as that opening was written by a summariser: this
+ * one, the earlier one that quoted the blocks and the buttons too, or an
+ * importer's. Anything else is somebody's sentence and is treated as one.
+ *
+ * Both sides are redacted before they are compared, since a stored description
+ * has had its contact details taken out by now and the body it came from has not.
+ */
+export const quotesTheBody = (description: string, content: unknown): boolean => {
+  const start = redactContacts(description.replace(/…$/, ''))
+
+  if (!start) return false
+
+  // Two readings of the body, because either summariser may have written the
+  // description: the one that quoted everything it found, and this one, which
+  // leaves out the blocks and the buttons and so skips over them.
+  return [allTextOf(content), proseOf(content)].some((text) =>
+    redactContacts(text).startsWith(start),
+  )
+}
+
+/**
  * A post's body as a meta description: the prose it holds, collapsed onto one
  * line, stripped of contact details and cut to what a search engine will show.
  * Exported so the importers describe their posts the same way the editor does.
@@ -110,10 +149,16 @@ export const fillMeta: CollectionBeforeValidateHook<Post> = ({ data, originalDoc
   // `WithContentProtectedPassword` withholds from the page.
   const derived = gated ? '' : summarise(content)
 
+  // Which decides nothing on its own while the row already holds a description,
+  // and rows written before any of this did. So a gated post drops a stored
+  // description that quotes its body as well — but keeps one a person wrote for
+  // the public, since the gate is on the body and not on the field.
+  const keepStored = stored !== '' && !(gated && quotesTheBody(stored, content))
+
   // The title is the last resort, and it is a real one: a programme entry whose
   // body is a registration link and a poster has no prose to summarise, and its
   // title says the date and the outing.
-  const description = stored || derived || (title ? redactContacts(title) : '')
+  const description = (keepStored ? stored : '') || derived || redactContacts(title ?? '')
 
   if (description) meta.description = description
 
