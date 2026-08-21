@@ -17,7 +17,7 @@ export default function Page() {
   return (
     <div className="pt-24 pb-24">
       <div className="container">
-        <div className="prose dark:prose-invert max-w-3xl">
+        <div className="prose dark:prose-invert max-w-none">
           <h1>À propos de nous</h1>
           <p className="lead">
             Créée en 1987, l’association Randonnées Touloises s’impose aujourd’hui comme un acteur
@@ -25,7 +25,6 @@ export default function Page() {
           </p>
         </div>
 
-        {/* Media and figures fill the frame; only running text keeps a reading measure. */}
         <div className="my-12">
           <Image
             alt="Groupe de randonneurs sur un sentier de montagne"
@@ -48,7 +47,7 @@ export default function Page() {
           ))}
         </div>
 
-        <div className="prose dark:prose-invert max-w-3xl">
+        <div className="prose dark:prose-invert max-w-none">
           <p>
             Forte de son engagement et de son dynamisme, elle rejoint dès 1992 la Fédération
             Française de Randonnée Pédestre (FFRP), avant d’obtenir en 1995 l’agrément du ministère

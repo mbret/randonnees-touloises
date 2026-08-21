@@ -18,7 +18,7 @@ export function PublishedAt({ value }: { value?: string | null }) {
   }).format(new Date(value))
 
   return (
-    <p className="text-muted-foreground mx-auto mt-12 max-w-3xl border-t pt-6 text-sm">
+    <p className="text-muted-foreground mt-12 border-t pt-6 text-sm">
       Publié le <time dateTime={value}>{label}</time>
     </p>
   )

@@ -64,14 +64,12 @@ export const PostHero: React.FC<{
   const heading = <PostHeading authors={authors || undefined} title={title} when={when} />
 
   if (!media || typeof media === 'string') {
-    return <header className="container lg:grid lg:grid-cols-[1fr_48rem_1fr]">{heading}</header>
+    return <header className="container">{heading}</header>
   }
 
   return (
     <div className="relative flex items-end">
-      <div className="container relative z-10 mx-auto pb-8 text-white lg:grid lg:grid-cols-[1fr_48rem_1fr]">
-        {heading}
-      </div>
+      <div className="container relative z-10 pb-8 text-white">{heading}</div>
       <div className="min-h-[50vh] select-none md:min-h-[60vh]">
         <Media fill priority imgClassName="-z-10 object-cover" resource={media} />
         <div className="bg-linear-to-t pointer-events-none absolute bottom-0 left-0 h-[90%] w-full from-black to-transparent" />

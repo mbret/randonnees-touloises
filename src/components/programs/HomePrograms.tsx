@@ -21,14 +21,14 @@ export async function HomePrograms() {
   return (
     <section className="bg-muted/40 scroll-mt-24 py-16 md:py-24" id="programs">
       <div className="container">
-        <div className="mx-auto max-w-3xl text-center">
+        <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Programme hebdomadaire</h2>
           <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
             Les sorties à la journée, les week-ends et les séjours ouverts aux inscriptions.
           </p>
         </div>
 
-        <div className="mx-auto mt-12 max-w-3xl">
+        <div className="mt-12">
           <ProgramList entries={shown} />
 
           {entries.length > shown.length && (
