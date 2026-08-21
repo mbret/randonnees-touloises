@@ -7,6 +7,7 @@ import React, { ComponentProps } from 'react'
 
 import type { Page, Post, GlobalPage } from '@/payload-types'
 import { useAuth } from '@/providers/auth'
+import { linkHref } from '@/utilities/linkHref'
 import { ExternalLinkIcon } from 'lucide-react'
 
 type RelationTo = 'pages' | 'posts' | 'globalPages'
@@ -47,17 +48,10 @@ export const CMSLink: React.FC<CMSLinkType> = ({
 }) => {
   const { user } = useAuth()
 
-  const ignoreCollectionSlugFor: RelationTo[] = ['globalPages', 'pages']
-
   if (authCondition === 'loggedIn' && !user) return null
   if (authCondition === 'loggedOut' && user) return null
 
-  const href =
-    type === 'reference' && typeof reference?.value === 'object' && reference.value.slug
-      ? `${ignoreCollectionSlugFor.includes(reference?.relationTo) ? '' : `/${reference?.relationTo}`}/${
-          reference.value.slug
-        }`
-      : url
+  const href = linkHref({ reference, type, url })
 
   if (!href) return null
 

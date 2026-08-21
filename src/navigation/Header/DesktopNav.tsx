@@ -1,7 +1,6 @@
 'use client'
 
 import React, { ComponentProps } from 'react'
-import type { Header as HeaderType } from '@/payload-types'
 import { CMSLink } from '@/components/Link'
 import { ExternalLinkIcon, SearchIcon } from 'lucide-react'
 import {
@@ -14,7 +13,7 @@ import {
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu'
 import { cn } from '@/components/ui'
-import { withStaticNavItems } from './staticNavItems'
+import type { HeaderNavItem } from './staticNavItems'
 
 /**
  * How many of the leading nav items sit outside the "Plus" menu: two below
@@ -61,8 +60,7 @@ function ListItem({ url, isExternal, className, ...rest }: ComponentProps<typeof
   )
 }
 
-export const DesktopNav: React.FC<{ data: HeaderType }> = ({ data }) => {
-  const navItems = withStaticNavItems(data?.navItems)
+export const DesktopNav: React.FC<{ navItems: HeaderNavItem[] }> = ({ navItems }) => {
   const laddered = navItems.slice(0, shortcutLadder.length)
 
   /* Reversed so the first item to drop out sits next to the "Plus" trigger. */

@@ -132,6 +132,38 @@ export const Pages: CollectionConfig<'pages'> = {
         position: 'sidebar',
       },
     },
+    {
+      name: 'showInNav',
+      type: 'checkbox',
+      label: 'Afficher dans le menu',
+      defaultValue: true,
+      admin: {
+        description:
+          'Une page publiée entre dans le menu de navigation. Décochez pour la publier sans l’y ajouter.',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'navLabel',
+      type: 'text',
+      label: 'Libellé dans le menu',
+      admin: {
+        condition: (_, siblingData) => Boolean(siblingData?.showInNav),
+        description: 'Par défaut, le titre de la page. Un libellé court tient mieux dans le menu.',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'navOrder',
+      type: 'number',
+      label: 'Ordre dans le menu',
+      admin: {
+        condition: (_, siblingData) => Boolean(siblingData?.showInNav),
+        description:
+          'Classement croissant, puis par titre. Vide compte comme zéro, donc une page sans ordre passe avant une page qui en a un positif.',
+        position: 'sidebar',
+      },
+    },
     slugField(),
   ],
   hooks: {

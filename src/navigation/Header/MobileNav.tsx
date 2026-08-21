@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react'
 
-import type { Header as HeaderType } from '@/payload-types'
 
 import { CMSLink } from '@/components/Link'
 import { Button } from '@/components/ui/button'
@@ -10,11 +9,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { ChevronRightIcon, ExternalLinkIcon, SearchIcon } from 'lucide-react'
 import { Item, ItemActions, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { Logo } from '@/components/Logo/Logo'
-import { withStaticNavItems } from './staticNavItems'
+import type { HeaderNavItem } from './staticNavItems'
 
-export const MobileNav: React.FC<{ data: HeaderType }> = ({ data }) => {
+export const MobileNav: React.FC<{ navItems: HeaderNavItem[] }> = ({ navItems }) => {
   const [open, setOpen] = useState(false)
-  const navItems = withStaticNavItems(data?.navItems)
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
