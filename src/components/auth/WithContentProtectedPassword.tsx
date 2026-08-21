@@ -28,14 +28,20 @@ export const WithContentProtectedPassword = async ({
   required: boolean | undefined | null
 }) => {
   const general = await getCachedGlobal('general', 1)()
-  const cookieStore = await cookies()
-  const password = cookieStore.get('contentPassword')
 
-  if (!general.contentPassword) {
+  /**
+   * Reading the cookie is what opts the whole route into being rendered per
+   * request, so it is deliberately the last thing touched: a post that is not
+   * gated — or a site with no password set at all — never reaches it, and its
+   * page can be prerendered.
+   */
+  if (!required || !general.contentPassword) {
     return children
   }
 
-  if (required && password?.value !== general.contentPassword) {
+  const cookieStore = await cookies()
+
+  if (cookieStore.get('contentPassword')?.value !== general.contentPassword) {
     return (
       <div className="container flex grow items-center justify-center py-12">
         <ContentProtectedPasswordForm general={general} />
