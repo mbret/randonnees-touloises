@@ -18,8 +18,25 @@ import type { Page } from '../../../payload-types'
  */
 const navFields = ['title', 'slug', 'showInNav', 'navLabel', 'navOrder', '_status'] as const
 
-const affectsNav = (doc: Page, previousDoc?: Page) =>
-  !previousDoc || navFields.some((field) => doc[field] !== previousDoc[field])
+/**
+ * Whether this write can have changed the menu.
+ *
+ * Only published pages are in it, so a page that is a draft and was one cannot
+ * have moved it. That is not merely wasted work: opening the create view makes
+ * Payload write an autosave draft *during the render*, and Next refuses
+ * `revalidateTag` during a render — it threw there, and the view rendered blank.
+ * Declining draft-only writes is what keeps that view working, and the sibling
+ * `revalidatePost` earns the same protection by returning early when it finds
+ * nothing published to refresh.
+ */
+const affectsNav = (doc: Page, previousDoc?: Page) => {
+  const published = doc._status === 'published'
+  const wasPublished = previousDoc?._status === 'published'
+
+  if (!published && !wasPublished) return false
+
+  return !previousDoc || navFields.some((field) => doc[field] !== previousDoc[field])
+}
 
 export const revalidatePage: CollectionAfterChangeHook<Page> = ({
   doc,
