@@ -1,5 +1,6 @@
 import type { Metadata } from 'next/types'
 
+import aboutHero from '@/assets/about-hero.webp'
 import { Card, CardContent } from '@/components/ui/card'
 import { servedAt } from '@/seo/servedAt'
 import Image from 'next/image'
@@ -29,10 +30,8 @@ export default function Page() {
           <Image
             alt="Groupe de randonneurs sur un sentier de montagne"
             className="rounded-lg w-full h-auto"
-            height={873}
             priority
-            src="/about-hero.webp"
-            width={1600}
+            src={aboutHero}
           />
         </div>
 

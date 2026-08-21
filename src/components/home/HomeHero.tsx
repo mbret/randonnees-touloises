@@ -2,6 +2,15 @@ import Image from 'next/image'
 import React from 'react'
 
 /**
+ * Imported rather than referenced as `/about-hero.webp`. Next hashes the
+ * contents of a static import into its filename, which is what earns the
+ * optimised variants an immutable `Cache-Control`; a file sitting in `public`
+ * keeps its name across deploys, so it is served `max-age=0, must-revalidate`
+ * and every visit re-downloads or at least revalidates the hero.
+ */
+import aboutHero from '@/assets/about-hero.webp'
+
+/**
  * Full-bleed opening section of the home page: a hiking photo darkened just
  * enough for the club name, its founding year and its address to stay readable
  * on top.
@@ -16,7 +25,7 @@ export function HomeHero() {
         fill
         priority
         sizes="100vw"
-        src="/about-hero.webp"
+        src={aboutHero}
       />
       <div aria-hidden className="absolute inset-0 -z-10 bg-black/50" />
 

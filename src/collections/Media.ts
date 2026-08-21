@@ -52,6 +52,41 @@ export const Media: CollectionConfig = {
     // Upload to the public/media directory in Next.js making them publicly accessible even outside of Payload
     staticDir: path.resolve(dirname, '../../public/media'),
     adminThumbnail: 'thumbnail',
+    /**
+     * Every upload is served by `/api/media/file/<filename>`, a function that
+     * streams the object out of the bucket. Neither Payload nor the S3 adapter
+     * sets `Cache-Control` on that response, and a response without one gets
+     * `public, max-age=0, must-revalidate` from the host — so nothing was
+     * cached anywhere. Each image cost a function invocation and two round
+     * trips to R2 on every page view, even for a browser that already held the
+     * bytes: the header logo alone spent ~1.5s revalidating into a 304.
+     *
+     * A day of freshness, then a month in which a cache answers from its copy
+     * and refreshes behind the answer. Nothing blocks on revalidation, which is
+     * what made the old behaviour expensive, and a replaced file still reaches
+     * everyone within a day of being replaced.
+     *
+     * Not `immutable`, though the bytes behind one URL never change: this hook
+     * sees only the response, so it cannot tell a URL carrying the `updatedAt`
+     * cache tag `getMediaUrl` stamps on it — safe to keep forever, since
+     * replacing the file changes the URL — from a bare
+     * `/api/media/file/<filename>`, which is a URL anyone can request and which
+     * has no way to be invalidated. A year of immutable on the second kind is
+     * unfixable without purging a CDN.
+     *
+     * `_next/image` reads this too: Next takes the optimised image's
+     * `Cache-Control` from the upstream response (or `minimumCacheTTL`,
+     * whichever is longer), so an uncacheable original made every optimised
+     * variant uncacheable in the browser as well.
+     */
+    modifyResponseHeaders: ({ headers }) => {
+      headers.set(
+        'Cache-Control',
+        'public, max-age=86400, s-maxage=86400, stale-while-revalidate=2592000',
+      )
+
+      return headers
+    },
     focalPoint: true,
     imageSizes: [
       {

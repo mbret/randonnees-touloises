@@ -23,6 +23,7 @@ import { BannerBlock } from '@/blocks/Banner/Component'
 import { CallToActionBlock } from '@/blocks/CallToAction/Component'
 import { cn } from '@/components/ui'
 import { postPath } from '@/utilities/postPath'
+import { getMediaUrl } from '@/utilities/getMediaUrl'
 
 type NodeTypes =
   | DefaultNodeTypes
@@ -34,8 +35,11 @@ const internalDocToHref = ({ linkNode }: { linkNode: SerializedLinkNode }) => {
     throw new Error('Expected value to be an object')
   }
   // Media has no slug: its link is the path the upload adapter serves, which is
-  // the same locally and from the bucket.
-  if (relationTo === 'media') return String(value.url ?? '')
+  // the same locally and from the bucket. `updatedAt` is only there when the
+  // reference was populated deeply enough, and it is the cache tag that keeps a
+  // replaced file from being served from a cache, so pass it when it is.
+  if (relationTo === 'media')
+    return getMediaUrl(String(value.url ?? ''), value.updatedAt as string | undefined)
 
   const slug = String(value.slug)
 
