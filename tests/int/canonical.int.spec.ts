@@ -116,6 +116,28 @@ describe('generateMeta canonical', () => {
 
     expect(meta.alternates?.canonical).toBe(meta.openGraph?.url)
   })
+
+  /**
+   * A slug no document answers to renders the 404, and `not-found.tsx` names no
+   * metadata of its own, so whatever this returns is what lands in that page's
+   * head. A canonical on the site root there would tell a crawler that every
+   * address the site does not serve is the home page under another name.
+   */
+  it('claims no canonical for a document that has no address', async () => {
+    expect(await generateMeta({ collection: 'pages', doc: null })).not.toHaveProperty(
+      'alternates.canonical',
+    )
+    expect(
+      await generateMeta({ collection: 'posts', doc: { slug: undefined } }),
+    ).not.toHaveProperty('alternates.canonical')
+  })
+
+  // The share card still needs somewhere to resolve to, so this fallback stays.
+  it('keeps the site root as og:url for a document with no address', async () => {
+    const meta = await generateMeta({ collection: 'pages', doc: null })
+
+    expect(meta.openGraph?.url).toBe(`${SERVER_URL}/`)
+  })
 })
 
 describe('the numbered Actualités listing', () => {

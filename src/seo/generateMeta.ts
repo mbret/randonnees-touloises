@@ -18,12 +18,12 @@ type MetaSource =
   | { collection: 'posts'; doc: Partial<Post> | null }
 
 /**
- * The document's own address. A document without a slug has no address of its
- * own yet — a draft being previewed, or the static home fallback — so it falls
- * back to the site root.
+ * The document's own address, or nothing when it has none: a draft being
+ * previewed before it is given a slug, or a slug no document answers to, which
+ * is on its way to a 404.
  */
 const getDocumentURL = ({ collection, doc }: MetaSource) => {
-  if (!doc?.slug) return absoluteUrl('/')
+  if (!doc?.slug) return null
 
   const path =
     collection === 'posts'
@@ -39,20 +39,30 @@ export const generateMeta = async (args: MetaSource): Promise<Metadata> => {
   const ogImage = getImageURL(doc?.meta?.image)
   const title = doc?.meta?.title
 
+  /**
+   * A document reachable at an address of its own points both its canonical and
+   * its `og:url` at it, so the two cannot name different pages.
+   *
+   * A document with no address keeps the site root as an `og:url`, so a shared
+   * card still resolves somewhere, but claims no canonical at all. A missing
+   * slug renders the 404, and a canonical there would tell a crawler that every
+   * address the site does not serve is the home page under another name.
+   */
+  const url = getDocumentURL(args)
+  const address = servedAt(url ?? absoluteUrl('/'), {
+    description: doc?.meta?.description || '',
+    images: ogImage
+      ? [
+          {
+            url: ogImage,
+          },
+        ]
+      : undefined,
+  })
+
   return {
     description: doc?.meta?.description,
-    // A document is reachable at exactly one address, so the canonical it
-    // points at itself with is the same one `og:url` names.
-    ...servedAt(getDocumentURL(args), {
-      description: doc?.meta?.description || '',
-      images: ogImage
-        ? [
-            {
-              url: ogImage,
-            },
-          ]
-        : undefined,
-    }),
+    ...(url ? address : { openGraph: address.openGraph }),
     // Bare on purpose: the root layout's title template appends the site name.
     // A document with no title of its own leaves the key out altogether rather
     // than setting it to `undefined`, which Next reads as an empty title tag
