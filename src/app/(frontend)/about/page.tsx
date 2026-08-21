@@ -25,7 +25,8 @@ export default function Page() {
           </p>
         </div>
 
-        <div className="max-w-3xl my-12">
+        {/* Media and figures fill the frame; only running text keeps a reading measure. */}
+        <div className="my-12">
           <Image
             alt="Groupe de randonneurs sur un sentier de montagne"
             className="rounded-lg w-full h-auto"
@@ -36,7 +37,7 @@ export default function Page() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-12 max-w-3xl lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 mb-12 lg:grid-cols-4">
           {keyFigures.map(({ label, value }) => (
             <Card key={label}>
               <CardContent className="text-center">
