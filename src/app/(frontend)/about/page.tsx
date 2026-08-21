@@ -76,6 +76,11 @@ export default function Page() {
             nature et le lien social.
           </p>
           <p>
+            L’association recherche par ailleurs de nouveaux animateurs bénévoles :{' '}
+            <Link href="/devenir-animateur">aucune expérience n’est exigée</Link>, la formation est
+            prise en charge.
+          </p>
+          <p>
             Envie de nous rejoindre ou d’en savoir plus ?{' '}
             <Link href="/contact">Contactez-nous</Link> ou consultez notre{' '}
             <Link href="/terms">règlement intérieur</Link>.

@@ -4,6 +4,7 @@ import { TeamSection } from '@/components/TeamSection/TeamSection'
 import { animationTeam } from '@/data/teams'
 import { resolveTeamPhotos } from '@/utilities/resolveTeamPhotos'
 import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import Link from 'next/link'
 import React from 'react'
 
 /**
@@ -28,6 +29,10 @@ export default async function Page() {
             <p className="lead">
               Les animateurs et animatrices diplômés qui encadrent nos sorties. Contactez-les pour
               toute question sur une randonnée.
+            </p>
+            <p>
+              Vous aimeriez en faire partie ? <Link href="/devenir-animateur">Nous recrutons</Link>{' '}
+              — aucune expérience exigée.
             </p>
           </div>
 

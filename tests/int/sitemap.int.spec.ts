@@ -61,6 +61,7 @@ describe('sitemapEntries', () => {
       `${SITE}/animation-team`,
       `${SITE}/board`,
       `${SITE}/contact`,
+      `${SITE}/devenir-animateur`,
       `${SITE}/news`,
       `${SITE}/privacy`,
       `${SITE}/programs`,

@@ -25,6 +25,7 @@ export const STATIC_ROUTES = [
   '/animation-team',
   '/board',
   '/contact',
+  '/devenir-animateur',
   '/news',
   '/privacy',
   '/programs',
