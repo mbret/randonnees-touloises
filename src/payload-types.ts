@@ -263,7 +263,9 @@ export interface Page {
       | null;
     media?: (number | null) | Media;
   };
-  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock | TeamSectionBlock)[];
+  layout: (
+    CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock | IconCardsBlock | TeamSectionBlock
+  )[];
   meta?: {
     title?: string | null;
     /**
@@ -1146,6 +1148,26 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "IconCardsBlock".
+ */
+export interface IconCardsBlock {
+  cards: {
+    icon: 'compass' | 'handshake' | 'users' | 'map' | 'calendar' | 'shield' | 'mountain' | 'footprints';
+    title: string;
+    description: string;
+    id?: string | null;
+  }[];
+  /**
+   * Facultative. Placée à côté des cartes sur grand écran, au-dessus d’elles sur mobile.
+   */
+  media?: (number | null) | Media;
+  mediaPosition?: ('right' | 'left') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'iconCards';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "TeamSectionBlock".
  */
 export interface TeamSectionBlock {
@@ -1604,6 +1626,7 @@ export interface PagesSelect<T extends boolean = true> {
         mediaBlock?: T | MediaBlockSelect<T>;
         archive?: T | ArchiveBlockSelect<T>;
         formBlock?: T | FormBlockSelect<T>;
+        iconCards?: T | IconCardsBlockSelect<T>;
         teamSectionBlock?: T | TeamSectionBlockSelect<T>;
       };
   meta?:
@@ -1710,6 +1733,24 @@ export interface FormBlockSelect<T extends boolean = true> {
   form?: T;
   enableIntro?: T;
   introContent?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "IconCardsBlock_select".
+ */
+export interface IconCardsBlockSelect<T extends boolean = true> {
+  cards?:
+    | T
+    | {
+        icon?: T;
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  media?: T;
+  mediaPosition?: T;
   id?: T;
   blockName?: T;
 }
