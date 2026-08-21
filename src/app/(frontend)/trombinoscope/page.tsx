@@ -42,7 +42,12 @@ export default async function Page() {
                     <Media
                       className="w-full h-full"
                       imgClassName="w-full h-full object-cover object-center"
-                      quality={70}
+                      // The portraits render as ~192px circles, so ImageMedia's
+                      // default of 100 is wasted bytes. Keep this to a value
+                      // `images.qualities` allows: Next coerces an unlisted quality
+                      // to the nearest listed one, so the 70 this used to ask for was
+                      // already served as 75 — it only added a warning per portrait.
+                      quality={75}
                       resource={media}
                       // Without this the shared `sizes` default asks for ~1080px wide
                       // files for a thumbnail that never renders above ~190px.
