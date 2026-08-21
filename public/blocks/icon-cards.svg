@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320">
+  <rect width="480" height="320" fill="#eef0f2"/>
+  <g>
+    <rect x="40" y="48" width="120" height="68" rx="7" fill="#ffffff" stroke="#cfd5db" stroke-width="2"/>
+    <circle cx="60" cy="70" r="7" fill="#7d8791"/>
+    <rect x="76" y="64" width="66" height="9" rx="4" fill="#8f99a3"/>
+    <rect x="76" y="82" width="60" height="7" rx="3" fill="#c6ccd3"/>
+    <rect x="76" y="95" width="44" height="7" rx="3" fill="#c6ccd3"/>
+
+    <rect x="40" y="126" width="120" height="68" rx="7" fill="#ffffff" stroke="#cfd5db" stroke-width="2"/>
+    <circle cx="60" cy="148" r="7" fill="#7d8791"/>
+    <rect x="76" y="142" width="66" height="9" rx="4" fill="#8f99a3"/>
+    <rect x="76" y="160" width="60" height="7" rx="3" fill="#c6ccd3"/>
+    <rect x="76" y="173" width="44" height="7" rx="3" fill="#c6ccd3"/>
+
+    <rect x="40" y="204" width="120" height="68" rx="7" fill="#ffffff" stroke="#cfd5db" stroke-width="2"/>
+    <circle cx="60" cy="226" r="7" fill="#7d8791"/>
+    <rect x="76" y="220" width="66" height="9" rx="4" fill="#8f99a3"/>
+    <rect x="76" y="238" width="60" height="7" rx="3" fill="#c6ccd3"/>
+    <rect x="76" y="251" width="44" height="7" rx="3" fill="#c6ccd3"/>
+  </g>
+  <clipPath id="c"><rect x="176" y="48" width="264" height="224" rx="10"/></clipPath>
+  <g clip-path="url(#c)">
+    <rect x="176" y="48" width="264" height="224" fill="#c3cad1"/>
+    <circle cx="392" cy="98" r="20" fill="#dfe4e8"/>
+    <path d="M176 272 L256 178 L318 240 L360 206 L440 272 Z" fill="#a7b0b9"/>
+  </g>
+</svg>

@@ -4,6 +4,14 @@ import { cardIconOptions } from './icons'
 
 export const IconCards: Block = {
   slug: 'iconCards',
+  admin: {
+    images: {
+      thumbnail: {
+        alt: 'Des cartes à icône, avec une illustration à côté.',
+        url: '/blocks/icon-cards.svg',
+      },
+    },
+  },
   interfaceName: 'IconCardsBlock',
   labels: {
     singular: 'Cartes avec icône',

@@ -9,6 +9,11 @@ import {
 
 export const Archive: Block = {
   slug: 'archive',
+  admin: {
+    images: {
+      thumbnail: { alt: 'Une grille de publications récentes.', url: '/blocks/archive.svg' },
+    },
+  },
   interfaceName: 'ArchiveBlock',
   fields: [
     {
