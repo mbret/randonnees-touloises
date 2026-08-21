@@ -160,8 +160,10 @@ describe('breadcrumb structured data', () => {
     expect(items(trail)).toEqual([`${SERVER_URL}/`, `${SERVER_URL}/qui-sommes-nous`])
   })
 
-  it('gives the home page no trail, since it is the root itself', () => {
-    expect(breadcrumbJsonLd(pageTrail({ slug: 'home', title: 'Accueil' } as Page))).toBeNull()
+  it('hangs a page slugged home off the root like any other, at /home', () => {
+    const trail = breadcrumbJsonLd(pageTrail({ slug: 'home', title: 'Accueil' } as Page))
+
+    expect(items(trail)).toEqual([`${SERVER_URL}/`, `${SERVER_URL}/home`])
   })
 })
 

@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 
 import type { Post } from '@/payload-types'
 
+import { pagePath } from '@/utilities/pagePath'
 import { isProgramEntry, NEWS_PAGE_SIZE, newsPagePath, postPath } from '@/utilities/postPath'
 
 /** The address `app/sitemap.ts` serves, and so the one to invalidate. */
@@ -85,9 +86,6 @@ const documentEntry = (siteUrl: string, path: string, doc: Documented): SitemapE
   url: `${siteUrl}${path}`,
   ...(doc.updatedAt ? { lastModified: doc.updatedAt } : {}),
 })
-
-/** Where a `pages` document lives. The home page answers at the root, not at `/home`. */
-const pagePath = (page: { slug: string }) => (page.slug === 'home' ? '/' : `/${page.slug}`)
 
 /**
  * Every address this site wants indexed, exactly once.

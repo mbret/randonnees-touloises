@@ -44,10 +44,10 @@ describe('generateMeta og:url', () => {
     expect(await ogUrl({ collection: 'pages', doc })).toBe(`${SERVER_URL}/qui-sommes-nous`)
   })
 
-  it('keeps the home page on the site root rather than /home', async () => {
+  it('addresses a page slugged home at /home, since the root is a route file', async () => {
     const doc: Partial<Page> = { slug: 'home' }
 
-    expect(await ogUrl({ collection: 'pages', doc })).toBe(`${SERVER_URL}/`)
+    expect(await ogUrl({ collection: 'pages', doc })).toBe(`${SERVER_URL}/home`)
   })
 
   it('falls back to the site root for a document with no slug', async () => {

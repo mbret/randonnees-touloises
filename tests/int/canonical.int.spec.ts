@@ -107,8 +107,10 @@ describe('generateMeta canonical', () => {
     expect(await canonicalOf({ collection: 'pages', doc })).toBe(`${SERVER_URL}/qui-sommes-nous`)
   })
 
-  it('keeps the home page on the site root rather than /home', async () => {
-    expect(await canonicalOf({ collection: 'pages', doc: { slug: 'home' } })).toBe(`${SERVER_URL}/`)
+  it('addresses a page slugged home at /home, since the root is a route file', async () => {
+    expect(await canonicalOf({ collection: 'pages', doc: { slug: 'home' } })).toBe(
+      `${SERVER_URL}/home`,
+    )
   })
 
   it('says the same thing in the canonical and in og:url', async () => {
