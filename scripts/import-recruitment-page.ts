@@ -209,8 +209,10 @@ const main = async () => {
     process.exit(0)
   }
 
-  // The poster already ships in `public/`, so the upload reads it from there
-  // rather than fetching the old site again.
+  // The poster is seed input, not a served asset: it lives beside this script
+  // rather than in `public/`, where it would answer at an address of its own
+  // and give the same image two homes. The media collection is where it belongs
+  // once uploaded, so that is the only copy the site serves.
   const { docs: media } = await payload.find({
     collection: 'media',
     depth: 0,
@@ -224,7 +226,7 @@ const main = async () => {
     (await payload.create({
       collection: 'media',
       data: { alt: POSTER_ALT },
-      filePath: `public/${POSTER}`,
+      filePath: `scripts/data/${POSTER}`,
       overrideAccess: true,
     }))
 
