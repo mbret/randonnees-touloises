@@ -17,12 +17,36 @@ import redirects from './redirects.js'
  */
 const TEMPORARY_HOST = 'abonnes\\.randonnees-touloises\\.net' // `has.value` is an anchored regex
 
+/**
+ * Files in `public/` are served under the name they were committed with, and
+ * anything without a `Cache-Control` of its own is answered `public, max-age=0,
+ * must-revalidate`: the browser holds a copy but has to ask about it on every
+ * page view, which cost the favicon alone half a second a load. It also leaked
+ * into `next/image`, which passes the upstream `Cache-Control` through to the
+ * optimised variant — so no optimised copy of a `public/` image was cacheable
+ * either.
+ *
+ * Give them a real, short freshness window plus a week of
+ * `stale-while-revalidate`, so a repeat visit paints from cache and the refresh
+ * happens behind it. The names never change, so the window is also the delay
+ * before a deploy that replaces one of these files is seen; an image that wants
+ * caching forever belongs in `src/assets` as a static import, whose filename
+ * carries a hash of its contents.
+ */
+const PUBLIC_ASSET_CACHE_CONTROL = 'public, max-age=3600, stale-while-revalidate=604800'
+
+const PUBLIC_ASSETS = ['/favicon.ico', '/favicon.svg', '/og-image.jpg']
+
 const headers = async () => [
   {
     has: [{ type: 'host', value: TEMPORARY_HOST }],
     headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
     source: '/:path*',
   },
+  ...PUBLIC_ASSETS.map((source) => ({
+    headers: [{ key: 'Cache-Control', value: PUBLIC_ASSET_CACHE_CONTROL }],
+    source,
+  })),
 ]
 
 const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
