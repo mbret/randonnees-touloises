@@ -67,6 +67,11 @@ const columnFields: Field[] = [
 
 export const Content: Block = {
   slug: 'content',
+  admin: {
+    images: {
+      thumbnail: { alt: 'Des colonnes de texte côte à côte.', url: '/blocks/content.svg' },
+    },
+  },
   interfaceName: 'ContentBlock',
   labels: {
     singular: 'Contenu',

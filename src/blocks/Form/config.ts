@@ -9,6 +9,14 @@ import {
 
 export const FormBlock: Block = {
   slug: 'formBlock',
+  admin: {
+    images: {
+      thumbnail: {
+        alt: 'Un formulaire à remplir, avec son bouton d’envoi.',
+        url: '/blocks/form.svg',
+      },
+    },
+  },
   interfaceName: 'FormBlock',
   fields: [
     {
