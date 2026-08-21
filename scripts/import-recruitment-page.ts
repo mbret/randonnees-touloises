@@ -22,6 +22,11 @@
  *
  * The page is created published, and `showInNav` defaults on, so it enters the
  * menu on its own — nothing has to be added to the Header global by hand.
+ *
+ * One step is left to a person, against a deployment that is already running:
+ * open the page in the admin and save it. This process cannot refresh the
+ * site's caches — see the note on `disableRevalidate` below — so until that
+ * save, the running site serves the menu it had cached before the page existed.
  */
 const POSTER = 'recrutement-animateurs.webp'
 
@@ -168,8 +173,11 @@ const layout = (posterId: number) => [
 ]
 
 const main = async () => {
-  const dryRun = Boolean(process.env.DRY_RUN)
-  const force = Boolean(process.env.FORCE)
+  /* Compared to '1', not coerced: `Boolean('0')` is true, so a wrapper passing
+   * FORCE=0 to mean "no" would have replaced a live page. The sibling import
+   * scripts read their flags the same way. */
+  const dryRun = process.env.DRY_RUN === '1'
+  const force = process.env.FORCE === '1'
   const slug = process.env.SLUG || 'devenir-animateur'
 
   const { default: config } = await import('@payload-config')
@@ -183,7 +191,7 @@ const main = async () => {
   )
   const isRemote = /@(?!localhost|127\.0\.0\.1)/.test(connection)
 
-  if (isRemote && !process.env.ALLOW_REMOTE_DB) {
+  if (isRemote && process.env.ALLOW_REMOTE_DB !== '1') {
     console.error('Refusing to write to a remote database without ALLOW_REMOTE_DB=1.')
     process.exit(1)
   }
@@ -257,8 +265,14 @@ const main = async () => {
     },
   }
 
-  // The afterChange hook calls revalidatePath, which throws outside a Next
-  // request. Nothing is serving pages from this process anyway.
+  /* The afterChange hook calls `revalidatePath` and `revalidateTag`, and both
+   * need a Next request to be inside of: from a CLI process they throw
+   * `Invariant: static generation store missing`. Hence suppressing them.
+   *
+   * Which leaves a running deployment serving its cached page and, because the
+   * menu is derived from this collection, its cached menu — neither aware of
+   * what was just written. Nothing callable from out here fixes that, so the
+   * script says what does rather than letting it be discovered. */
   const context = { disableRevalidate: true }
 
   if (pages[0]) {
@@ -268,6 +282,12 @@ const main = async () => {
     const created = await payload.create({ collection: 'pages', context, data })
     console.log(`  created page /${slug} (id ${created.id})`)
   }
+
+  console.log(
+    `\nOne step left, in the admin: open /${slug} and press Save.\n` +
+      `A running site is still serving the menu and the page it had cached before this` +
+      ` write,\nand that save fires the revalidation this process cannot.`,
+  )
 }
 
 export {}
