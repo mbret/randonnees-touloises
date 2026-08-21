@@ -3,9 +3,11 @@ import {
   BoldFeature,
   ItalicFeature,
   LinkFeature,
+  OrderedListFeature,
   ParagraphFeature,
   lexicalEditor,
   UnderlineFeature,
+  UnorderedListFeature,
   type LinkFields,
 } from '@payloadcms/richtext-lexical'
 
@@ -15,6 +17,12 @@ export const defaultLexical = lexicalEditor({
     UnderlineFeature(),
     BoldFeature(),
     ItalicFeature(),
+    // A field that cannot parse a list is a field that throws on one. The
+    // frontend converters already render list nodes, so content holding them
+    // renders on the site while breaking the editor that is meant to fix it —
+    // registering the nodes here is what keeps those two in step.
+    UnorderedListFeature(),
+    OrderedListFeature(),
     LinkFeature({
       // Media is here so an editor links a PDF by picking it rather than by
       // copying its URL out of the admin, where the address of the file and the
