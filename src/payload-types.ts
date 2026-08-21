@@ -274,6 +274,18 @@ export interface Page {
   };
   publishedAt?: string | null;
   /**
+   * Une page publiée entre dans le menu de navigation. Décochez pour la publier sans l’y ajouter.
+   */
+  showInNav?: boolean | null;
+  /**
+   * Par défaut, le titre de la page. Un libellé court tient mieux dans le menu.
+   */
+  navLabel?: string | null;
+  /**
+   * Classement croissant, puis par titre. Vide compte comme zéro, donc une page sans ordre passe avant une page qui en a un positif.
+   */
+  navOrder?: number | null;
+  /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
   generateSlug?: boolean | null;
@@ -1602,6 +1614,9 @@ export interface PagesSelect<T extends boolean = true> {
         description?: T;
       };
   publishedAt?: T;
+  showInNav?: T;
+  navLabel?: T;
+  navOrder?: T;
   generateSlug?: T;
   slug?: T;
   updatedAt?: T;

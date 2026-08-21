@@ -4,16 +4,16 @@ import { useHeaderTheme } from '@/navigation/Header/HeaderThemeProvider'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
-import type { Header } from '@/payload-types'
+import type { HeaderNavItem } from './staticNavItems'
 import { Logo } from '@/components/Logo/Logo'
 import { DesktopNav } from './DesktopNav'
 import { MobileNav } from './MobileNav'
 
 interface HeaderClientProps {
-  data: Header
+  navItems: HeaderNavItem[]
 }
 
-export function HeaderClient({ data }: HeaderClientProps) {
+export function HeaderClient({ navItems }: HeaderClientProps) {
   /* Storing the value in a useState to avoid hydration errors */
   const [theme, setTheme] = useState<string | null>(null)
   const { headerTheme, setHeaderTheme } = useHeaderTheme()
@@ -39,8 +39,8 @@ export function HeaderClient({ data }: HeaderClientProps) {
         <Link aria-label="Accueil" href="/">
           <Logo loading="eager" priority="high" className="max-h-14 w-auto" />
         </Link>
-        <DesktopNav data={data} />
-        <MobileNav data={data} />
+        <DesktopNav navItems={navItems} />
+        <MobileNav navItems={navItems} />
       </div>
     </header>
   )

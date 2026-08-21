@@ -1,11 +1,25 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 import { pagePath } from '@/utilities/pagePath'
 import { SITEMAP_PATH } from '@/seo/sitemap'
 
 import type { Page } from '../../../payload-types'
+
+/**
+ * What the header reads off a page, and so what the menu can go stale on.
+ *
+ * The menu is derived from the collection rather than copied into the Header
+ * global, which means a page changing can change the menu — including going
+ * unpublished, which removes an entry. Autosave writes on a 100ms timer though,
+ * so refreshing on every write would refresh the menu about once per keystroke.
+ * Compare these instead and refresh only when one of them actually moved.
+ */
+const navFields = ['title', 'slug', 'showInNav', 'navLabel', 'navOrder', '_status'] as const
+
+const affectsNav = (doc: Page, previousDoc?: Page) =>
+  !previousDoc || navFields.some((field) => doc[field] !== previousDoc[field])
 
 export const revalidatePage: CollectionAfterChangeHook<Page> = ({
   doc,
@@ -31,7 +45,14 @@ export const revalidatePage: CollectionAfterChangeHook<Page> = ({
       revalidatePath(oldPath)
       revalidatePath(SITEMAP_PATH)
     }
+
+    if (affectsNav(doc, previousDoc)) {
+      payload.logger.info(`Revalidating header for page: ${doc.slug}`)
+
+      revalidateTag('global_header', { expire: 0 })
+    }
   }
+
   return doc
 }
 
@@ -40,6 +61,9 @@ export const revalidateDelete: CollectionAfterDeleteHook<Page> = ({ doc, req: { 
     const path = pagePath(doc)
     revalidatePath(path)
     revalidatePath(SITEMAP_PATH)
+
+    /* Unconditional: a deleted page has to leave the menu. */
+    revalidateTag('global_header', { expire: 0 })
   }
 
   return doc

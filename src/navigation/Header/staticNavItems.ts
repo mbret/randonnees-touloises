@@ -37,10 +37,31 @@ const staticUrls = new Set(
 )
 
 /**
- * The static entries followed by the CMS ones, dropping any CMS item that
- * points at a static link so the two cannot render twice.
+ * The static entries, then the ones an editor added to the Header global, then
+ * the ones the pages collection asked for.
+ *
+ * An address may only appear once. A page that a static entry already points at
+ * keeps the static entry, and an editor who names the same address by hand wins
+ * over the page's own entry — nearest to the hand that placed it. Entries
+ * without a URL are left alone, having no address to collide on.
  */
-export const withStaticNavItems = (navItems: HeaderType['navItems']): HeaderNavItem[] => [
-  ...staticNavItems,
-  ...(navItems ?? []).filter(({ link }) => !link.url || !staticUrls.has(link.url)),
-]
+export const withStaticNavItems = (
+  navItems: HeaderType['navItems'],
+  pageNavItems: HeaderNavItem[] = [],
+): HeaderNavItem[] => {
+  const claimed = new Set(staticUrls)
+  const merged = [...staticNavItems]
+
+  for (const item of [...(navItems ?? []), ...pageNavItems]) {
+    const { url } = item.link
+
+    if (url) {
+      if (claimed.has(url)) continue
+      claimed.add(url)
+    }
+
+    merged.push(item)
+  }
+
+  return merged
+}
