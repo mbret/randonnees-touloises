@@ -9,11 +9,18 @@ import { CMSLink } from '../../components/Link'
 export const ContentBlock: React.FC<ContentBlockProps> = (props) => {
   const { columns } = props
 
+  /**
+   * Written out rather than interpolated: Tailwind finds its classes by scanning
+   * the source for whole ones, so a `lg:col-span-${size}` built at runtime is
+   * never generated. Every column then kept `md:col-span-2` at every width above
+   * md, and the width an editor picked did nothing — a "Pleine largeur" column
+   * rendered at one sixth.
+   */
   const colsSpanClasses = {
-    full: '12',
-    half: '6',
-    oneThird: '4',
-    twoThirds: '8',
+    full: 'lg:col-span-12',
+    half: 'lg:col-span-6',
+    oneThird: 'lg:col-span-4',
+    twoThirds: 'lg:col-span-8',
   }
 
   return (
@@ -26,7 +33,7 @@ export const ContentBlock: React.FC<ContentBlockProps> = (props) => {
 
             return (
               <div
-                className={cn(`col-span-4 lg:col-span-${colsSpanClasses[size!]}`, {
+                className={cn('col-span-4', colsSpanClasses[size!], {
                   'md:col-span-2': size !== 'full',
                 })}
                 key={index}
