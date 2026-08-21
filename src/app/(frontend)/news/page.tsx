@@ -5,7 +5,7 @@ import { PageRange } from '@/components/PageRange'
 import { Pagination } from '@/components/Pagination'
 import configPromise from '@payload-config'
 import { withoutPrograms } from '@/components/programs/filters'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import { NEWS_PAGE_SIZE } from '@/utilities/postPath'
 import { getPayload } from 'payload'
 import React from 'react'
@@ -66,9 +66,8 @@ export default async function Page() {
 
 export const metadata: Metadata = {
   description: DESCRIPTION,
-  openGraph: mergeOpenGraph({
+  ...servedAt('/news', {
     description: DESCRIPTION,
-    url: '/news',
   }),
   title: TITLE,
 }

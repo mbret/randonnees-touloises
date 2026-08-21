@@ -2,10 +2,9 @@ import type { Metadata } from 'next'
 
 import { PayloadRedirects } from '@/components/PayloadRedirects'
 import configPromise from '@payload-config'
-import { getPayload, type RequiredDataFromCollectionSlug } from 'payload'
+import { getPayload } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
-import { homeStatic } from '@/endpoints/seed/home-static'
 
 import { breadcrumbJsonLd, pageTrail } from '@/seo/jsonld/breadcrumbs'
 import { JsonLd } from '@/seo/jsonld/JsonLd'
@@ -28,15 +27,7 @@ export async function generateStaticParams() {
     },
   })
 
-  const params = pages.docs
-    ?.filter((doc) => {
-      return doc.slug !== 'home'
-    })
-    .map(({ slug }) => {
-      return { slug }
-    })
-
-  return params
+  return pages.docs?.map(({ slug }) => ({ slug }))
 }
 
 type Args = {
@@ -47,27 +38,16 @@ type Args = {
 
 export default async function Page({ params: paramsPromise }: Args) {
   const { isEnabled: draft } = await draftMode()
-  const { slug = 'home' } = await paramsPromise
+  const { slug = '' } = await paramsPromise
   const url = '/' + slug
 
-  let page: RequiredDataFromCollectionSlug<'pages'> | null
-
-  page = await queryPageBySlug({
-    slug,
-  })
-
-  // Remove this code once your website is seeded
-  if (!page && slug === 'home') {
-    page = homeStatic
-  }
+  const page = await queryPageBySlug({ slug })
 
   if (!page) {
     return <PayloadRedirects url={url} />
   }
 
   const { hero, layout } = page
-  // Nothing for the home page, which is the root of every trail rather than a
-  // step on one.
   const breadcrumbs = breadcrumbJsonLd(pageTrail(page))
 
   return (
@@ -86,10 +66,8 @@ export default async function Page({ params: paramsPromise }: Args) {
 }
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
-  const { slug = 'home' } = await paramsPromise
-  const page = await queryPageBySlug({
-    slug,
-  })
+  const { slug = '' } = await paramsPromise
+  const page = await queryPageBySlug({ slug })
 
   return generateMeta({ collection: 'pages', doc: page })
 }

@@ -83,10 +83,12 @@ describe('sitemapEntries', () => {
     })
   })
 
-  it('gives the CMS home page the root address', () => {
-    expect(urls(build({ pages: [{ slug: 'home' }] })).filter((url) => url === `${SITE}/`)).toEqual([
-      `${SITE}/`,
-    ])
+  it('treats a page slugged home as a page at /home, since the root is a route file', () => {
+    const entries = build({ pages: [{ slug: 'home' }] })
+
+    expect(urls(entries)).toContain(`${SITE}/home`)
+    // The root is still advertised, by the route file rather than by the document.
+    expect(urls(entries).filter((url) => url === `${SITE}/`)).toEqual([`${SITE}/`])
   })
 
   it('drops a document shadowed by a route file rather than listing it twice', () => {
@@ -146,13 +148,6 @@ describe('sitemapEntries', () => {
     for (const route of UNINDEXED_ROUTES) {
       expect(urls(entries)).not.toContain(`${SITE}${route}`)
     }
-  })
-
-  it('never advertises /home, which is the root page under another address', () => {
-    const entries = build({ pages: [{ slug: 'home' }] })
-
-    expect(urls(entries)).not.toContain(`${SITE}/home`)
-    expect(urls(entries)).toContain(`${SITE}/`)
   })
 
   it('advertises each address exactly once', () => {

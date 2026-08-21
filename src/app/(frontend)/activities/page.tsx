@@ -1,6 +1,6 @@
 import type { Metadata } from 'next/types'
 
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import Link from 'next/link'
 import React from 'react'
 
@@ -81,8 +81,6 @@ export default function Page() {
 export const metadata: Metadata = {
   description:
     'Randonnées pédestres de tous niveaux, marche nordique, sorties à la journée et séjours : découvrez les activités des Randonnées Touloises.',
-  openGraph: mergeOpenGraph({
-    url: '/activities',
-  }),
+  ...servedAt('/activities'),
   title: 'Nos activités',
 }

@@ -3,7 +3,7 @@ import type { Metadata } from 'next/types'
 import { TeamSection } from '@/components/TeamSection/TeamSection'
 import { animationTeam } from '@/data/teams'
 import { resolveTeamPhotos } from '@/utilities/resolveTeamPhotos'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import React from 'react'
 
 /**
@@ -39,8 +39,6 @@ export default async function Page() {
 export const metadata: Metadata = {
   description:
     'Les animateurs et animatrices diplômés qui encadrent les sorties des Randonnées Touloises.',
-  openGraph: mergeOpenGraph({
-    url: '/animation-team',
-  }),
+  ...servedAt('/animation-team'),
   title: 'Équipe d’animation',
 }

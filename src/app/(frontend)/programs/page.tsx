@@ -2,7 +2,7 @@ import type { Metadata } from 'next/types'
 
 import { getPrograms } from '@/components/programs/getPrograms'
 import { ProgramList } from '@/components/programs/ProgramList'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import React from 'react'
 
 /**
@@ -34,9 +34,8 @@ export default async function Page() {
 
 export const metadata: Metadata = {
   description: DESCRIPTION,
-  openGraph: mergeOpenGraph({
+  ...servedAt('/programs', {
     description: DESCRIPTION,
-    url: '/programs',
   }),
   title: TITLE,
 }

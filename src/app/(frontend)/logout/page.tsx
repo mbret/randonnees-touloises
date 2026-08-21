@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { SEO_NOINDEX } from '@/seo/constants'
-import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
+import { servedAt } from '@/seo/servedAt'
 import React from 'react'
 
 import { LogoutPage } from './LogoutPage'
@@ -19,9 +19,7 @@ export default async function Logout() {
 
 export const metadata: Metadata = {
   description: 'Vous êtes déconnecté de votre espace adhérent des Randonnées Touloises.',
-  openGraph: mergeOpenGraph({
-    url: '/logout',
-  }),
+  ...servedAt('/logout'),
   robots: SEO_NOINDEX,
   title: 'Déconnexion',
 }
