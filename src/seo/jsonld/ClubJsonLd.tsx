@@ -4,6 +4,7 @@ import { absoluteUrl } from '../absoluteUrl'
 import { clubJsonLd } from './club'
 import { getCachedMedias } from '@/metadata/getMedias'
 import { JsonLd } from './JsonLd'
+import { getMediaUrl } from '@/utilities/getMediaUrl'
 
 /**
  * The club, on every page of the site.
@@ -20,5 +21,11 @@ export const ClubJsonLd = async () => {
   const medias = await getCachedMedias()()
   const logo = medias.find((media) => media.filename === 'logo.webp')
 
-  return <JsonLd data={clubJsonLd({ logo: logo?.url ? absoluteUrl(logo.url) : undefined })} />
+  return (
+    <JsonLd
+      data={clubJsonLd({
+        logo: logo?.url ? absoluteUrl(getMediaUrl(logo.url, logo.updatedAt)) : undefined,
+      })}
+    />
+  )
 }

@@ -61,19 +61,29 @@ export const Media: CollectionConfig = {
      * trips to R2 on every page view, even for a browser that already held the
      * bytes: the header logo alone spent ~1.5s revalidating into a 304.
      *
-     * The files are in fact immutable. `getMediaUrl` stamps each URL with the
-     * document's `updatedAt`, so replacing a file changes the URL rather than
-     * the bytes behind one, and nothing can be served stale. Anything that
-     * renders a media URL without that cache tag opts out of the invalidation
-     * and would hold a year-old copy — so keep the tag when adding one.
+     * A day of freshness, then a month in which a cache answers from its copy
+     * and refreshes behind the answer. Nothing blocks on revalidation, which is
+     * what made the old behaviour expensive, and a replaced file still reaches
+     * everyone within a day of being replaced.
      *
-     * `_next/image` depends on this too: Next takes the optimised image's
+     * Not `immutable`, though the bytes behind one URL never change: this hook
+     * sees only the response, so it cannot tell a URL carrying the `updatedAt`
+     * cache tag `getMediaUrl` stamps on it — safe to keep forever, since
+     * replacing the file changes the URL — from a bare
+     * `/api/media/file/<filename>`, which is a URL anyone can request and which
+     * has no way to be invalidated. A year of immutable on the second kind is
+     * unfixable without purging a CDN.
+     *
+     * `_next/image` reads this too: Next takes the optimised image's
      * `Cache-Control` from the upstream response (or `minimumCacheTTL`,
      * whichever is longer), so an uncacheable original made every optimised
      * variant uncacheable in the browser as well.
      */
     modifyResponseHeaders: ({ headers }) => {
-      headers.set('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable')
+      headers.set(
+        'Cache-Control',
+        'public, max-age=86400, s-maxage=86400, stale-while-revalidate=2592000',
+      )
 
       return headers
     },
