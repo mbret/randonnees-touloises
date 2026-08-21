@@ -8,9 +8,11 @@
  * Labels are what the editor picks from, so they read as the thing pictured
  * rather than as the name of a component.
  *
- * This file deliberately imports nothing. It is read by the block config, which
- * the admin bundles, while the components live beside the renderer — keyed by
- * `CardIcon`, so leaving one out is a type error rather than a blank card.
+ * This file deliberately imports nothing, so the config can name every option
+ * without pulling an icon in. The icons themselves live in `iconComponents`,
+ * keyed by `CardIcon` so leaving one out is a type error rather than a blank
+ * card, and are loaded by the renderer and by the field preview — which is an
+ * admin component, so the admin does carry them.
  */
 export const cardIconLabels = {
   compass: 'Boussole',

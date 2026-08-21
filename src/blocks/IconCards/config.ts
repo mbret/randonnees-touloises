@@ -28,6 +28,13 @@ export const IconCards: Block = {
           defaultValue: 'compass',
           options: cardIconOptions,
           required: true,
+          admin: {
+            components: {
+              // Draws the chosen icon under the field: a name in a dropdown
+              // says less than the picture it stands for.
+              afterInput: ['@/blocks/IconCards/IconFieldPreview#IconFieldPreview'],
+            },
+          },
         },
         {
           name: 'title',

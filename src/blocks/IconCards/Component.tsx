@@ -1,51 +1,28 @@
-import type { LucideIcon } from 'lucide-react'
 import React from 'react'
-
-import {
-  Calendar,
-  Compass,
-  Footprints,
-  HeartHandshake,
-  Map,
-  Mountain,
-  Shield,
-  Users,
-} from 'lucide-react'
 
 import type { IconCardsBlock as IconCardsBlockProps } from '@/payload-types'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Media } from '@/components/Media'
 
-import type { CardIcon } from './icons'
+import { iconComponents } from './iconComponents'
 
 /**
- * Typed against `CardIcon`, so adding a name to `cardIconLabels` without an
- * icon here is a build error rather than a card that renders blank.
- */
-const icons: Record<CardIcon, LucideIcon> = {
-  calendar: Calendar,
-  compass: Compass,
-  footprints: Footprints,
-  handshake: HeartHandshake,
-  map: Map,
-  mountain: Mountain,
-  shield: Shield,
-  users: Users,
-}
-
-/**
- * Paired with an illustration, the cards take the wider column and the image
- * the narrower one — a portrait poster given the full container is the ~1000px
- * slab that pushes everything below it off the screen.
+ * Paired with an illustration, the image takes two thirds of the row and the
+ * cards the remaining third: the cards are short enough to read in a narrow
+ * column, and the poster is the thing worth showing at a size where its own
+ * text can be read.
+ *
+ * Two thirds, not the whole width: a portrait poster given the full container
+ * is the ~1000px slab that pushes everything below it a screen down.
  *
  * The image comes first on mobile, where the columns collapse: it is the thing
  * that says what the section is about.
  */
 const layouts = {
-  left: { grid: 'lg:grid-cols-[2fr_3fr]', cards: 'order-2', media: 'order-1' },
+  left: { grid: 'lg:grid-cols-[2fr_1fr]', cards: 'order-2', media: 'order-1' },
   right: {
-    grid: 'lg:grid-cols-[3fr_2fr]',
+    grid: 'lg:grid-cols-[1fr_2fr]',
     cards: 'order-2 lg:order-1',
     media: 'order-1 lg:order-2',
   },
@@ -57,7 +34,7 @@ export const IconCardsBlock: React.FC<IconCardsBlockProps> = ({ cards, media, me
   const list = (
     <div className="grid gap-4">
       {cards.map(({ description, icon, id, title }) => {
-        const Icon = icons[icon]
+        const Icon = iconComponents[icon]
 
         return (
           <Card key={id ?? title}>
@@ -89,7 +66,7 @@ export const IconCardsBlock: React.FC<IconCardsBlockProps> = ({ cards, media, me
           className={layout.media}
           imgClassName="rounded-lg w-full h-auto"
           resource={media}
-          size="(max-width: 1024px) 100vw, 40vw"
+          size="(max-width: 1024px) 100vw, 66vw"
         />
       </div>
     </div>
