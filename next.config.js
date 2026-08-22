@@ -1,6 +1,7 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 
 import redirects from './redirects.js'
+import { THUMBNAIL_REMOTE_PATTERNS } from './src/blocks/MediaLinks/thumbnailHosts.js'
 
 /**
  * The staging copy of the site, served from the legacy site's registered domain.
@@ -66,6 +67,12 @@ const nextConfig = {
           protocol: url.protocol.replace(':', ''),
         }
       }),
+      /**
+       * Where the `mediaLinks` block's automatic thumbnails come from. Defined
+       * beside the block, because the resolver has to refuse exactly what this
+       * list refuses — see the note in `thumbnailHosts.js`.
+       */
+      ...THUMBNAIL_REMOTE_PATTERNS,
     ],
     // Next 16 narrowed the default allowed qualities to [75]; ImageMedia
     // requests quality={100}, so both have to be opted in explicitly.
