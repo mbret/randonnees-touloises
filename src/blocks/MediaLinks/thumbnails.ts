@@ -1,5 +1,7 @@
 import { unstable_cache } from 'next/cache'
 
+import { isAllowedThumbnailHost } from './thumbnailHosts.js'
+
 /**
  * The picture a link shows of itself, read from the page it points at.
  *
@@ -53,6 +55,12 @@ const TRAILING_CHARS = 4_096
 
 /** Overlap between chunk scans, so a tag split across two is still seen whole. */
 const SCAN_OVERLAP = 64
+
+/**
+ * `photos.app.goo.gl` takes two hops to reach the album. Five leaves room for a
+ * platform to add one without ending the chain in a loop.
+ */
+const MAX_REDIRECTS = 5
 
 /**
  * Sent because a request with no user agent is the one most likely to be served
@@ -192,6 +200,57 @@ const readMeta = async (response: Response): Promise<string> => {
   return html
 }
 
+/** The statuses that mean "look elsewhere", and carry a `Location` saying where. */
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308])
+
+/**
+ * Walks a redirect chain by hand, vetting every hop before it is requested.
+ *
+ * `redirect: 'follow'` cannot be used here. It would have the server issue the
+ * request to whatever the chain points at — a link that redirects to
+ * `169.254.169.254` reaches the cloud metadata endpoint — and inspecting
+ * `response.url` afterwards is too late to prevent it. Following by hand is
+ * what turns `isPrivateHost` from a report into a guard.
+ *
+ * One caveat that this cannot close: the check is on the name, and a public
+ * name may resolve to a private address. Pinning the resolved IP is the only
+ * complete answer, and is more than a field behind the admin login warrants.
+ */
+const fetchWithVettedRedirects = async (
+  start: URL,
+  signal: AbortSignal,
+): Promise<Response | null> => {
+  let url = start
+
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    if (isPrivateHost(url.hostname)) return null
+
+    const response = await fetch(url, {
+      headers: { accept: 'text/html,application/xhtml+xml', 'user-agent': USER_AGENT },
+      redirect: 'manual',
+      signal,
+    })
+
+    if (!REDIRECT_STATUSES.has(response.status)) return response
+
+    const location = response.headers.get('location')
+
+    /* The hop's own body is of no interest, and an unread body holds its socket
+     * open until the connection times out. */
+    await response.body?.cancel().catch(() => {})
+
+    if (!location) return null
+
+    const next = new URL(location, url)
+
+    if (next.protocol !== 'https:' && next.protocol !== 'http:') return null
+
+    url = next
+  }
+
+  return null
+}
+
 const fetchThumbnail = async (link: string): Promise<Thumbnail | null> => {
   let url: URL
 
@@ -213,17 +272,13 @@ const fetchThumbnail = async (link: string): Promise<Thumbnail | null> => {
   }
 
   try {
-    const response = await fetch(url, {
-      headers: { accept: 'text/html,application/xhtml+xml', 'user-agent': USER_AGENT },
-      redirect: 'follow',
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    })
+    /* One budget for the whole chain, redirects included, so a host cannot
+     * stretch the wait by redirecting slowly. */
+    const response = await fetchWithVettedRedirects(url, AbortSignal.timeout(TIMEOUT_MS))
 
+    if (!response) return null
     if (!response.ok) return null
     if (!response.headers.get('content-type')?.includes('html')) return null
-    /* Checked after the redirects rather than only before: the address an
-     * editor pasted is not necessarily the one that ends up being read. */
-    if (isPrivateHost(new URL(response.url).hostname)) return null
 
     const html = await readMeta(response)
     const src = metaContent(html, 'og:image') ?? metaContent(html, 'twitter:image')
@@ -232,7 +287,12 @@ const fetchThumbnail = async (link: string): Promise<Thumbnail | null> => {
 
     const resolved = new URL(src, response.url)
 
-    if (resolved.protocol !== 'https:' && resolved.protocol !== 'http:') return null
+    /* Dropped rather than returned. `next/image` throws on a host missing from
+     * `remotePatterns`, and it throws while a server component renders — so a
+     * page carrying one link to an unlisted host would not show a broken card,
+     * it would fail to render at all. Refusing here is what makes the documented
+     * fallback to the platform icon true. */
+    if (!isAllowedThumbnailHost(resolved.toString())) return null
 
     const width = Number(metaContent(html, 'og:image:width'))
     const height = Number(metaContent(html, 'og:image:height'))
