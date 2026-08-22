@@ -264,7 +264,14 @@ export interface Page {
     media?: (number | null) | Media;
   };
   layout: (
-    CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock | IconCardsBlock | TeamSectionBlock
+    | CallToActionBlock
+    | ContentBlock
+    | MediaBlock
+    | ArchiveBlock
+    | FormBlock
+    | IconCardsBlock
+    | MediaLinksBlock
+    | TeamSectionBlock
   )[];
   meta?: {
     title?: string | null;
@@ -1168,6 +1175,42 @@ export interface IconCardsBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MediaLinksBlock".
+ */
+export interface MediaLinksBlock {
+  items: {
+    /**
+     * Décide l’icône de la carte et le libellé du bouton — « Voir l’album » pour des photos, « Voir sur YouTube » pour une vidéo.
+     */
+    platform: 'googlePhotos' | 'youtube' | 'other';
+    /**
+     * Par exemple « Marche gourmande » ou « Randonnée Santé 2026 ».
+     */
+    title: string;
+    /**
+     * Facultative. Une phrase disant ce que l’on trouve derrière le lien.
+     */
+    description?: string | null;
+    /**
+     * Facultative, affichée sur la carte. Celle de la sortie, pas celle de la mise en ligne. Elle ne classe rien : l’ordre des cartes est celui des lignes, que l’on réarrange en les faisant glisser.
+     */
+    date?: string | null;
+    /**
+     * L’adresse de partage : « Partager » puis « Créer un lien » dans Google Photos, ou l’adresse de la vidéo ou de la chaîne YouTube.
+     */
+    url: string;
+    /**
+     * Facultative : sans elle, la carte reprend d’elle-même l’image de l’album ou de la vidéo. N’en envoyez une que pour remplacer celle-là — elle a la priorité.
+     */
+    cover?: (number | null) | Media;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'mediaLinks';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "TeamSectionBlock".
  */
 export interface TeamSectionBlock {
@@ -1627,6 +1670,7 @@ export interface PagesSelect<T extends boolean = true> {
         archive?: T | ArchiveBlockSelect<T>;
         formBlock?: T | FormBlockSelect<T>;
         iconCards?: T | IconCardsBlockSelect<T>;
+        mediaLinks?: T | MediaLinksBlockSelect<T>;
         teamSectionBlock?: T | TeamSectionBlockSelect<T>;
       };
   meta?:
@@ -1751,6 +1795,25 @@ export interface IconCardsBlockSelect<T extends boolean = true> {
       };
   media?: T;
   mediaPosition?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MediaLinksBlock_select".
+ */
+export interface MediaLinksBlockSelect<T extends boolean = true> {
+  items?:
+    | T
+    | {
+        platform?: T;
+        title?: T;
+        description?: T;
+        date?: T;
+        url?: T;
+        cover?: T;
+        id?: T;
+      };
   id?: T;
   blockName?: T;
 }

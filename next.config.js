@@ -66,6 +66,19 @@ const nextConfig = {
           protocol: url.protocol.replace(':', ''),
         }
       }),
+      /**
+       * Where the `mediaLinks` block's automatic thumbnails come from: the
+       * `og:image` a Google Photos album or a YouTube page publishes about
+       * itself, plus the video stills `i.ytimg.com` serves.
+       *
+       * Named hosts rather than a wildcard. `remotePatterns` is the only thing
+       * standing between `/_next/image` and an open image proxy — anything
+       * matched here can be fetched and re-served by this site on behalf of
+       * whoever crafts the URL. A link to any other host still works; it simply
+       * gets the platform icon, or whatever picture the editor uploaded.
+       */
+      { protocol: 'https', hostname: '**.googleusercontent.com' },
+      { protocol: 'https', hostname: 'i.ytimg.com' },
     ],
     // Next 16 narrowed the default allowed qualities to [75]; ImageMedia
     // requests quality={100}, so both have to be opted in explicitly.

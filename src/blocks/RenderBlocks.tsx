@@ -8,6 +8,7 @@ import { ContentBlock } from '@/blocks/Content/Component'
 import { FormBlock } from '@/blocks/Form/Component'
 import { IconCardsBlock } from '@/blocks/IconCards/Component'
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
+import { MediaLinksBlock } from '@/blocks/MediaLinks/Component'
 import { TeamSectionBlock } from './TeamSectionBlock/Component'
 
 const blockComponents = {
@@ -17,6 +18,7 @@ const blockComponents = {
   formBlock: FormBlock,
   iconCards: IconCardsBlock,
   mediaBlock: MediaBlock,
+  mediaLinks: MediaLinksBlock,
   teamSectionBlock: TeamSectionBlock,
 }
 

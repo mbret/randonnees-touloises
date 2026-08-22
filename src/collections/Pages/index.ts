@@ -8,6 +8,7 @@ import { Content } from '../../blocks/Content/config'
 import { FormBlock } from '../../blocks/Form/config'
 import { IconCards } from '../../blocks/IconCards/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
+import { MediaLinks } from '../../blocks/MediaLinks/config'
 import { hero } from '@/heros/config'
 import { slugField } from 'payload'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
@@ -87,6 +88,7 @@ export const Pages: CollectionConfig<'pages'> = {
                 Archive,
                 FormBlock,
                 IconCards,
+                MediaLinks,
                 TeamSectionBlockConfig,
               ],
               required: true,
