@@ -7,12 +7,6 @@ import { servedAt } from '@/seo/servedAt'
 import { SEO_DESCRIPTION } from '@/seo/constants'
 import React from 'react'
 
-/**
- * The agenda drops events once their day has passed, so the page has to be
- * re-rendered on a clock rather than pinned to the last build.
- */
-export const revalidate = 3600
-
 export default function Page() {
   return (
     <>

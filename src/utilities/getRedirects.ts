@@ -1,6 +1,6 @@
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import { unstable_cache } from 'next/cache'
+import { cacheLife, cacheTag } from 'next/cache'
 
 export async function getRedirects(depth = 1) {
   const payload = await getPayload({ config: configPromise })
@@ -16,11 +16,15 @@ export async function getRedirects(depth = 1) {
 }
 
 /**
- * Returns a unstable_cache function mapped with the cache tag for 'redirects'.
- *
- * Cache all redirects together to avoid multiple fetches.
+ * Every redirect in one entry rather than one per lookup: a miss is the common
+ * case — most requests match no redirect at all — and a per-slug cache would
+ * make each of those its own entry. Cached under the `redirects` tag, which the
+ * collection's hook fires.
  */
-export const getCachedRedirects = () =>
-  unstable_cache(async () => getRedirects(), ['redirects'], {
-    tags: ['redirects'],
-  })
+export async function getCachedRedirects(depth = 1) {
+  'use cache'
+  cacheLife('max')
+  cacheTag('redirects')
+
+  return getRedirects(depth)
+}

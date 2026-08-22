@@ -1,20 +1,27 @@
 import type { MetadataRoute } from 'next'
 
 import config from '@payload-config'
+import { cacheLife, cacheTag } from 'next/cache'
 import { getPayload } from 'payload'
 
 import { sitemapEntries } from '@/seo/sitemap'
 import { getServerSideURL } from '@/utilities/getURL'
 
 /**
- * Next caches this route by default and the collection hooks invalidate it by
- * path when a document is published, so a crawler is served a file rather than a
- * pair of queries. The hourly window is only the backstop for anything that
- * changes without a write — a programme entry ageing out of the listing, say.
+ * Everything the file is built from, cached together so a crawler is served a
+ * file rather than a pair of queries. Tagged with both listings, which
+ * `revalidatePost` fires on any write that reaches one, and with the header tag
+ * that `revalidatePage` fires — between them, every publish that can add or
+ * remove a URL here. The hour behind that is the backstop for what changes
+ * without a write, such as a programme entry ageing out of the listing.
  */
-export const revalidate = 3600
+const getSitemapDocuments = async () => {
+  'use cache'
+  cacheLife('hours')
+  cacheTag('news')
+  cacheTag('programs')
+  cacheTag('global_header')
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const payload = await getPayload({ config })
 
   const published = {
@@ -26,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     where: { _status: { equals: 'published' } },
   } as const
 
-  const [pages, posts] = await Promise.all([
+  return Promise.all([
     payload.find({
       ...published,
       collection: 'pages',
@@ -38,6 +45,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       select: { schedule: true, slug: true, updatedAt: true },
     }),
   ])
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [pages, posts] = await getSitemapDocuments()
 
   return sitemapEntries({
     pages: pages.docs ?? [],

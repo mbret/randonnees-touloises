@@ -2,25 +2,26 @@ import type { Config } from 'src/payload-types'
 
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import { unstable_cache } from 'next/cache'
+import { cacheLife, cacheTag } from 'next/cache'
 
 type Global = keyof Config['globals']
 
-async function getGlobal<Slug extends Global>(slug: Slug, depth = 0) {
+/**
+ * A Payload global, cached under a tag naming it.
+ *
+ * Only two of the four globals have an `afterChange` hook firing that tag —
+ * `header` and `footer` — so those two are visible the moment an editor saves.
+ * `general` and `teamDirectory` have no hook, and the window is all they have:
+ * hence a short one rather than the month a tag-invalidated reader could afford.
+ * `general` carries the content password, and an editor changing it should not
+ * be told to wait.
+ */
+export async function getCachedGlobal<Slug extends Global>(slug: Slug, depth = 0) {
+  'use cache'
+  cacheLife('listing')
+  cacheTag(`global_${slug}`)
+
   const payload = await getPayload({ config: configPromise })
 
-  const global = await payload.findGlobal({
-    slug,
-    depth,
-  })
-
-  return global
+  return payload.findGlobal({ slug, depth })
 }
-
-/**
- * Returns a unstable_cache function mapped with the cache tag for the slug
- */
-export const getCachedGlobal = <Slug extends Global>(slug: Slug, depth = 0) =>
-  unstable_cache(async () => getGlobal<Slug>(slug, depth), [slug], {
-    tags: [`global_${slug}`],
-  })

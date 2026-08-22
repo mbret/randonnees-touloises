@@ -5,7 +5,7 @@ import { CMSLink } from '@/components/Link'
 import { ModeToggle } from '@/theme/ModeToggle'
 
 export async function Footer() {
-  const footerData = await getCachedGlobal('footer', 1)()
+  const footerData = await getCachedGlobal('footer', 1)
   const navItems = footerData?.navItems || []
 
   return (

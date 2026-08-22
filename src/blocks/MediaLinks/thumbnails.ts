@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache'
+import { cacheLife, cacheTag } from 'next/cache'
 
 import { isAllowedThumbnailHost } from './thumbnailHosts.js'
 
@@ -24,9 +24,6 @@ export type Thumbnail = {
   width?: number
   height?: number
 }
-
-/** A day. These pictures change when an album's cover changes: rarely. */
-const REVALIDATE_SECONDS = 86_400
 
 /** The tag that drops every cached thumbnail, should one ever need forcing. */
 export const THUMBNAIL_CACHE_TAG = 'media-link-thumbnails'
@@ -310,18 +307,21 @@ const fetchThumbnail = async (link: string): Promise<Thumbnail | null> => {
 }
 
 /**
- * Cached for a day, and a failure is cached with the successes.
+ * Cached for a day — the `days` profile — and a failure is cached with the
+ * successes. These pictures change when an album's cover changes: rarely.
  *
  * Deliberate: this runs while a page is rendering, so a host that is refusing
  * or hanging must cost its timeout once a day rather than once a render. The
  * price is that a thumbnail missed during an outage stays missed until the day
  * turns, or until `THUMBNAIL_CACHE_TAG` is revalidated.
  */
-export const resolveThumbnail = (link: string): Promise<Thumbnail | null> =>
-  unstable_cache(() => fetchThumbnail(link), ['mediaLinkThumbnail', link], {
-    revalidate: REVALIDATE_SECONDS,
-    tags: [THUMBNAIL_CACHE_TAG],
-  })()
+export const resolveThumbnail = async (link: string): Promise<Thumbnail | null> => {
+  'use cache'
+  cacheLife('days')
+  cacheTag(THUMBNAIL_CACHE_TAG)
+
+  return fetchThumbnail(link)
+}
 
 /**
  * Whether a picture is close enough to square that filling a 16:9 card with it

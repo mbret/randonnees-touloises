@@ -48,7 +48,7 @@ export const PostHero: React.FC<{
   post: Post
 }> = async ({ post }) => {
   const { heroImage, populatedAuthors, schedule, title } = post
-  const medias = await getCachedMedias()()
+  const medias = await getCachedMedias()
   const heroMedia = typeof heroImage === 'object' ? heroImage : null
   const placeholderMedia = medias?.find((m) => m.filename === 'post_placeholder')
   const media = heroMedia ?? placeholderMedia

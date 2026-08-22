@@ -11,6 +11,14 @@ import { getPayload } from 'payload'
 import { redirect } from 'next/navigation'
 import { CreateAccountForm } from '@/components/auth/CreateAccountForm'
 
+/**
+ * Allowed to block, deliberately. The whole point of this page is the answer to
+ * "who is asking": it either redirects or it renders, and there is no useful
+ * shell to show in the meantime. Streaming the check behind a boundary would mean
+ * sending a signup form to somebody already logged in first and bouncing the reader afterwards.
+ */
+export const instant = false
+
 export default async function CreateAccount() {
   const headers = await getHeaders()
   const payload = await getPayload({ config: configPromise })

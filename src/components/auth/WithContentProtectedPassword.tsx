@@ -27,7 +27,7 @@ export const WithContentProtectedPassword = async ({
   children: React.ReactNode
   required: boolean | undefined | null
 }) => {
-  const general = await getCachedGlobal('general', 1)()
+  const general = await getCachedGlobal('general', 1)
 
   /**
    * With no password configured there is nothing to check, and skipping the

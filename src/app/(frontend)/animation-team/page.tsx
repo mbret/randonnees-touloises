@@ -8,15 +8,11 @@ import Link from 'next/link'
 import React from 'react'
 
 /**
- * Prerendered, then refreshed on a schedule: the portraits come from the media
- * collection, so a page baked at build time keeps whatever the collection held
- * then — an empty one renders every member as initials until the next deploy.
- * Ten minutes, matching the posts and events listings.
+ * Names and order come from `src/data`; only the portraits come from the media
+ * collection, and `getMediaByFilenames` caches that lookup — so this page
+ * prerenders whole and refreshes on that reader's window rather than on one of
+ * its own.
  */
-export const dynamic = 'force-static'
-
-export const revalidate = 600
-
 export default async function Page() {
   const teamMembers = await resolveTeamPhotos(animationTeam)
 

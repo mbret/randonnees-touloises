@@ -27,13 +27,14 @@ const revalidate = (paths: Iterable<string>) => {
   revalidatePath(SITEMAP_PATH)
 
   /**
-   * The programme list is cached under a tag of its own and shared by every page
-   * that shows it, so the paths alone would leave both of them re-rendering the
-   * same stale query. `PROGRAMS_BASE` in the set is what marks this write as one
-   * that touched the programme — `pathsFor` only includes it for an entry
-   * carrying a date.
+   * Each listing is cached under a tag of its own and shared by every page that
+   * shows it, so the paths alone would leave those pages re-rendering the same
+   * stale query. Which base is in the set is what says which listing this write
+   * touched: `pathsFor` returns the programme one for an entry carrying a date
+   * and the news one for an entry without.
    */
   if (unique.has(PROGRAMS_BASE)) revalidateTag('programs', { expire: 0 })
+  if (unique.has(NEWS_BASE)) revalidateTag('news', { expire: 0 })
 }
 
 export const revalidatePost: CollectionAfterChangeHook<Post> = ({

@@ -3,12 +3,13 @@ import type { Metadata } from 'next'
 import { PayloadRedirects } from '@/components/PayloadRedirects'
 import { PostView, postSlugs, queryPostBySlug } from '@/components/posts/PostView'
 import { isProgramEntry, PROGRAMS_BASE, postPath } from '@/utilities/postPath'
+import { withFallbackSlug } from '@/utilities/staticParams'
 import { generateMeta } from '@/seo/generateMeta'
 import { redirect } from 'next/navigation'
 import React from 'react'
 
 export async function generateStaticParams() {
-  return postSlugs({ scheduled: true })
+  return withFallbackSlug(await postSlugs({ scheduled: true }))
 }
 
 type Args = {

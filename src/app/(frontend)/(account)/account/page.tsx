@@ -10,6 +10,14 @@ import { getPayload } from 'payload'
 import { redirect } from 'next/navigation'
 import { AccountForm } from '@/components/auth/AccountForm'
 
+/**
+ * Allowed to block, deliberately. The whole point of this page is the answer to
+ * "who is asking": it either redirects or it renders, and there is no useful
+ * shell to show in the meantime. Streaming the check behind a boundary would mean
+ * sending account settings that may not be theirs first and bouncing the reader afterwards.
+ */
+export const instant = false
+
 export default async function AccountPage() {
   const headers = await getHeaders()
   const payload = await getPayload({ config: configPromise })

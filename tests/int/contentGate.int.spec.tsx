@@ -9,7 +9,7 @@ let configured: string | undefined
 
 vi.mock('next/headers', () => ({ cookies: () => cookies() }))
 vi.mock('@/utilities/getGlobals', () => ({
-  getCachedGlobal: () => async () => ({ contentPassword: configured }),
+  getCachedGlobal: async () => ({ contentPassword: configured }),
 }))
 
 const { WithContentProtectedPassword } = await import(

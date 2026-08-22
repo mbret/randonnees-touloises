@@ -3,7 +3,9 @@ import type { Metadata } from 'next'
 import { PayloadRedirects } from '@/components/PayloadRedirects'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
+import { cacheLife, cacheTag } from 'next/cache'
 import { draftMode } from 'next/headers'
+import { withFallbackSlug } from '@/utilities/staticParams'
 import React, { cache } from 'react'
 
 import { breadcrumbJsonLd, pageTrail } from '@/seo/jsonld/breadcrumbs'
@@ -12,7 +14,7 @@ import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/seo/generateMeta'
 import PageClient from './page.client'
-import { LivePreviewListener } from '@/components/LivePreviewListener'
+import { DraftPreviewListener } from '@/components/LivePreviewListener/DraftPreviewListener'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -27,7 +29,7 @@ export async function generateStaticParams() {
     },
   })
 
-  return pages.docs?.map(({ slug }) => ({ slug }))
+  return withFallbackSlug(pages.docs?.map(({ slug }) => ({ slug })) ?? [])
 }
 
 type Args = {
@@ -37,7 +39,6 @@ type Args = {
 }
 
 export default async function Page({ params: paramsPromise }: Args) {
-  const { isEnabled: draft } = await draftMode()
   const { slug = '' } = await paramsPromise
   const url = '/' + slug
 
@@ -57,7 +58,7 @@ export default async function Page({ params: paramsPromise }: Args) {
       {/* Allows redirects for valid pages too */}
       <PayloadRedirects disableNotFound url={url} />
 
-      {draft && <LivePreviewListener />}
+      <DraftPreviewListener />
 
       <RenderHero {...hero} />
       <RenderBlocks blocks={layout} />
@@ -72,7 +73,31 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
   return generateMeta({ collection: 'pages', doc: page })
 }
 
+/**
+ * The document behind a slug, cached rather than re-read on every render — which
+ * is what lets these routes be prerendered at all; an uncached read here had
+ * every article rendering per request.
+ *
+ * Invalidation is by path, not by this tag: `revalidatePost` revalidates the
+ * document's own address on every write, and Next drops what that render
+ * touched, this entry included. The tag is declared for the same reason
+ * `getCachedDocument` declares one — it names the entry, should it ever need
+ * dropping on its own — and the ten minutes is the backstop, deliberately short
+ * because the path is doing the real work. A long life here would put a stale
+ * article behind an editor's save if that ever stopped holding, and the hooks
+ * cannot fire a per-document tag instead: autosave calls them on a 100ms timer.
+ *
+ * `draftMode` is read in here rather than passed in, which is allowed where
+ * `cookies` and `headers` are not — and is what keeps a preview honest: with
+ * draft mode on, Next re-executes every cached scope per request and stores
+ * nothing, so an editor sees their unsaved work and no draft is ever written into
+ * the entry the public reads.
+ */
 const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
+  'use cache'
+  cacheLife('listing')
+  cacheTag(`pages_${slug}`)
+
   const { isEnabled: draft } = await draftMode()
 
   const payload = await getPayload({ config: configPromise })

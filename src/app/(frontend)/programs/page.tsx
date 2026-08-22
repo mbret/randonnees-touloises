@@ -5,12 +5,6 @@ import { ProgramList } from '@/components/programs/ProgramList'
 import { servedAt } from '@/seo/servedAt'
 import React from 'react'
 
-/**
- * Entries drop off the day after they end, so the page has to be re-rendered on
- * a clock rather than pinned to the last build.
- */
-export const revalidate = 3600
-
 const TITLE = 'Programme hebdomadaire'
 const DESCRIPTION =
   'Les sorties à la journée, les week-ends et les séjours des Randonnées Touloises ouverts aux inscriptions.'
