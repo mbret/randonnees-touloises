@@ -27,8 +27,9 @@
  * it has to run `payload migrate` before any schema exists — so it must not be
  * a process that loads Payload itself.
  *
- * Reruns are safe: every step it calls is idempotent, so this is also how a
- * database that is merely out of date catches up.
+ * Reruns only add. Every step skips what it finds rather than replacing it, so
+ * this is also how a database that is merely out of date catches up, and running
+ * it over a database you have been editing does not cost you the edits.
  */
 import { spawnSync } from 'node:child_process'
 import path from 'node:path'
@@ -92,12 +93,18 @@ const steps = [
     bulk: true,
   },
   { name: 'agenda', label: 'Agenda (événements)', script: 'import-agenda.ts', bulk: true },
+  /* `additive` marks a step that would otherwise change what is already there.
+   * import-programs.ts matches a post on its slug and updates it in place —
+   * which is how a corrected transcription reaches the CMS, and exactly what a
+   * seed must not do to a post somebody has since reworked in the admin. Run
+   * the script directly to get that behaviour deliberately. */
   {
     name: 'programs',
     label: 'Programme (publications)',
     script: 'import-programs.ts',
     network: true,
     bulk: true,
+    additive: { SKIP_EXISTING: '1' },
   },
   { name: 'recruitment', label: 'Page /devenir-animateur', script: 'import-recruitment-page.ts' },
   { name: 'media-page', label: 'Page /photos-et-videos', script: 'import-media-page.ts' },
@@ -154,7 +161,7 @@ if (dryRun) {
 
 const failures = []
 
-for (const { args, bulk, label, name, network, script } of steps) {
+for (const { additive, args, bulk, label, name, network, script } of steps) {
   if (dryRun && name === 'migrate') continue
 
   if (skipped.has(name)) {
@@ -173,6 +180,12 @@ for (const { args, bulk, label, name, network, script } of steps) {
        * for the others it would be inert, but it would also read as a promise
        * this script cannot keep. */
       ...(bulk && limit ? { LIMIT: limit } : { LIMIT: '' }),
+      /* Cleared rather than inherited: FORCE and PRUNE are how the individual
+       * scripts replace and delete, and nothing this command does to a database
+       * should be either — whatever happens to be in the caller's shell. */
+      FORCE: '',
+      PRUNE: '',
+      ...additive,
     },
     stdio: 'inherit',
   })
