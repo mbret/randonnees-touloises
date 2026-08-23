@@ -5,6 +5,8 @@ import {
   InlineToolbarFeature,
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
+
+import { revalidateMedia, revalidateMediaDelete } from './hooks/revalidateMedia'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -121,5 +123,9 @@ export const Media: CollectionConfig = {
         crop: 'center',
       },
     ],
+  },
+  hooks: {
+    afterChange: [revalidateMedia],
+    afterDelete: [revalidateMediaDelete],
   },
 }

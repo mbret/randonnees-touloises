@@ -2,11 +2,16 @@ import { contactLinksField } from '@/fields/contactLinksField'
 import { socialLinksField } from '@/fields/socialLinksField'
 import type { GlobalConfig } from 'payload'
 
+import { revalidateGlobal } from '../revalidateGlobal'
+
 export const TeamDirectoryConfig: GlobalConfig = {
   slug: 'teamDirectory',
   label: 'Annuaire de l’équipe',
   access: {
     read: () => true,
+  },
+  hooks: {
+    afterChange: [revalidateGlobal('teamDirectory')],
   },
   fields: [
     {

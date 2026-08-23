@@ -15,12 +15,12 @@ import { getPayload } from 'payload'
  * Cached, because the pages built on it — the trombinoscope, the two team pages —
  * are otherwise entirely static: their names and their order come from
  * `src/data`, and this lookup is the only reason any of them would touch the
- * database. Ten minutes matches the window those pages used to carry themselves,
- * and the tag is the media one, so it lifts with the rest of the site's assets.
+ * database. Under the `medias` tag, so uploading a portrait moves them, which is
+ * what those pages carried a ten minute window of their own to approximate.
  */
 export const getMediaByFilenames = async (filenames: string[]): Promise<Map<string, Media>> => {
   'use cache'
-  cacheLife('listing')
+  cacheLife('max')
   cacheTag('medias')
 
   if (filenames.length === 0) return new Map()

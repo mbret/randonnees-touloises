@@ -6,17 +6,14 @@ import { SITE_ASSET_FILENAMES } from './siteAssets'
 
 /**
  * The handful of media documents the chrome is built from — the favicon, the
- * logo, the sharing image.
- *
- * The tag names the entry, but nothing fires it: the media collection has no
- * revalidate hook, so the window is what picks up a replaced file. Ten minutes,
- * therefore, rather than the month a tag-invalidated reader could afford — this
- * runs in the root layout, so ten minutes is one small query per ten minutes for
- * the whole site.
+ * logo, the sharing image. Cached under the `medias` tag, which the collection's
+ * hook fires on any write, so replacing one of these files shows up on the next
+ * request. This runs in the root layout, which is every route in the site, so
+ * the tag doing the work rather than a window matters more here than anywhere.
  */
 export async function getCachedMedias(depth = 0) {
   'use cache'
-  cacheLife('listing')
+  cacheLife('max')
   cacheTag('medias')
 
   const payload = await getPayload({ config: configPromise })

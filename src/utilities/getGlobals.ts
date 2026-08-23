@@ -7,18 +7,14 @@ import { cacheLife, cacheTag } from 'next/cache'
 type Global = keyof Config['globals']
 
 /**
- * A Payload global, cached under a tag naming it.
- *
- * Only two of the four globals have an `afterChange` hook firing that tag —
- * `header` and `footer` — so those two are visible the moment an editor saves.
- * `general` and `teamDirectory` have no hook, and the window is all they have:
- * hence a short one rather than the month a tag-invalidated reader could afford.
- * `general` carries the content password, and an editor changing it should not
- * be told to wait.
+ * A Payload global, cached under a tag naming it, which every one of them fires
+ * from its own `afterChange` hook — so an editor's save is visible on the next
+ * request rather than at the end of a window. That makes the window a backstop
+ * rather than the mechanism, and a long one the right choice.
  */
 export async function getCachedGlobal<Slug extends Global>(slug: Slug, depth = 0) {
   'use cache'
-  cacheLife('listing')
+  cacheLife('max')
   cacheTag(`global_${slug}`)
 
   const payload = await getPayload({ config: configPromise })
