@@ -59,7 +59,10 @@ export default function Page() {
           <h2 id="adherents">1. Adhérents</h2>
 
           <h3 id="adhesion">1.1 Adhésion</h3>
-          <p>L’adhésion, obligatoire, se compose de deux parties :</p>
+          <p>
+            L’adhésion, obligatoire, se compose de deux parties — les montants de la saison en cours
+            sont détaillés sur la page <Link href="/adhesion">Adhésions</Link> :
+          </p>
           <ul>
             <li>
               <p>
@@ -89,7 +92,7 @@ export default function Page() {
           </ul>
           <p>Les renouvellements d’adhésions doivent être clos au 30/10 de l’année N.</p>
           <p>
-            Un futur adhérent a droit à une période d’essai. Il lui sera possible d’effectuer 3
+            Un futur adhérent a droit à une période d’essai. Il lui sera possible d’effectuer 2
             sorties maximum (non couvertes par l’assurance fédérale) avant de s’inscrire
             définitivement.
           </p>

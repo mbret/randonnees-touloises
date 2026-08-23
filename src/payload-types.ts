@@ -271,6 +271,7 @@ export interface Page {
     | FormBlock
     | IconCardsBlock
     | MediaLinksBlock
+    | MembershipTiersBlock
     | TeamSectionBlock
   )[];
   meta?: {
@@ -1211,6 +1212,78 @@ export interface MediaLinksBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MembershipTiersBlock".
+ */
+export interface MembershipTiersBlock {
+  /**
+   * Facultatif. Par exemple « Les formules ». Affiché au-dessus des cartes.
+   */
+  heading?: string | null;
+  tiers: {
+    /**
+     * Par exemple « Individuelle » ou « Familiale (ext.) ».
+     */
+    name: string;
+    /**
+     * Le montant total à régler pour la saison, licence et assurance comprises le cas échéant.
+     */
+    price: number;
+    /**
+     * Facultative. Par exemple « pour la saison » ou « pour toute la famille ».
+     */
+    priceNote?: string | null;
+    /**
+     * Facultative. Le texte saisi s’affiche en étiquette et met la carte en avant — par exemple « Le plus populaire ». Laissez vide pour une carte normale.
+     */
+    badge?: string | null;
+    /**
+     * Les conditions viennent en premier, puis les remises, puis les pièces à fournir — quel que soit l’ordre de saisie.
+     */
+    lines: {
+      /**
+       * Décide le pictogramme et la place de la ligne dans la carte : une condition d’éligibilité, une remise sur le montant, ou une pièce à joindre au dossier.
+       */
+      kind: 'condition' | 'discount' | 'requirement';
+      text: string;
+      id?: string | null;
+    }[];
+    /**
+     * Laissez le champ vide pour une formule dont l’inscription n’est pas encore ouverte : la carte s’affiche alors sans bouton.
+     */
+    link: {
+      type?: ('reference' | 'custom') | null;
+      newTab?: boolean | null;
+      authCondition?: ('always' | 'loggedIn' | 'loggedOut') | null;
+      visibility?: ('admin' | 'customer')[] | null;
+      isExternal?: boolean | null;
+      reference?:
+        | ({
+            relationTo: 'pages';
+            value: number | Page;
+          } | null)
+        | ({
+            relationTo: 'posts';
+            value: number | Post;
+          } | null)
+        | ({
+            relationTo: 'globalPages';
+            value: number | GlobalPage;
+          } | null);
+      url?: string | null;
+      label: string;
+    };
+    id?: string | null;
+  }[];
+  /**
+   * Facultative. Une ligne discrète sous la grille, par exemple la période de validité des licences.
+   */
+  footnote?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'membershipTiers';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "TeamSectionBlock".
  */
 export interface TeamSectionBlock {
@@ -1671,6 +1744,7 @@ export interface PagesSelect<T extends boolean = true> {
         formBlock?: T | FormBlockSelect<T>;
         iconCards?: T | IconCardsBlockSelect<T>;
         mediaLinks?: T | MediaLinksBlockSelect<T>;
+        membershipTiers?: T | MembershipTiersBlockSelect<T>;
         teamSectionBlock?: T | TeamSectionBlockSelect<T>;
       };
   meta?:
@@ -1814,6 +1888,44 @@ export interface MediaLinksBlockSelect<T extends boolean = true> {
         cover?: T;
         id?: T;
       };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MembershipTiersBlock_select".
+ */
+export interface MembershipTiersBlockSelect<T extends boolean = true> {
+  heading?: T;
+  tiers?:
+    | T
+    | {
+        name?: T;
+        price?: T;
+        priceNote?: T;
+        badge?: T;
+        lines?:
+          | T
+          | {
+              kind?: T;
+              text?: T;
+              id?: T;
+            };
+        link?:
+          | T
+          | {
+              type?: T;
+              newTab?: T;
+              authCondition?: T;
+              visibility?: T;
+              isExternal?: T;
+              reference?: T;
+              url?: T;
+              label?: T;
+            };
+        id?: T;
+      };
+  footnote?: T;
   id?: T;
   blockName?: T;
 }
