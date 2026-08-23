@@ -76,15 +76,17 @@ const getIconForContact = (type: ContactLink['type']) => {
 
 /**
  * A contact value is written the way it should read on the card, so the phone
- * href keeps only what a dialer accepts and drops whatever separators were
- * typed between the groups.
+ * href drops the separators typed between the groups. It drops those and only
+ * those: a value can also carry dialing syntax the number depends on — the
+ * `;ext=` of RFC 3966, a `,` pause — and stripping down to digits would splice
+ * an extension onto the number and dial the wrong line.
  */
 const getHrefForContact = (type: ContactLink['type'], value: string | null | undefined) => {
   switch (type) {
     case 'email':
       return `mailto:${value}`
     case 'phone':
-      return `tel:${value?.replace(/[^\d+]/g, '') ?? ''}`
+      return `tel:${value?.replace(/[\s().·–—/-]/g, '') ?? ''}`
     default:
       return value ?? '#'
   }
