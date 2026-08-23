@@ -2,7 +2,7 @@ import configPromise from '@payload-config'
 import { cacheLife, cacheTag } from 'next/cache'
 import { draftMode } from 'next/headers'
 import { getPayload } from 'payload'
-import React, { cache } from 'react'
+import React, { cache, Suspense } from 'react'
 
 import type { Post } from '@/payload-types'
 
@@ -15,8 +15,24 @@ import { PostViewClient } from './PostViewClient'
 import { PublishedAt } from './PublishedAt'
 import { RelatedPosts } from '@/blocks/RelatedPosts/Component'
 import RichText from '@/components/RichText'
+import { Skeleton } from '@/components/ui/skeleton'
 import { WithContentProtectedPassword } from '@/components/auth/WithContentProtectedPassword'
 import { withoutPrograms } from '@/components/programs/filters'
+
+/**
+ * What stands in for the body while the gate decides whether to show it.
+ *
+ * Only ever seen on a site that has a content password configured: without one
+ * the gate returns the body without asking anything of the request, so the
+ * boundary resolves during prerendering and this never renders.
+ */
+const GatedBody = () => (
+  <div className="container flex flex-col gap-3 py-16" aria-busy>
+    <Skeleton className="h-10 w-2/3 max-w-lg" />
+    <Skeleton className="mt-4 h-4 w-full" />
+    <Skeleton className="h-4 w-11/12" />
+  </div>
+)
 
 /** One post, rendered the same whichever namespace served it. */
 export async function PostView({ post }: { post: Post }) {
@@ -27,32 +43,42 @@ export async function PostView({ post }: { post: Post }) {
   const event = programEventJsonLd(post)
   const breadcrumbs = breadcrumbJsonLd(postTrail(post))
 
+  /**
+   * The gate reads a cookie whenever the site has a content password, which is
+   * request-time work — so it sits behind a boundary rather than above the
+   * article, and the page keeps a shell it can prerender. Which is the same
+   * bargain the gate already documents, held to one level further out: the body
+   * of every post leaves the shell as soon as a password exists, gated or not,
+   * because whether it is shown stops being knowable at build time.
+   */
   return (
-    <WithContentProtectedPassword required={post.requireContentPassword}>
-      <article className="pt-16 pb-16">
-        <PostViewClient />
+    <Suspense fallback={<GatedBody />}>
+      <WithContentProtectedPassword required={post.requireContentPassword}>
+        <article className="pt-16 pb-16">
+          <PostViewClient />
 
-        {event && <JsonLd data={event} />}
-        {breadcrumbs && <JsonLd data={breadcrumbs} />}
+          {event && <JsonLd data={event} />}
+          {breadcrumbs && <JsonLd data={breadcrumbs} />}
 
-        <DraftPreviewListener />
+          <DraftPreviewListener />
 
-        <PostHero post={post} />
+          <PostHero post={post} />
 
-        <div className="flex flex-col items-center gap-4 pt-8">
-          <div className="container">
-            <RichText className="max-w-none" data={post.content} enableGutter={false} />
-            <PublishedAt value={post.publishedAt} />
-            {post.relatedPosts && post.relatedPosts.length > 0 && (
-              <RelatedPosts
-                className="mt-12"
-                docs={post.relatedPosts.filter((related) => typeof related === 'object')}
-              />
-            )}
+          <div className="flex flex-col items-center gap-4 pt-8">
+            <div className="container">
+              <RichText className="max-w-none" data={post.content} enableGutter={false} />
+              <PublishedAt value={post.publishedAt} />
+              {post.relatedPosts && post.relatedPosts.length > 0 && (
+                <RelatedPosts
+                  className="mt-12"
+                  docs={post.relatedPosts.filter((related) => typeof related === 'object')}
+                />
+              )}
+            </div>
           </div>
-        </div>
-      </article>
-    </WithContentProtectedPassword>
+        </article>
+      </WithContentProtectedPassword>
+    </Suspense>
   )
 }
 
