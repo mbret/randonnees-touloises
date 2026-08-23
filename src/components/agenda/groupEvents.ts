@@ -1,6 +1,5 @@
 import type { Event } from '@/payload-types'
 
-import { todayInFrance } from '@/utilities/parisDay'
 
 /**
  * One event as the club announces it in its monthly programme.
@@ -66,10 +65,15 @@ export { dayInFrance, todayInFrance } from '@/utilities/parisDay'
  *
  * Grouping is derived here rather than stored anywhere: a month is a view of
  * the dates, not a thing an editor has to create and keep in step.
+ *
+ * `from` is required rather than defaulting to today: reading the clock here
+ * would be reading it in the middle of a render, which a prerender refuses, and
+ * a default is exactly the kind of thing that gets reintroduced by accident. The
+ * caller holds the day and hands the same one to the query.
  */
 export const groupEventsByMonth = (
   events: AgendaEvent[],
-  { from = todayInFrance() }: { from?: string } = {},
+  { from }: { from: string },
 ): AgendaMonth[] => {
   const upcoming = [...events]
     .filter((event) => event.date >= from)

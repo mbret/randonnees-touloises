@@ -1,10 +1,15 @@
 import type { GlobalConfig } from 'payload'
 
+import { revalidateGlobal } from '../revalidateGlobal'
+
 export const General: GlobalConfig = {
   slug: 'general',
   label: 'Réglages généraux',
   access: {
     read: () => true,
+  },
+  hooks: {
+    afterChange: [revalidateGlobal('general')],
   },
   fields: [
     {

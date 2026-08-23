@@ -5,13 +5,12 @@ import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import React from 'react'
 
-import { AdminBar } from '@/components/AdminBar/AdminBar'
+import { PreviewAdminBar } from '@/components/AdminBar/PreviewAdminBar'
 import { Footer } from '@/Footer/Component'
 import { Header } from '@/navigation/Header/Header'
 import { Providers } from '@/providers'
 import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import { SEO_TITLE } from '@/seo/constants'
-import { draftMode } from 'next/headers'
 import { getServerSideURL } from '@/utilities/getURL'
 import './globals.css'
 import { ThemeProvider } from '@/theme/ThemeProvider'
@@ -21,8 +20,7 @@ import { MediaProvider } from '@/metadata/MediaProvider'
 import { getCachedMedias } from '@/metadata/getMedias'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { isEnabled } = await draftMode()
-  const siteAssets = await getCachedMedias()()
+  const siteAssets = await getCachedMedias()
 
   return (
     <html className={cn(GeistSans.variable, GeistMono.variable)} lang="fr" suppressHydrationWarning>
@@ -39,11 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           <MediaProvider media={siteAssets}>
             <Providers>
-              <AdminBar
-                adminBarProps={{
-                  preview: isEnabled,
-                }}
-              />
+              <PreviewAdminBar />
               <Header />
               {children}
               <Footer />

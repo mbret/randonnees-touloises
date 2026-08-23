@@ -1,6 +1,7 @@
 import type { Media } from '@/payload-types'
 
 import configPromise from '@payload-config'
+import { cacheLife, cacheTag } from 'next/cache'
 import { getPayload } from 'payload'
 
 /**
@@ -10,8 +11,18 @@ import { getPayload } from 'payload'
  * databases with independent id sequences: an id written into src/data would
  * resolve to a different image in each environment. A filename is stable, and a
  * missing one simply yields no entry, which callers render as a placeholder.
+ *
+ * Cached, because the pages built on it — the trombinoscope, the two team pages —
+ * are otherwise entirely static: their names and their order come from
+ * `src/data`, and this lookup is the only reason any of them would touch the
+ * database. Under the `medias` tag, so uploading a portrait moves them, which is
+ * what those pages carried a ten minute window of their own to approximate.
  */
 export const getMediaByFilenames = async (filenames: string[]): Promise<Map<string, Media>> => {
+  'use cache'
+  cacheLife('max')
+  cacheTag('medias')
+
   if (filenames.length === 0) return new Map()
 
   const payload = await getPayload({ config: configPromise })

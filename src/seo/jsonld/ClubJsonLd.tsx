@@ -18,7 +18,7 @@ import { getMediaUrl } from '@/utilities/getMediaUrl'
  * to keep in step.
  */
 export const ClubJsonLd = async () => {
-  const medias = await getCachedMedias()()
+  const medias = await getCachedMedias()
   const logo = medias.find((media) => media.filename === 'logo.webp')
 
   return (

@@ -2,25 +2,22 @@ import type { Config } from 'src/payload-types'
 
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import { unstable_cache } from 'next/cache'
+import { cacheLife, cacheTag } from 'next/cache'
 
 type Global = keyof Config['globals']
 
-async function getGlobal<Slug extends Global>(slug: Slug, depth = 0) {
+/**
+ * A Payload global, cached under a tag naming it, which every one of them fires
+ * from its own `afterChange` hook — so an editor's save is visible on the next
+ * request rather than at the end of a window. That makes the window a backstop
+ * rather than the mechanism, and a long one the right choice.
+ */
+export async function getCachedGlobal<Slug extends Global>(slug: Slug, depth = 0) {
+  'use cache'
+  cacheLife('max')
+  cacheTag(`global_${slug}`)
+
   const payload = await getPayload({ config: configPromise })
 
-  const global = await payload.findGlobal({
-    slug,
-    depth,
-  })
-
-  return global
+  return payload.findGlobal({ slug, depth })
 }
-
-/**
- * Returns a unstable_cache function mapped with the cache tag for the slug
- */
-export const getCachedGlobal = <Slug extends Global>(slug: Slug, depth = 0) =>
-  unstable_cache(async () => getGlobal<Slug>(slug, depth), [slug], {
-    tags: [`global_${slug}`],
-  })

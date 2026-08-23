@@ -4,6 +4,7 @@ import { CollectionArchive } from '@/components/CollectionArchive'
 import { PageRange } from '@/components/PageRange'
 import { Pagination } from '@/components/Pagination'
 import configPromise from '@payload-config'
+import { getNewsPage } from '@/components/posts/getNewsPage'
 import { withoutPrograms } from '@/components/programs/filters'
 import { servedAt } from '@/seo/servedAt'
 import { NEWS_BASE, newsPagePath, NEWS_PAGE_SIZE } from '@/utilities/postPath'
@@ -11,8 +12,6 @@ import { getPayload } from 'payload'
 import React from 'react'
 import PageClient from './page.client'
 import { notFound } from 'next/navigation'
-
-export const revalidate = 600
 
 const TITLE = 'Actualités'
 const DESCRIPTION =
@@ -26,20 +25,12 @@ type Args = {
 
 export default async function Page({ params: paramsPromise }: Args) {
   const { pageNumber } = await paramsPromise
-  const payload = await getPayload({ config: configPromise })
 
   const sanitizedPageNumber = Number(pageNumber)
 
   if (!Number.isInteger(sanitizedPageNumber)) notFound()
 
-  const posts = await payload.find({
-    collection: 'posts',
-    depth: 1,
-    limit: NEWS_PAGE_SIZE,
-    page: sanitizedPageNumber,
-    overrideAccess: false,
-    where: withoutPrograms,
-  })
+  const posts = await getNewsPage(sanitizedPageNumber)
 
   return (
     <div className="pt-24 pb-24">

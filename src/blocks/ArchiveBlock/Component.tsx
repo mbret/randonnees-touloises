@@ -1,12 +1,47 @@
 import type { Post, ArchiveBlock as ArchiveBlockProps } from '@/payload-types'
 
 import configPromise from '@payload-config'
+import { cacheLife, cacheTag } from 'next/cache'
 import { getPayload } from 'payload'
 import React from 'react'
 import RichText from '@/components/RichText'
 
 import { CollectionArchive } from '@/components/CollectionArchive'
 import { withoutPrograms } from '@/components/programs/filters'
+
+/**
+ * The newest actualités, for a block set to populate from the collection.
+ *
+ * Cached, and it has to be: this runs inside whichever page carries the block,
+ * and an uncached read there is what stops that page being prerendered — the
+ * whole page then renders per request. Tagged with the news listing, so
+ * `revalidatePost` refreshes it on the same writes that refresh `/news`.
+ *
+ * `overrideAccess: false` matters more here than it did before it was cached.
+ * The local API overrides access by default, which skips the collection's
+ * published-only read rule, so this query could return a draft — and a cached
+ * draft is a published one. Every other public reader on the site passes this
+ * for the same reason.
+ */
+const getArchivePosts = async (limit: number): Promise<Post[]> => {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('news')
+
+  const payload = await getPayload({ config: configPromise })
+
+  const { docs } = await payload.find({
+    collection: 'posts',
+    depth: 1,
+    limit,
+    overrideAccess: false,
+    // An archive of posts means the actualités: the programme has a section of
+    // its own, and its entries would otherwise bury the news here.
+    where: withoutPrograms,
+  })
+
+  return docs
+}
 
 export const ArchiveBlock: React.FC<
   ArchiveBlockProps & {
@@ -20,18 +55,7 @@ export const ArchiveBlock: React.FC<
   let posts: Post[] = []
 
   if (populateBy === 'collection') {
-    const payload = await getPayload({ config: configPromise })
-
-    const fetchedPosts = await payload.find({
-      collection: 'posts',
-      depth: 1,
-      limit,
-      // An archive of posts means the actualités: the programme has a section of
-      // its own, and its entries would otherwise bury the news here.
-      where: withoutPrograms,
-    })
-
-    posts = fetchedPosts.docs
+    posts = await getArchivePosts(limit)
   } else {
     if (selectedDocs?.length) {
       const filteredSelectedPosts = selectedDocs.map((post) => {

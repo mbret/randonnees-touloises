@@ -54,8 +54,54 @@ const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
   : undefined || process.env.__NEXT_PRIVATE_ORIGIN || 'http://localhost:3000'
 
+/**
+ * Everything the site reads from Payload is cached under a tag that a collection
+ * hook fires on write, so an editor never waits for a timer. The windows below
+ * are only the backstop for what changes without a write — a programme entry
+ * ageing out of a listing, a migration run straight against the database.
+ *
+ * `hours` and `days` already carry the windows this site used before Cache
+ * Components (an hour, a day). Ten minutes, which the listings used, has no
+ * preset, so it is named here rather than repeated as an inline profile at each
+ * of the five call sites.
+ */
+const cacheLife = {
+  listing: {
+    stale: 300,
+    revalidate: 600,
+    expire: 86400,
+  },
+  /**
+   * For `cachedTodayInFrance`, the one reader whose lifetime is about the clock
+   * rather than about content: it decides how soon after midnight the agenda and
+   * the programme notice the day turned.
+   *
+   * An hour, because the shortest lifetime anywhere in a route's tree becomes
+   * that route's own: a keener profile here would have the home page regenerate
+   * on that cadence instead, which is what it cost before this profile existed
+   * and no more precise for it. The `stale` stays at the five minutes every
+   * preset uses — under that, a value is held out of the route's App Shell, and
+   * under thirty seconds out of prerendering altogether, which would take the
+   * agenda out of the static shell it is being cached to reach.
+   */
+  clock: {
+    stale: 300,
+    revalidate: 3600,
+    expire: 86400,
+  },
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  /**
+   * Caching is per function and per component rather than per route: a reader
+   * declares its own lifetime with `use cache` and `cacheLife`, and the route
+   * segment configs this replaced (`dynamic`, `revalidate`) are no longer read.
+   * Partial Prerendering comes with it, so every route ships a static shell and
+   * anything request-bound streams in behind a `<Suspense>` fallback.
+   */
+  cacheComponents: true,
+  cacheLife,
   headers,
   images: {
     remotePatterns: [

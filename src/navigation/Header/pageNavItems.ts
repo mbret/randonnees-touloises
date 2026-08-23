@@ -1,7 +1,7 @@
 import type { HeaderNavItem } from './staticNavItems'
 
 import configPromise from '@payload-config'
-import { unstable_cache } from 'next/cache'
+import { cacheLife, cacheTag } from 'next/cache'
 import { getPayload } from 'payload'
 
 import { pagePath } from '@/utilities/pagePath'
@@ -22,7 +22,11 @@ import { pagePath } from '@/utilities/pagePath'
  * Cached under the header's own tag, so `revalidateHeader` and `revalidatePage`
  * both refresh it.
  */
-const getPageNavItems = async (): Promise<HeaderNavItem[]> => {
+export const getCachedPageNavItems = async (): Promise<HeaderNavItem[]> => {
+  'use cache'
+  cacheLife('max')
+  cacheTag('global_header')
+
   const payload = await getPayload({ config: configPromise })
 
   const { docs } = await payload.find({
@@ -54,7 +58,3 @@ const getPageNavItems = async (): Promise<HeaderNavItem[]> => {
       },
     }))
 }
-
-export const getCachedPageNavItems = unstable_cache(getPageNavItems, ['pageNavItems'], {
-  tags: ['global_header'],
-})

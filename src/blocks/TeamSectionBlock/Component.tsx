@@ -2,7 +2,7 @@ import { TeamSection } from '@/components/TeamSection/TeamSection'
 import { getCachedGlobal } from '@/utilities/getGlobals'
 
 export const TeamSectionBlock = async () => {
-  const teamDirectory = await getCachedGlobal('teamDirectory', 2)()
+  const teamDirectory = await getCachedGlobal('teamDirectory', 2)
 
   const teamMembers =
     teamDirectory.teamMembers?.map((member) => ({

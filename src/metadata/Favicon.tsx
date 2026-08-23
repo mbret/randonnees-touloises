@@ -2,7 +2,7 @@ import { getCachedMedias } from './getMedias'
 import { getMediaUrl } from '@/utilities/getMediaUrl'
 
 export const Favicon = async () => {
-  const medias = await getCachedMedias()()
+  const medias = await getCachedMedias()
   const faviconMedia = medias.find((media) => media.filename === 'favicon')
 
   return (

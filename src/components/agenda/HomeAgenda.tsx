@@ -1,5 +1,7 @@
 import React from 'react'
 
+import { cachedTodayInFrance } from '@/utilities/parisDay'
+
 import { AgendaMonth } from './AgendaMonth'
 import { getAgendaEvents } from './getAgendaEvents'
 import { groupEventsByMonth } from './groupEvents'
@@ -12,7 +14,10 @@ import { groupEventsByMonth } from './groupEvents'
  * page, same as the site it replaces — so `/activities` links here by anchor.
  */
 export async function HomeAgenda() {
-  const months = groupEventsByMonth(await getAgendaEvents())
+  /* Read once and handed to both, so the day the query filtered on and the day
+   * the grouping cuts at cannot disagree across a midnight. */
+  const today = await cachedTodayInFrance()
+  const months = groupEventsByMonth(await getAgendaEvents(today), { from: today })
 
   return (
     <section className="container scroll-mt-24 py-16 md:py-24" id="agenda">

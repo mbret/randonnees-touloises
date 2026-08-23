@@ -1,16 +1,15 @@
 import type { ReactNode } from 'react'
 
-import { headers as getHeaders } from 'next/headers.js'
-import configPromise from '@payload-config'
-import { getPayload } from 'payload'
 import { RenderParams } from '@/components/common/RenderParams/RenderParams'
 // import { AccountNav } from '@/components/AccountNav'
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const headers = await getHeaders()
-  const payload = await getPayload({ config: configPromise })
-  const { user } = await payload.auth({ headers })
-
+/**
+ * The `user` this used to resolve went to an `AccountNav` that is commented out,
+ * so the layout authenticated the request and did nothing with the answer. Left
+ * in, it would have to sit behind a boundary of its own for no visible reason —
+ * the page below already authenticates for itself.
+ */
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <div>
       <div className="container">

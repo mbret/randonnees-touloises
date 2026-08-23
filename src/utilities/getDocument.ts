@@ -2,11 +2,24 @@ import type { Config } from 'src/payload-types'
 
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import { unstable_cache } from 'next/cache'
+import { cacheLife, cacheTag } from 'next/cache'
 
 type Collection = keyof Config['collections']
 
-async function getDocument(collection: Collection, slug: string, depth = 0) {
+/**
+ * One document by slug, cached under a tag naming that exact document.
+ *
+ * Nothing fires that tag — the hooks revalidate by path, and Next drops what
+ * such a render touched, this entry included. So the tag is here to name the
+ * entry rather than because anything uses it, and the window is deliberately
+ * short: this resolves where a redirect points, and a redirect aimed at a
+ * renamed document should not go on pointing at the old one for a month.
+ */
+export async function getCachedDocument(collection: Collection, slug: string, depth = 0) {
+  'use cache'
+  cacheLife('listing')
+  cacheTag(`${collection}_${slug}`)
+
   const payload = await getPayload({ config: configPromise })
 
   const page = await payload.find({
@@ -21,11 +34,3 @@ async function getDocument(collection: Collection, slug: string, depth = 0) {
 
   return page.docs[0]
 }
-
-/**
- * Returns a unstable_cache function mapped with the cache tag for the slug
- */
-export const getCachedDocument = (collection: Collection, slug: string) =>
-  unstable_cache(async () => getDocument(collection, slug), [collection, slug], {
-    tags: [`${collection}_${slug}`],
-  })
