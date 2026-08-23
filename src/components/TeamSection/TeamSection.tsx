@@ -14,7 +14,6 @@ import { Separator } from '@/components/ui/separator'
 import { Media as MediaType } from '@/payload-types'
 import { Media } from '../Media'
 import { getInitials } from '@/utilities/getInitials'
-import { Fragment } from 'react'
 
 export type TeamMember = {
   media?: MediaType | null | number
@@ -43,6 +42,8 @@ export type TeamMember = {
     | undefined
 }
 
+type ContactLink = NonNullable<TeamMember['contactLinks']>[0]
+
 const getIconForSocialLink = (type: NonNullable<TeamMember['socialLinks']>[0]['type']) => {
   switch (type) {
     case 'facebook':
@@ -62,19 +63,33 @@ const getIconForSocialLink = (type: NonNullable<TeamMember['socialLinks']>[0]['t
   }
 }
 
-const getLinkForContact = (
-  type: NonNullable<TeamMember['contactLinks']>[0]['type'],
-  value: string | null | undefined,
-) => {
+const getIconForContact = (type: ContactLink['type']) => {
   switch (type) {
     case 'email':
-      return <a href={`mailto:${value}`}>{<MailIcon className="size-5" />}</a>
+      return <MailIcon className="size-4 shrink-0" />
     case 'phone':
-      return <a href={`tel:${value}`}>{<PhoneIcon className="size-5" />}</a>
+      return <PhoneIcon className="size-4 shrink-0" />
     default:
-      return <a href={value ?? '#'}>{<WebhookIcon className="size-5" />}</a>
+      return <WebhookIcon className="size-4 shrink-0" />
   }
 }
+
+/**
+ * A contact value is written the way it should read on the card, so the phone
+ * href keeps only what a dialer accepts and drops whatever separators were
+ * typed between the groups.
+ */
+const getHrefForContact = (type: ContactLink['type'], value: string | null | undefined) => {
+  switch (type) {
+    case 'email':
+      return `mailto:${value}`
+    case 'phone':
+      return `tel:${value?.replace(/[^\d+]/g, '') ?? ''}`
+    default:
+      return value ?? '#'
+  }
+}
+
 export const TeamSection = ({ teamMembers }: { teamMembers: TeamMember[] }) => {
   return (
     /**
@@ -106,25 +121,45 @@ export const TeamSection = ({ teamMembers }: { teamMembers: TeamMember[] }) => {
                   </div>
                 )}
               </div>
+              {/**
+               * Every row below the portrait is optional, so each one only
+               * renders when it has something to say — an empty paragraph or
+               * link row would still claim its slice of the stack spacing.
+               */}
               <div className="space-y-2 p-3 @xl:p-4">
                 <CardTitle className="text-base break-words">{member.name}</CardTitle>
                 <Separator />
-                <div className="text-muted-foreground text-sm">
-                  <p className="mb-1 font-medium">{member.role}</p>
-                  <p>{member.description}</p>
-                </div>
-                <div className="flex gap-3">
-                  {member.contactLinks?.map((contactLink) => (
-                    <Fragment key={contactLink.id}>
-                      {getLinkForContact(contactLink.type, contactLink.value)}
-                    </Fragment>
-                  ))}
-                  {member.socialLinks?.map((socialLink) => (
-                    <a href={socialLink.uri ?? '#'} key={socialLink.id}>
-                      {getIconForSocialLink(socialLink.type)}
-                    </a>
-                  ))}
-                </div>
+                {(member.role || member.description) && (
+                  <div className="text-muted-foreground text-sm">
+                    {member.role && <p className="mb-1 font-medium">{member.role}</p>}
+                    {member.description && <p>{member.description}</p>}
+                  </div>
+                )}
+                {!!member.contactLinks?.length && (
+                  <div className="text-muted-foreground flex flex-col gap-1 text-sm">
+                    {member.contactLinks.map((contactLink) => (
+                      <a
+                        key={contactLink.id}
+                        href={getHrefForContact(contactLink.type, contactLink.value)}
+                        className="hover:text-foreground flex items-center gap-2 transition-colors"
+                      >
+                        {getIconForContact(contactLink.type)}
+                        <span className="min-w-0 break-words">
+                          {contactLink.customName || contactLink.value}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+                {!!member.socialLinks?.length && (
+                  <div className="flex gap-3">
+                    {member.socialLinks.map((socialLink) => (
+                      <a href={socialLink.uri ?? '#'} key={socialLink.id}>
+                        {getIconForSocialLink(socialLink.type)}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

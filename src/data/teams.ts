@@ -40,121 +40,103 @@ export const boardMembers: StaticTeamMember[] = [
 
 /**
  * Animateurs publish their mobile number so randonneurs can reach them about a
- * sortie; it is shown as text on the card and doubles as a tel: link.
+ * sortie. The number is stored the way it should read on the card — the card
+ * shows it next to the phone icon and strips the spaces for the tel: link.
  */
 export const animationTeam: StaticTeamMember[] = [
   {
     name: 'Isabelle ANDERLINI',
-    description: '06 84 62 62 52',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0684626252' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 84 62 62 52' }],
     photo: 'animation-isabelle-anderlini.jpg',
   },
   {
     name: 'Bernard ATTENOT',
-    description: '07 71 93 28 04',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0771932804' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '07 71 93 28 04' }],
     photo: 'animation-bernard-attenot.jpg',
   },
   {
     name: 'Daniel BERTEAUX',
-    description: '06 86 07 99 09',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0686079909' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 86 07 99 09' }],
     photo: 'animation-daniel-berteaux.png',
   },
   {
     name: 'Pascal BRET',
-    description: '07 88 26 43 84',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0788264384' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '07 88 26 43 84' }],
     photo: 'animation-pascal-bret.jpg',
   },
   {
     name: 'Daniel DETHOREY',
-    description: '06 85 86 40 10',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0685864010' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 85 86 40 10' }],
     photo: 'animation-daniel-dethorey.jpg',
   },
   {
     name: 'Roland FERRARI',
-    description: '06 61 15 47 03',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0661154703' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 61 15 47 03' }],
     photo: 'animation-roland-ferrari.jpg',
   },
   {
     name: 'Roger FRANÇOIS',
-    description: '06 84 36 42 72',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0684364272' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 84 36 42 72' }],
     photo: 'animation-roger-francois.jpg',
   },
   {
     name: 'Pierre LAURENT',
-    description: '06 10 53 87 81',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0610538781' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 10 53 87 81' }],
     photo: 'animation-pierre-laurent.jpg',
   },
   {
     name: 'Jean-Marie MAZELIN',
-    description: '07 81 11 20 47',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0781112047' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '07 81 11 20 47' }],
     photo: 'animation-jean-marie-mazelin.jpg',
   },
   {
     name: 'Patricia MORELE',
-    description: '06 73 97 19 14',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0673971914' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 73 97 19 14' }],
     photo: 'animation-patricia-morele.png',
   },
   {
     name: 'Philippe NEUVILLERS',
-    description: '06 72 77 32 84',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0672773284' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 72 77 32 84' }],
     photo: 'animation-philippe-neuvillers.jpg',
   },
   {
     name: 'Michel PASQUET',
-    description: '06 12 27 67 10',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0612276710' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 12 27 67 10' }],
     photo: 'animation-michel-pasquet.png',
   },
   {
     name: 'Dany ROCHEFOLLE',
-    description: '06 86 18 43 89',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0686184389' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 86 18 43 89' }],
     photo: 'animation-dany-rochefolle.jpg',
   },
   {
     name: 'Suzanne ROCHEFOLLE',
-    description: '06 89 34 78 32',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0689347832' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 89 34 78 32' }],
     photo: 'animation-suzanne-rochefolle.jpg',
   },
   {
     name: 'Gérald SABOT',
-    description: '06 07 23 21 83',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0607232183' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 07 23 21 83' }],
     photo: 'animation-gerald-sabot.jpg',
   },
   {
     name: 'Francis SPECTE',
-    description: '06 75 73 51 73',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0675735173' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 75 73 51 73' }],
     photo: 'animation-francis-specte.jpg',
   },
   {
     name: 'Jean-luc STEPHAN',
-    description: '06 75 08 61 69',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0675086169' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 75 08 61 69' }],
     photo: 'animation-jean-luc-stephan.jpg',
   },
   {
     name: 'Muriel TARAL',
-    description: '06 78 64 07 73',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0678640773' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 78 64 07 73' }],
     photo: 'animation-muriel-taral.png',
   },
   {
     name: 'Bernard TUAILLON',
-    description: '06 21 77 17 85',
-    contactLinks: [{ id: 'phone', type: 'phone', value: '0621771785' }],
+    contactLinks: [{ id: 'phone', type: 'phone', value: '06 21 77 17 85' }],
     photo: 'animation-bernard-tuaillon.png',
   },
 ]
