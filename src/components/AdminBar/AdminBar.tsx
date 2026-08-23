@@ -1,18 +1,17 @@
 'use client'
 
-import type { PayloadAdminBarProps, PayloadMeUser } from '@payloadcms/admin-bar'
+import type { PayloadAdminBarProps } from '@payloadcms/admin-bar'
 
 import { cn } from '@/components/ui'
 import { useSelectedLayoutSegments } from 'next/navigation'
 import { PayloadAdminBar } from '@payloadcms/admin-bar'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 import styles from './AdminBar.module.scss'
 
 import { getClientSideURL } from '@/utilities/getURL'
-
-const baseClass = 'admin-bar'
+import { useAuth } from '@/providers/auth'
 
 /**
  * `@payloadcms/admin-bar` builds its labels as `Edit ${singular}` / `New
@@ -41,15 +40,22 @@ export const AdminBar: React.FC<{
 }> = (props) => {
   const { adminBarProps } = props || {}
   const segments = useSelectedLayoutSegments()
-  const [show, setShow] = useState(false)
+  /**
+   * Whether there is anyone to show a bar to is already known: the auth provider
+   * resolves it once for the whole tree. `PayloadAdminBar` asks the same
+   * question itself — it fetches `/api/users/me` from an effect of its own and
+   * reports the answer through `onAuthChange` — so rendering it unconditionally
+   * spent a second round trip on every visit by someone who will never see the
+   * bar. Mounting it only once a user is known leaves that fetch to the handful
+   * of logged-in editors, and it is the only way to avoid it: the component
+   * takes no user prop.
+   */
+  const { user } = useAuth()
+  const show = Boolean(user)
   const collection = (
     collectionLabels[segments?.[1] as keyof typeof collectionLabels] ? segments[1] : 'pages'
   ) as keyof typeof collectionLabels
   const router = useRouter()
-
-  const onAuthChange = React.useCallback((user: PayloadMeUser) => {
-    setShow(Boolean(user?.id))
-  }, [])
 
   useEffect(() => {
     if (show) {
@@ -59,16 +65,14 @@ export const AdminBar: React.FC<{
     }
   }, [show])
 
+  if (!show) return null
+
   return (
     <div
       className={cn(
         styles['admin-bar'],
         'admin-bar',
-        'sticky z-12 top-0 h-[var(--admin-bar-height)] bg-black  border-b backdrop-blur-[8px] items-center justify-center',
-        {
-          flex: show,
-          hidden: !show,
-        },
+        'sticky z-12 top-0 h-[var(--admin-bar-height)] bg-black  border-b backdrop-blur-[8px] flex items-center justify-center',
       )}
     >
       <div className="container">
@@ -87,7 +91,6 @@ export const AdminBar: React.FC<{
             singular: collectionLabels[collection]?.singular || 'page',
           }}
           logo={<Title />}
-          onAuthChange={onAuthChange}
           onPreviewExit={() => {
             fetch('/next/exit-preview').then(() => {
               router.push('/')
