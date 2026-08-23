@@ -1,6 +1,6 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 import { SITEMAP_PATH } from '@/seo/sitemap'
 import { isProgramEntry, NEWS_BASE, postPath, PROGRAMS_BASE } from '@/utilities/postPath'
@@ -20,9 +20,20 @@ const pathsFor = (post: Partial<Post>) => {
 }
 
 const revalidate = (paths: Iterable<string>) => {
-  for (const path of new Set(paths)) revalidatePath(path)
+  const unique = new Set(paths)
+
+  for (const path of unique) revalidatePath(path)
 
   revalidatePath(SITEMAP_PATH)
+
+  /**
+   * The programme list is cached under a tag of its own and shared by every page
+   * that shows it, so the paths alone would leave both of them re-rendering the
+   * same stale query. `PROGRAMS_BASE` in the set is what marks this write as one
+   * that touched the programme — `pathsFor` only includes it for an entry
+   * carrying a date.
+   */
+  if (unique.has(PROGRAMS_BASE)) revalidateTag('programs', { expire: 0 })
 }
 
 export const revalidatePost: CollectionAfterChangeHook<Post> = ({

@@ -1,4 +1,5 @@
 import configPromise from '@payload-config'
+import { unstable_cache } from 'next/cache'
 import { getPayload } from 'payload'
 
 import { dayInFrance, todayInFrance } from '@/utilities/parisDay'
@@ -11,6 +12,9 @@ import { dayInFrance, todayInFrance } from '@/utilities/parisDay'
  * comparison is unambiguous.
  */
 const QUERY_MARGIN_MS = 24 * 60 * 60 * 1000
+
+/** Kept in step with the `revalidate` the home and programme pages export. */
+const PAGE_REVALIDATE_SECONDS = 3600
 
 export type ProgramEntry = {
   slug: string
@@ -33,9 +37,8 @@ export type ProgramEntry = {
  * An entry drops off the day after it ends rather than the day after it starts,
  * so a séjour stays listed while it is running.
  */
-export const getPrograms = async ({ limit }: { limit?: number } = {}): Promise<ProgramEntry[]> => {
+const queryPrograms = async (today: string): Promise<ProgramEntry[]> => {
   const payload = await getPayload({ config: configPromise })
-  const today = todayInFrance()
   const cutoff = new Date(new Date(`${today}T00:00:00Z`).getTime() - QUERY_MARGIN_MS).toISOString()
 
   const { docs } = await payload.find({
@@ -71,6 +74,36 @@ export const getPrograms = async ({ limit }: { limit?: number } = {}): Promise<P
       },
     ]
   })
+
+  return entries
+}
+
+/**
+ * Cached under the programs tag, which `revalidatePost` fires whenever a write
+ * touches the programme, so an edited entry still shows up immediately.
+ *
+ * The expiry is a backstop for the writes no hook sees — a migration, a seed, an
+ * edit made straight against the database — which Next would otherwise keep
+ * serving across builds and deployments. An hour matches the window both pages
+ * showing this list already export.
+ *
+ * The cutoff day is the argument rather than something the query reads for
+ * itself, which makes it part of the cache key: the first render of a new day
+ * misses and queries again, so an entry drops off on the day it should even in a
+ * week when nobody publishes anything.
+ */
+const getCachedPrograms = unstable_cache(queryPrograms, ['programs'], {
+  revalidate: PAGE_REVALIDATE_SECONDS,
+  tags: ['programs'],
+})
+
+/**
+ * The limit is applied to the cached list rather than to the query, so the home
+ * page's preview and the full `/programs` listing share one entry instead of
+ * asking the database the same question twice with different bounds.
+ */
+export const getPrograms = async ({ limit }: { limit?: number } = {}): Promise<ProgramEntry[]> => {
+  const entries = await getCachedPrograms(todayInFrance())
 
   return limit === undefined ? entries : entries.slice(0, limit)
 }
