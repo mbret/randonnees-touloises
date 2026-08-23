@@ -9,6 +9,7 @@ import { FormBlock } from '../../blocks/Form/config'
 import { IconCards } from '../../blocks/IconCards/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { MediaLinks } from '../../blocks/MediaLinks/config'
+import { MembershipTiers } from '../../blocks/MembershipTiers/config'
 import { hero } from '@/heros/config'
 import { slugField } from 'payload'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
@@ -89,6 +90,7 @@ export const Pages: CollectionConfig<'pages'> = {
                 FormBlock,
                 IconCards,
                 MediaLinks,
+                MembershipTiers,
                 TeamSectionBlockConfig,
               ],
               required: true,

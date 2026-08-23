@@ -70,10 +70,12 @@ After you click the `Deploy` button above, you'll want to have standalone copy o
 
    > _NOTE: If the connection string value includes `localhost` or `127.0.0.1`, the code will automatically use a normal postgres adapter instead of Vercel._. You can override this functionality by setting `forceUseVercelPostgres: true` if desired.
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+3. `pnpm install` to install dependencies
+4. `pnpm seed:local` to migrate the database and fill it with content — see [Seed](#seed)
+5. `pnpm dev` to start the dev server
+6. open `http://localhost:3000` to open the app in your browser
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+That's it! Changes made in `./src` will be reflected in your app. `pnpm seed:local` has already created an admin user to log in with; without it, follow the on-screen instructions to create the first one. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
 
 #### Docker (Optional)
 
@@ -259,15 +261,53 @@ That's it! The Docker instance will help you get up and running quickly while al
 
 ### Seed
 
-To seed the database with a few pages, posts, and projects you can click the 'seed database' link from the admin panel.
+One command takes an empty local database to a site you can click through:
 
-The seed script will also create a demo user for demonstration purposes only:
+```sh
+pnpm seed:local
+```
 
-- Demo Author
-  - Email: `demo-author@payloadcms.com`
-  - Password: `password`
+It brings the Postgres container up (the same `docker:dev:infra` step `pnpm dev`
+runs), applies the migrations, creates an admin user (`admin@example.com` / `password`,
+override with `SEED_EMAIL` and `SEED_PASSWORD`), then runs every import script
+in `scripts/` in dependency order — portraits, agenda, programme, and the pages
+carried over from the previous site.
 
-> NOTICE: seeding the database is destructive because it drops your current database to populate a fresh one from the seed template. Only run this command if you are starting a new project or can afford to lose your current data.
+- `DRY_RUN=1` reports what each step would do and writes nothing. It does not
+  apply migrations either, so run it against a database whose schema is already
+  current.
+- `LIMIT=10` takes the first ten of each bulk import, which is the quick way to
+  get a working site without fetching two hundred portraits.
+- `SKIP=trombinoscope,programs` leaves steps out. `pnpm seed:local` prints the
+  step names.
+- `node scripts/seed-local.mjs` runs the same thing without the Docker step, for
+  a Postgres you start yourself.
+
+Every step is idempotent, so rerunning tops up rather than duplicating — which
+is also how a local database that is merely out of date catches up. Steps that
+read the old randonnees-touloises.net are the ones that fail without a network;
+a failure there is reported at the end and does not stop the rest.
+
+The command refuses any database that is not on this machine. Production is
+seeded by running the same scripts individually and deliberately, with
+`ALLOW_REMOTE_DB=1`:
+
+```sh
+POSTGRES_URL=<production url> ALLOW_REMOTE_DB=1 \
+  pnpm payload run scripts/import-membership-page.ts
+```
+
+Each script's header documents its own flags and what a rerun does.
+
+Local runs keep uploads on disk in `public/media/` rather than in the R2 bucket,
+so the importers write both the rows and the files. To bring down the media of a
+database restored from production instead, use
+`DIRECTION=down pnpm payload run scripts/sync-media-r2.ts`.
+
+> NOTICE: `src/endpoints/seed` and the 'seed database' link are the unmodified
+> Payload template seed — English demo content, and destructive: it clears
+> pages, posts, media, forms and the header and footer globals first. Use
+> `pnpm seed:local`.
 
 ## Questions
 

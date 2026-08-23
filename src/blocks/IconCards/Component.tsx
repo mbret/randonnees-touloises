@@ -31,8 +31,13 @@ const layouts = {
 export const IconCardsBlock: React.FC<IconCardsBlockProps> = ({ cards, media, mediaPosition }) => {
   if (!cards?.length) return null
 
+  /* Beside an illustration the cards sit in a third of the container, so they
+   * stack; on their own they have the full width, and three short cards across
+   * it read as the steps or the promises they are rather than as a list. The
+   * column count is capped at three so a fourth card wraps under the first
+   * instead of shrinking all of them past legibility. */
   const list = (
-    <div className="grid gap-4">
+    <div className={`grid gap-4 ${media ? '' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
       {cards.map(({ description, icon, id, title }) => {
         const Icon = iconComponents[icon]
 
