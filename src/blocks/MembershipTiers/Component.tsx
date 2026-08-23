@@ -77,13 +77,15 @@ export const MembershipTiersBlock: React.FC<MembershipTiersBlockProps> = ({
           formulas for somebody who holds no licence, then the two for somebody
           who already holds one elsewhere. */}
       <ul className="grid list-none gap-6 p-0 sm:grid-cols-2">
-        {tiers.map(({ badge, id, lines, link, name, price, priceNote }) => {
+        {tiers.map(({ badge, enableLink, id, lines, link, name, price, priceNote }) => {
           const featured = Boolean(badge?.trim())
           const orderedLines = [...(lines ?? [])].sort(byKind)
-          /* A formula whose inscription is not open yet has an empty link
-             group. `CMSLink` renders nothing for it, so the padding that
-             would hold its button must not be rendered either. */
-          const hasTarget = Boolean(link?.url || link?.reference)
+          /* The toggle decides, not the leftovers: an editor who fills a link
+             and then switches the button off leaves the target behind in the
+             document, and it is the switch they mean. The target is checked too
+             because `CMSLink` renders nothing without one, and the padding that
+             would hold the button must not outlive it. */
+          const hasTarget = Boolean(enableLink && (link?.url || link?.reference))
 
           return (
             <li className="flex" key={id ?? name}>

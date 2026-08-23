@@ -8,6 +8,7 @@ import * as migration_20260821_103725_nav_entries_from_pages from './20260821_10
 import * as migration_20260821_111814_icon_cards_block from './20260821_111814_icon_cards_block';
 import * as migration_20260822_091833_media_links_block from './20260822_091833_media_links_block';
 import * as migration_20260823_132746_membership_tiers_block from './20260823_132746_membership_tiers_block';
+import * as migration_20260823_140300_membership_tier_enable_link from './20260823_140300_membership_tier_enable_link';
 
 export const migrations = [
   {
@@ -58,6 +59,11 @@ export const migrations = [
   {
     up: migration_20260823_132746_membership_tiers_block.up,
     down: migration_20260823_132746_membership_tiers_block.down,
-    name: '20260823_132746_membership_tiers_block'
+    name: '20260823_132746_membership_tiers_block',
+  },
+  {
+    up: migration_20260823_140300_membership_tier_enable_link.up,
+    down: migration_20260823_140300_membership_tier_enable_link.down,
+    name: '20260823_140300_membership_tier_enable_link'
   },
 ];

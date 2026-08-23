@@ -87,6 +87,7 @@ const tiers = [
         text: 'Un certificat médical daté de moins de 6 mois est obligatoire.',
       },
     ],
+    enableLink: true,
     link: registration,
   },
   {
@@ -115,6 +116,7 @@ const tiers = [
         text: 'Un certificat médical daté de moins de 6 mois est obligatoire pour chaque personne.',
       },
     ],
+    enableLink: true,
     link: registration,
   },
   {
@@ -128,6 +130,7 @@ const tiers = [
       },
       { kind: 'condition' as const, text: 'Vous souhaitez participer à nos activités' },
     ],
+    enableLink: true,
     link: registration,
   },
   {
@@ -146,6 +149,7 @@ const tiers = [
         text: 'Vous et les autres membres de votre famille souhaitez participer à nos activités',
       },
     ],
+    enableLink: true,
     link: registration,
   },
 ]

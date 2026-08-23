@@ -138,6 +138,25 @@ export const MembershipTiers: Block = {
             },
           ],
         },
+        {
+          /* What makes the button genuinely optional. The link field declares
+           * its target and its label required, and a group left blank fails
+           * validation rather than reading as "no button" — so the way to have
+           * a card without one is to say so, and let the condition take those
+           * validations out of the way. Same pattern as the Content block.
+           *
+           * On by default: nearly every formula has a button, and a new row
+           * whose button had to be switched on would be a row an editor fills
+           * in twice. */
+          name: 'enableLink',
+          type: 'checkbox',
+          label: 'Afficher un bouton d’inscription',
+          defaultValue: true,
+          admin: {
+            description:
+              'Décochez pour une formule dont l’inscription n’est pas encore ouverte : la carte s’affiche alors sans bouton.',
+          },
+        },
         /* The registration button. A link field rather than a URL, so the
          * committee can send a formula to the payment site, to a page of the
          * site, or to a PDF they uploaded, without any of it being a code
@@ -148,8 +167,7 @@ export const MembershipTiers: Block = {
           overrides: {
             label: 'Bouton d’inscription',
             admin: {
-              description:
-                'Laissez le champ vide pour une formule dont l’inscription n’est pas encore ouverte : la carte s’affiche alors sans bouton.',
+              condition: (_data, siblingData) => Boolean(siblingData?.enableLink),
             },
           },
         }),

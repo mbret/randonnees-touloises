@@ -1248,9 +1248,10 @@ export interface MembershipTiersBlock {
       id?: string | null;
     }[];
     /**
-     * Laissez le champ vide pour une formule dont l’inscription n’est pas encore ouverte : la carte s’affiche alors sans bouton.
+     * Décochez pour une formule dont l’inscription n’est pas encore ouverte : la carte s’affiche alors sans bouton.
      */
-    link: {
+    enableLink?: boolean | null;
+    link?: {
       type?: ('reference' | 'custom') | null;
       newTab?: boolean | null;
       authCondition?: ('always' | 'loggedIn' | 'loggedOut') | null;
@@ -1911,6 +1912,7 @@ export interface MembershipTiersBlockSelect<T extends boolean = true> {
               text?: T;
               id?: T;
             };
+        enableLink?: T;
         link?:
           | T
           | {
