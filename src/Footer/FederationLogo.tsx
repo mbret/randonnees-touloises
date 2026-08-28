@@ -7,12 +7,12 @@ import React from 'react'
  * here — the club is licensed to display the federation's mark, the repository
  * is not — so swapping it is this one line, whatever the new file is called.
  *
- * The `?v` is the revision `getMediaUrl` would otherwise stamp from the
+ * The `?v` is the cache tag `getMediaUrl` would otherwise stamp from the
  * document's `updatedAt`, written by hand because nothing here reads the
- * document. Naming a revision is what earns a media URL its year of
- * `immutable` — so this is the only handle on a badge replaced under the same
- * filename, and replacing one means bumping this in the same commit. A badge
- * uploaded under a new name changes the path instead, and needs no bump.
+ * document. Carrying a tag is what earns a media URL its year of `immutable` —
+ * so this is the only handle on a badge replaced under the same filename, and
+ * replacing one means bumping this in the same commit. A badge uploaded under
+ * a new name changes the path instead, and needs no bump.
  */
 const FEDERATION_LOGO_URL = '/api/media/file/logo-ffr.svg?v=1'
 

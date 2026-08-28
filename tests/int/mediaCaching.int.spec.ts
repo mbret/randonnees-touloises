@@ -8,7 +8,7 @@ import type { Media as MediaDoc } from '@/payload-types'
 import { Media } from '@/collections/Media'
 import { getImageURL } from '@/seo/imageUrl'
 import { getMediaUrl } from '@/utilities/getMediaUrl'
-import { MEDIA_REVISION_PARAM } from '@/utilities/mediaRevision.js'
+import { MEDIA_CACHE_TAG_PARAM } from '@/utilities/mediaCacheTag.js'
 
 beforeAll(() => {
   process.env.NEXT_PUBLIC_SERVER_URL = 'https://abonnes.randonnees-touloises.net'
@@ -87,10 +87,10 @@ describe('media file caching', () => {
 })
 
 /**
- * A URL that names the revision it wants is answered by `next.config.js`
- * instead, where the request — and so the revision — is visible.
+ * A URL carrying a cache tag is answered by `next.config.js` instead, where the
+ * request — and so the tag — is visible.
  */
-describe('an upload asked for by revision', () => {
+describe('an upload asked for by cache tag', () => {
   /** The rules `next.config.js` declares, as Next will read them. */
   const headerRules = async () => {
     const { default: config } = await import('../../next.config.js')
@@ -98,16 +98,16 @@ describe('an upload asked for by revision', () => {
     return await config.headers!()
   }
 
-  /** The rule that answers a media URL naming its revision, if there is one. */
-  const revisionedMediaRule = async () =>
+  /** The rule that answers a media URL carrying a cache tag, if there is one. */
+  const taggedMediaRule = async () =>
     (await headerRules()).find(
       (rule) =>
         rule.source.startsWith('/api/media/file') &&
-        rule.has?.some(({ key, type }) => type === 'query' && key === MEDIA_REVISION_PARAM),
+        rule.has?.some(({ key, type }) => type === 'query' && key === MEDIA_CACHE_TAG_PARAM),
     )
 
   it('may be kept for a year, since replacing the file changes the URL', async () => {
-    const cacheControl = (await revisionedMediaRule())?.headers.find(
+    const cacheControl = (await taggedMediaRule())?.headers.find(
       ({ key }) => key.toLowerCase() === 'cache-control',
     )?.value
 
@@ -116,7 +116,7 @@ describe('an upload asked for by revision', () => {
   })
 
   it('is never revalidated, not even on a reload', async () => {
-    const cacheControl = (await revisionedMediaRule())?.headers.find(
+    const cacheControl = (await taggedMediaRule())?.headers.find(
       ({ key }) => key.toLowerCase() === 'cache-control',
     )?.value
 
@@ -129,14 +129,14 @@ describe('an upload asked for by revision', () => {
    * media route's short window, silently, which is why the two are pinned here.
    */
   it('is recognised by the very URLs the site renders', async () => {
-    const rule = await revisionedMediaRule()
+    const rule = await taggedMediaRule()
     const url = new URL(
       getMediaUrl('/api/media/file/photo.webp', REVISION),
       'https://example.invalid',
     )
 
     expect(rule).toBeDefined()
-    expect(url.searchParams.get(MEDIA_REVISION_PARAM)).toBe(REVISION)
+    expect(url.searchParams.get(MEDIA_CACHE_TAG_PARAM)).toBe(REVISION)
   })
 })
 
@@ -174,7 +174,7 @@ describe('the picture a document is shared with', () => {
     const image = upload({ sizes: { og: { url: '/api/media/file/photo-1200x630.webp' } } })
 
     expect(getImageURL(image)).toBe(
-      `https://abonnes.randonnees-touloises.net/api/media/file/photo-1200x630.webp?${MEDIA_REVISION_PARAM}=${encodeURIComponent(REVISION)}`,
+      `https://abonnes.randonnees-touloises.net/api/media/file/photo-1200x630.webp?${MEDIA_CACHE_TAG_PARAM}=${encodeURIComponent(REVISION)}`,
     )
   })
 
