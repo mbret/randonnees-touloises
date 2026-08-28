@@ -12,6 +12,8 @@ import { getCachedMedias } from '@/metadata/getMedias'
 
 type HeadingProps = {
   authors?: string
+  /** Set over a photo, where the heading is white and the pills must follow. */
+  onImage?: boolean
   /** The outing's own day, for the deadline's year. */
   startDate?: string
   status?: ReturnType<typeof registrationStatus>
@@ -21,7 +23,7 @@ type HeadingProps = {
 }
 
 /** The title and its two subtitles, shared by both treatments below. */
-function PostHeading({ authors, startDate, status, title, when }: HeadingProps) {
+function PostHeading({ authors, onImage, startDate, status, title, when }: HeadingProps) {
   return (
     <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2">
       <h1 className="mb-6 text-3xl md:text-5xl lg:text-6xl">{title}</h1>
@@ -39,7 +41,14 @@ function PostHeading({ authors, startDate, status, title, when }: HeadingProps) 
       {status && (
         <div className="mt-3">
           <RegistrationStatus
-            className={status.kind === 'open' ? 'text-current' : undefined}
+            /* The pills carry theme colours, which are the page's own and go
+               invisible against a photo. Over one they take the heading's
+               white instead. */
+            className={
+              onImage
+                ? '[&>span]:bg-transparent [&>span]:text-white [&>span]:ring-white/50'
+                : undefined
+            }
             startDate={startDate}
             status={status}
           />
@@ -87,9 +96,11 @@ export const PostHero: React.FC<{
     isFull: schedule?.isFull,
   })
 
+  const onImage = Boolean(media) && typeof media !== 'string'
   const heading = (
     <PostHeading
       authors={authors || undefined}
+      onImage={onImage}
       startDate={startDate}
       status={status}
       title={title}
@@ -97,7 +108,7 @@ export const PostHero: React.FC<{
     />
   )
 
-  if (!media || typeof media === 'string') {
+  if (!onImage) {
     return <header className="container">{heading}</header>
   }
 

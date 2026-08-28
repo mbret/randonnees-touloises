@@ -2,30 +2,26 @@ import React from 'react'
 
 import type { RegistrationStatus as Status } from './registrationStatus'
 
-import { CalendarClockIcon } from 'lucide-react'
+import { CalendarClockIcon, CalendarOffIcon } from 'lucide-react'
 import { cn } from '@/components/ui'
 import { formatDeadline } from './formatSchedule'
 
 /**
- * « Complet », « Inscriptions closes », or the day they close.
+ * What the club has said about signing up, as pills under the date.
  *
- * The two that mean *you have missed this one* are set as a badge, because they
- * are the exception a reader scanning the list needs to catch without reading
- * the line. A deadline still to come is ordinary — most entries carry one — so
- * it is not badged, which would cost the other two their prominence.
+ * A pill rather than a line of text because the eye finds a shape before it
+ * reads a word: set as prose, the one date on the card with something to do sat
+ * between the date above it and the summary below in the same grey, and was
+ * skimmed past even by someone looking for it.
  *
- * It still has to be found, though. Set as plain muted text it landed between
- * the date above it and the summary below in the same size and the same grey,
- * and read as a third line of prose rather than as the one date on the card
- * with something to do — it was skimmed past even by someone looking for it.
+ * Two of them, when there are two things to say. The deadline keeps its own
+ * pill whether or not it has passed — a struck calendar and « closes » are the
+ * whole difference — so an outing that fills up early still shows the date it
+ * closes on, and one that closed on time still says when. « Complet » sits
+ * beside it rather than replacing it.
  *
- * So all three are pills, and the weight is what separates them: a deadline
- * still to come is an outline, the two that mean « too late » are filled. The
- * shape says « this is the state of the thing » at a glance, and the fill is
- * what still makes the exceptions the ones the eye lands on.
- *
- * All three sit in the same slot under the date, so the eye finds them in one
- * place whichever it is.
+ * The fill is what ranks them: the deadline is an outline either way, and
+ * « Complet » is filled, so the exception is still what the eye lands on.
  */
 export function RegistrationStatus({
   className,
@@ -39,27 +35,33 @@ export function RegistrationStatus({
 }) {
   if (!status) return null
 
-  if (status.kind === 'open')
-    return (
-      <span
-        className={cn(
-          'text-foreground ring-border inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
-          className,
-        )}
-      >
-        <CalendarClockIcon aria-hidden="true" className="size-3 shrink-0" />
-        Inscriptions jusqu’au {formatDeadline(status.deadline, startDate)}
-      </span>
-    )
+  const { deadline, full } = status
 
   return (
-    <span
-      className={cn(
-        'bg-muted text-muted-foreground ring-border w-fit rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
-        className,
+    <span className={cn('flex flex-wrap items-center gap-2', className)}>
+      {deadline && (
+        <span
+          className={cn(
+            'ring-border inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
+            deadline.closed ? 'text-muted-foreground' : 'text-foreground',
+          )}
+        >
+          {deadline.closed ? (
+            <CalendarOffIcon aria-hidden="true" className="size-3 shrink-0" />
+          ) : (
+            <CalendarClockIcon aria-hidden="true" className="size-3 shrink-0" />
+          )}
+          {deadline.closed
+            ? `Inscriptions closes le ${formatDeadline(deadline.day, startDate)}`
+            : `Inscriptions jusqu’au ${formatDeadline(deadline.day, startDate)}`}
+        </span>
       )}
-    >
-      {status.kind === 'full' ? 'Complet' : 'Inscriptions closes'}
+
+      {full && (
+        <span className="bg-muted text-foreground ring-border w-fit rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset">
+          Complet
+        </span>
+      )}
     </span>
   )
 }

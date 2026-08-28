@@ -5,15 +5,15 @@ import { registrationStatus } from '@/components/programs/registrationStatus'
 
 const TODAY = '2026-09-15'
 
-describe('whether an outing can still be joined', () => {
+describe('what the club has said about signing up', () => {
   it('says nothing about an outing the club has said nothing about', () => {
     expect(registrationStatus({}, TODAY)).toBeNull()
   })
 
   it('names the last day while it is still to come', () => {
     expect(registrationStatus({ deadline: '2026-09-18' }, TODAY)).toEqual({
-      kind: 'open',
-      deadline: '2026-09-18',
+      full: false,
+      deadline: { day: '2026-09-18', closed: false },
     })
   })
 
@@ -22,27 +22,40 @@ describe('whether an outing can still be joined', () => {
    * last one — an outing closing « le 18 » is open all of the 18th.
    */
   it('is still open on the deadline itself', () => {
-    expect(registrationStatus({ deadline: TODAY }, TODAY)).toEqual({
-      kind: 'open',
-      deadline: TODAY,
+    expect(registrationStatus({ deadline: TODAY }, TODAY)?.deadline).toEqual({
+      day: TODAY,
+      closed: false,
     })
   })
 
   it('closes the day after', () => {
-    expect(registrationStatus({ deadline: '2026-09-14' }, TODAY)).toEqual({ kind: 'closed' })
+    expect(registrationStatus({ deadline: '2026-09-14' }, TODAY)?.deadline).toEqual({
+      day: '2026-09-14',
+      closed: true,
+    })
   })
 
-  it('reports a full outing as full rather than as open', () => {
+  /**
+   * The two are independent: an outing can fill up while its deadline is still
+   * days away, and the date is the thing a reader might still act on — a
+   * waiting list, a cancellation — so being full does not hide it.
+   */
+  it('keeps the deadline on an outing that has filled up early', () => {
     expect(registrationStatus({ deadline: '2026-09-18', isFull: true }, TODAY)).toEqual({
-      kind: 'full',
+      full: true,
+      deadline: { day: '2026-09-18', closed: false },
     })
   })
 
-  /** Being full is the news, whether or not the deadline has also passed. */
-  it('reports a full outing as full rather than as closed', () => {
+  it('reports both when a full outing has also closed', () => {
     expect(registrationStatus({ deadline: '2026-09-14', isFull: true }, TODAY)).toEqual({
-      kind: 'full',
+      full: true,
+      deadline: { day: '2026-09-14', closed: true },
     })
+  })
+
+  it('reports a full outing with no deadline at all', () => {
+    expect(registrationStatus({ isFull: true }, TODAY)).toEqual({ full: true })
   })
 
   it('treats an unticked box as nothing said', () => {
