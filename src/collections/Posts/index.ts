@@ -18,6 +18,7 @@ import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { fillMeta } from './hooks/fillMeta'
 import { populateAuthors } from './hooks/populateAuthors'
 import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
+import { AUTOSAVE_INTERVAL } from '../autosaveInterval'
 
 import {
   MetaDescriptionField,
@@ -281,7 +282,7 @@ export const Posts: CollectionConfig<'posts'> = {
   versions: {
     drafts: {
       autosave: {
-        interval: 100, // We set this interval for optimal live preview
+        interval: AUTOSAVE_INTERVAL,
       },
       schedulePublish: true,
     },
