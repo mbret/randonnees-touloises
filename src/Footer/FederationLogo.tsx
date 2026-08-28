@@ -1,38 +1,29 @@
-'use client'
-
 import clsx from 'clsx'
 import React from 'react'
 
-import { ImagePlaceholder } from '@/components/common/ImagePlaceholder'
-import { useMedias } from '@/metadata/MediaProvider'
-import { getMediaUrl } from '@/utilities/getMediaUrl'
+/**
+ * Where the badge lives. Uploaded to the media library rather than committed
+ * here — the club is licensed to display the federation's mark, the repository
+ * is not — so swapping it is this one line, whatever the new file is called.
+ */
+const FEDERATION_LOGO_URL = '/api/media/file/logo-ffr.svg'
+
+/** Intrinsic size of that file, so the row does not shift as it loads. */
+const FEDERATION_LOGO_SIZE = { width: 340, height: 103 }
 
 /**
- * The federation's badge, uploaded to the media library under the filename
- * `federation` — the club is licensed to display it, so it belongs to the
- * site's content rather than to the repository.
- *
- * The placeholder stands in until it is uploaded: the badge sits inside the
- * link naming the federation, and rendering nothing would leave that link
- * looking like a stray line of text with no hint that an image is missing.
+ * The federation's badge, decorative: it sits inside the link naming the
+ * federation, and the wording beside it is what carries the accessible name.
  */
-export const FederationLogo = ({ className }: { className?: string }) => {
-  const { media } = useMedias()
-  const logo = media?.find((m) => m.filename === 'federation')
-
-  if (!logo?.url)
-    return <ImagePlaceholder className={clsx('h-12', className)} label="Logo FFRandonnée" />
-
-  return (
-    /* eslint-disable-next-line @next/next/no-img-element */
-    <img
-      alt=""
-      className={clsx('h-12 w-auto object-contain', className)}
-      decoding="async"
-      height={logo.height || undefined}
-      loading="lazy"
-      src={getMediaUrl(logo.url, logo.updatedAt)}
-      width={logo.width || undefined}
-    />
-  )
-}
+export const FederationLogo = ({ className }: { className?: string }) => (
+  /* eslint-disable-next-line @next/next/no-img-element */
+  <img
+    alt=""
+    className={clsx('h-12 w-auto object-contain', className)}
+    decoding="async"
+    height={FEDERATION_LOGO_SIZE.height}
+    loading="lazy"
+    src={FEDERATION_LOGO_URL}
+    width={FEDERATION_LOGO_SIZE.width}
+  />
+)
