@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/item'
 import { formatBadge, formatSchedule } from './formatSchedule'
 import { PROGRAMS_BASE } from '@/utilities/postPath'
+import { RegistrationStatus } from './RegistrationStatus'
+import { registrationStatus } from './registrationStatus'
 
 /**
  * One programme entry: the day down the leading column, then what it is and when,
@@ -22,8 +24,17 @@ import { PROGRAMS_BASE } from '@/utilities/postPath'
  * The whole card is the link rather than a « en savoir plus » at the end of it —
  * every entry has a page, and that page is the only thing the card is for.
  */
-export function ProgramCard({ endDate, slug, startDate, summary, title }: ProgramEntry) {
+export function ProgramCard({
+  endDate,
+  isFull,
+  registrationDeadline,
+  slug,
+  startDate,
+  summary,
+  title,
+}: ProgramEntry) {
   const badge = formatBadge(startDate)
+  const status = registrationStatus({ deadline: registrationDeadline, isFull })
 
   return (
     <Item asChild variant="outline">
@@ -37,6 +48,7 @@ export function ProgramCard({ endDate, slug, startDate, summary, title }: Progra
           <ItemDescription className="line-clamp-none">
             {formatSchedule(startDate, endDate)}
           </ItemDescription>
+          <RegistrationStatus startDate={startDate} status={status} />
           {summary && <ItemDescription className="line-clamp-2">{summary}</ItemDescription>}
         </ItemContent>
         <ItemActions>

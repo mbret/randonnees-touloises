@@ -39,3 +39,18 @@ export const formatBadge = (day: string) => ({
   day: formatDay(day, { day: 'numeric' }),
   month: formatDay(day, { month: 'short' }).replace(/\.$/, ''),
 })
+
+/**
+ * The last day to sign up, as the club writes it: « 18 septembre 2026 ».
+ *
+ * The year is dropped when the deadline falls in the same year as the outing,
+ * because the line above it has just printed that year and repeating it reads
+ * as noise. A deadline in the year before — a séjour booked the previous
+ * autumn — keeps it, where it is the whole point.
+ */
+export const formatDeadline = (deadline: string, startDate?: string) =>
+  formatDay(deadline, {
+    day: 'numeric',
+    month: 'long',
+    ...(startDate?.slice(0, 4) === deadline.slice(0, 4) ? {} : { year: 'numeric' }),
+  })

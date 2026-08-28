@@ -205,6 +205,33 @@ export const Posts: CollectionConfig<'posts'> = {
             description: 'Pour les séjours et les week-ends.',
           },
         },
+        /**
+         * The two answers to « puis-je encore m'inscrire ? ». They were written
+         * into the title — « (date limite d'inscription 18 septembre 2026) »,
+         * « (COMPLET) » — where nothing could read them, so the deadline could
+         * not pass on its own and being full had to be typed and untyped by
+         * hand in two places.
+         */
+        {
+          name: 'registrationDeadline',
+          type: 'date',
+          label: 'Date limite d’inscription',
+          admin: {
+            date: {
+              pickerAppearance: 'dayOnly',
+            },
+            description:
+              'Les inscriptions sont annoncées closes le lendemain. Laisser vide s’il n’y a pas de date limite.',
+          },
+        },
+        {
+          name: 'isFull',
+          type: 'checkbox',
+          label: 'Complet',
+          admin: {
+            description: 'Affiché à la place de la date limite : plus aucune place disponible.',
+          },
+        },
       ],
     },
     {

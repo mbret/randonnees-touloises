@@ -111,6 +111,47 @@ describe('programme event structured data', () => {
     })
   })
 
+  /**
+   * `offers` is where a search engine looks for whether an event can still be
+   * joined, and it is the part of the page that changes on its own between two
+   * visits.
+   */
+  it('offers no places on an outing announced as full', () => {
+    const event = programEventJsonLd(
+      post({ schedule: { startDate: '2026-09-11T22:00:00.000Z', isFull: true } }),
+    )
+
+    expect(event?.offers).toMatchObject({ availability: 'https://schema.org/SoldOut' })
+  })
+
+  /**
+   * schema.org reads `availabilityEnds` as the instant availability stops, and
+   * the club's deadline is a day one can still sign up on — quoting the
+   * deadline itself would close the outing a day early.
+   */
+  it('keeps places until the day after the deadline', () => {
+    const event = programEventJsonLd(
+      post({
+        schedule: {
+          startDate: '2026-09-19T22:00:00.000Z',
+          registrationDeadline: '2026-09-17T22:00:00.000Z',
+        },
+      }),
+    )
+
+    expect(event?.offers).toMatchObject({
+      availability: 'https://schema.org/InStock',
+      availabilityEnds: '2026-09-19',
+    })
+  })
+
+  /** A claim the page itself does not make has no business being marked up. */
+  it('claims no availability for an outing the club has said nothing about', () => {
+    const event = programEventJsonLd(post({ schedule: { startDate: '2026-09-11T22:00:00.000Z' } }))
+
+    expect(event?.offers).toBeUndefined()
+  })
+
   it('says nothing about a post with no date, which is news and not an outing', () => {
     expect(programEventJsonLd(post())).toBeNull()
     expect(programEventJsonLd(post({ schedule: { startDate: null } }))).toBeNull()
