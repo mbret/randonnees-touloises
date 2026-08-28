@@ -1,8 +1,11 @@
 import { getCachedGlobal } from '@/utilities/getGlobals'
 import React from 'react'
 
+import Link from 'next/link'
+
 import { CMSLink } from '@/components/Link'
 import { ModeToggle } from '@/theme/ModeToggle'
+import { FederationLogo } from './FederationLogo'
 
 export async function Footer() {
   const footerData = await getCachedGlobal('footer', 1)()
@@ -16,11 +19,21 @@ export async function Footer() {
           Maison Des Associations 2, cours Raymond Poincaré 54200 Toul
         </p>
       </div>
-      {/* <div className="container mx-auto py-8 gap-8 flex flex-row justify-center">
-        <Link href="https://www.ffrandonnee.fr/" rel="noopener noreferrer" target="_blank">
+      <div className="container flex justify-center pt-8">
+        {/* One link around badge and wording alike: two links to the same page,
+            read one after the other, are only an obstacle to anyone tabbing or
+            listening through the footer. The badge is decorative because the
+            wording beside it already names where the link goes. */}
+        <Link
+          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-3 text-sm transition-colors"
+          href="https://www.ffrandonnee.fr/"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
           <FederationLogo />
+          Affilié à la Fédération Française de Randonnée Pédestre
         </Link>
-      </div> */}
+      </div>
       <div className="container py-8 gap-4 flex flex-col items-center md:grid md:grid-cols-[1fr_auto_1fr]">
         <div className="md:col-start-1 md:row-start-1 md:justify-self-start">
           <ModeToggle />
