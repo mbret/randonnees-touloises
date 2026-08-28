@@ -15,6 +15,7 @@ import { slugField } from 'payload'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { revalidateDelete, revalidatePage } from './hooks/revalidatePage'
+import { AUTOSAVE_INTERVAL } from '../autosaveInterval'
 
 import {
   MetaDescriptionField,
@@ -180,7 +181,7 @@ export const Pages: CollectionConfig<'pages'> = {
   versions: {
     drafts: {
       autosave: {
-        interval: 100, // We set this interval for optimal live preview
+        interval: AUTOSAVE_INTERVAL,
       },
       schedulePublish: true,
     },
