@@ -17,7 +17,7 @@ export async function HomeAgenda() {
   return (
     <section className="container scroll-mt-24 py-16 md:py-24" id="agenda">
       <div className="text-center">
-        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Agenda</h2>
+        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Nos sorties du mois</h2>
         <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
           Sauf modification du parcours pendant la randonnée (cela peut arriver !), les km et D+
           (somme de toutes les montées du parcours) annoncés sont ceux calculés et indiqués par
