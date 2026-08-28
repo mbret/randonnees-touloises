@@ -1,3 +1,5 @@
+import { MEDIA_REVISION_PARAM } from './mediaRevision.js'
+
 /**
  * Processes media resource URL to ensure proper formatting
  * @param url The original URL from the resource
@@ -10,13 +12,16 @@
  * and the browser an absolute one — a hydration mismatch on every image — and it
  * pushed our own files through the image optimiser as if they were remote.
  * Storage adapters hand back absolute URLs, which still pass through untouched.
+ *
+ * The tag is written as a named parameter rather than a bare query string, so
+ * that `next.config.js` can recognise a URL carrying one: `has` matches a query
+ * parameter by name, and a revision has no fixed value to match on. Naming it
+ * is what lets those URLs be cached forever — see `mediaRevision.js`.
  */
 export const getMediaUrl = (url: string | null | undefined, cacheTag?: string | null): string => {
   if (!url) return ''
 
-  if (cacheTag && cacheTag !== '') {
-    cacheTag = encodeURIComponent(cacheTag)
-  }
+  if (!cacheTag) return url
 
-  return cacheTag ? `${url}?${cacheTag}` : url
+  return `${url}?${MEDIA_REVISION_PARAM}=${encodeURIComponent(cacheTag)}`
 }
