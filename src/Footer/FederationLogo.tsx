@@ -14,6 +14,15 @@ const FEDERATION_LOGO_SIZE = { width: 340, height: 103 }
 /**
  * The federation's badge, decorative: it sits inside the link naming the
  * federation, and the wording beside it is what carries the accessible name.
+ *
+ * A plain `img`, like the header's own logo. `next/image` cannot serve this
+ * one: the optimiser refuses `image/svg+xml` unless `dangerouslyAllowSVG` is
+ * set, which is not a switch to throw across a collection of uploads for one
+ * badge. `unoptimized` would get it rendering again, but with resizing, format
+ * negotiation and srcset all off there is nothing left of `next/image` to use.
+ *
+ * Swapping the URL above for a raster is the case that changes this answer —
+ * that one has something to optimise, and should go through `next/image`.
  */
 export const FederationLogo = ({ className }: { className?: string }) => (
   /* eslint-disable-next-line @next/next/no-img-element */
