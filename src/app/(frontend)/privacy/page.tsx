@@ -100,6 +100,15 @@ export default function Page() {
             techniques nécessaires au bon fonctionnement du site peuvent toutefois être utilisés.
           </p>
 
+          <h2 id="mesure-d-audience">Mesure d’audience</h2>
+          <p>
+            Le site utilise les outils de mesure d’audience et de performance de son hébergeur
+            Vercel. Ces outils ne déposent aucun cookie, ne suivent pas les visiteurs d’un site à
+            l’autre et ne permettent pas de vous identifier : ils comptabilisent uniquement des
+            pages vues anonymes et des temps de chargement, afin de suivre la fréquentation du site
+            et d’améliorer sa rapidité.
+          </p>
+
           <h2 id="modification-de-la-politique">Modification de la politique</h2>
           <p>
             Cette politique de confidentialité peut être modifiée à tout moment afin de rester
@@ -107,7 +116,7 @@ export default function Page() {
           </p>
 
           <hr />
-          <p className="text-muted-foreground text-sm">Dernière mise à jour : 21 mai 2026.</p>
+          <p className="text-muted-foreground text-sm">Dernière mise à jour : 28 août 2026.</p>
         </div>
       </div>
     </div>
