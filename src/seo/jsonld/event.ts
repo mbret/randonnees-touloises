@@ -6,6 +6,7 @@ import { CLUB, clubId } from './club'
 import { dayInFrance } from '@/utilities/parisDay'
 import { getImageURL } from '../imageUrl'
 import { postPath } from '@/utilities/postPath'
+import { registrationStatus } from '@/components/programs/registrationStatus'
 import { SEO_SITE_NAME } from '../constants'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -36,18 +37,33 @@ const DAY_MS = 24 * 60 * 60 * 1000
 /**
  * Whether the outing can still be joined, in the shape a search engine reads it.
  *
+ * Read from the same `registrationStatus` the page renders its pills from, so
+ * the markup cannot say « places available » under a card reading
+ * « Inscriptions closes ». A deadline passes on its own, so `availability` has
+ * to be worked out per render rather than read off the field — which is also
+ * why the page carries a `revalidate`.
+ *
+ * `SoldOut` only when the club has actually said so. A deadline that has simply
+ * run out is `OutOfStock` — no longer obtainable, which is true — rather than
+ * a claim the places ran out, which the page never makes.
+ *
  * `availabilityEnds` is the day after the deadline, because schema.org reads it
  * as the instant availability stops and the club's deadline is a day someone can
  * still sign up on — quoting the deadline itself would close the outing a day
  * early in anything that renders it.
  *
- * Nothing is emitted when the club has said nothing: an `Offer` claiming
- * `InStock` on an outing whose places were never counted is a claim the page
- * does not make.
+ * Nothing at all when the club has said nothing: an `Offer` claiming `InStock`
+ * on an outing whose places were never counted is a claim the page does not
+ * make.
  */
 const offers = (post: Post) => {
   const deadline = post.schedule?.registrationDeadline
-  if (!post.schedule?.isFull && !deadline) return {}
+  const status = registrationStatus({
+    deadline: deadline ? dayInFrance(deadline) : undefined,
+    isFull: post.schedule?.isFull,
+  })
+
+  if (!status) return {}
 
   const availabilityEnds = deadline
     ? new Date(new Date(`${dayInFrance(deadline)}T00:00:00Z`).getTime() + DAY_MS)
@@ -55,12 +71,12 @@ const offers = (post: Post) => {
         .slice(0, 10)
     : undefined
 
+  const availability = status.full ? 'SoldOut' : status.deadline?.closed ? 'OutOfStock' : 'InStock'
+
   return {
     offers: {
       '@type': 'Offer',
-      availability: post.schedule?.isFull
-        ? 'https://schema.org/SoldOut'
-        : 'https://schema.org/InStock',
+      availability: `https://schema.org/${availability}`,
       ...(availabilityEnds ? { availabilityEnds } : {}),
       url: absoluteUrl(postPath(post)),
     },

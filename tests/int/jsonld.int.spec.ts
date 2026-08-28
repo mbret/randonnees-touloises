@@ -145,6 +145,47 @@ describe('programme event structured data', () => {
     })
   })
 
+  /**
+   * A deadline passes on its own, so `availability` is worked out per render
+   * like the pill on the page is. Emitting `InStock` beside an
+   * `availabilityEnds` already in the past would have the markup contradict
+   * the card above it.
+   */
+  it('stops offering places once the deadline has gone', () => {
+    const event = programEventJsonLd(
+      post({
+        schedule: {
+          startDate: '2026-09-19T22:00:00.000Z',
+          registrationDeadline: '2020-09-17T22:00:00.000Z',
+        },
+      }),
+    )
+
+    expect(event?.offers).toMatchObject({ availability: 'https://schema.org/OutOfStock' })
+  })
+
+  /**
+   * `SoldOut` is a claim that the places ran out. A deadline that simply
+   * expired on an outing with room left is not that, and the page never says
+   * it is.
+   */
+  it('calls an expired deadline unavailable rather than sold out', () => {
+    const expired = programEventJsonLd(
+      post({
+        schedule: {
+          startDate: '2026-09-19T22:00:00.000Z',
+          registrationDeadline: '2020-09-17T22:00:00.000Z',
+        },
+      }),
+    )
+    const full = programEventJsonLd(
+      post({ schedule: { startDate: '2026-09-19T22:00:00.000Z', isFull: true } }),
+    )
+
+    expect(expired?.offers).not.toMatchObject({ availability: 'https://schema.org/SoldOut' })
+    expect(full?.offers).toMatchObject({ availability: 'https://schema.org/SoldOut' })
+  })
+
   /** A claim the page itself does not make has no business being marked up. */
   it('claims no availability for an outing the club has said nothing about', () => {
     const event = programEventJsonLd(post({ schedule: { startDate: '2026-09-11T22:00:00.000Z' } }))
