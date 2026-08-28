@@ -66,13 +66,16 @@ export const Media: CollectionConfig = {
      * what made the old behaviour expensive, and a replaced file still reaches
      * everyone within a day of being replaced.
      *
-     * Not `immutable`, though the bytes behind one URL never change: this hook
-     * sees only the response, so it cannot tell a URL carrying the `updatedAt`
-     * cache tag `getMediaUrl` stamps on it — safe to keep forever, since
-     * replacing the file changes the URL — from a bare
-     * `/api/media/file/<filename>`, which is a URL anyone can request and which
-     * has no way to be invalidated. A year of immutable on the second kind is
-     * unfixable without purging a CDN.
+     * Not `immutable`, and finite: this hook sees only the response, so it
+     * cannot tell a URL carrying the `updatedAt` cache tag `getMediaUrl` stamps
+     * on it from a bare `/api/media/file/<filename>` — a URL anyone can
+     * request, that Payload's own admin renders, and that nothing can
+     * invalidate. A year of immutable on the second kind is unfixable without
+     * purging a CDN, so this is the header the bare kind needs.
+     *
+     * The tagged kind is answered by `next.config.js`, where the request is
+     * visible and a tagged URL can be recognised and kept forever. What is set
+     * here is therefore the floor, not the ceiling.
      *
      * `_next/image` reads this too: Next takes the optimised image's
      * `Cache-Control` from the upstream response (or `minimumCacheTTL`,

@@ -1,7 +1,10 @@
+import { MEDIA_CACHE_TAG_PARAM } from './mediaCacheTag.js'
+
 /**
  * Processes media resource URL to ensure proper formatting
  * @param url The original URL from the resource
- * @param cacheTag Optional cache tag to append to the URL
+ * @param cacheTag Optional cache tag to append to the URL — callers pass the
+ *   document's `updatedAt`, so a replaced file is asked for under a new URL
  * @returns Properly formatted URL with cache tag if provided
  *
  * Collection-hosted media is left as the origin-relative path Payload gives us
@@ -10,13 +13,16 @@
  * and the browser an absolute one — a hydration mismatch on every image — and it
  * pushed our own files through the image optimiser as if they were remote.
  * Storage adapters hand back absolute URLs, which still pass through untouched.
+ *
+ * The tag is written as a named parameter rather than a bare query string, so
+ * that `next.config.js` can recognise a URL carrying one: `has` matches a query
+ * parameter by name, and a tag has no fixed value to match on. Naming it is
+ * what lets those URLs be cached forever — see `mediaCacheTag.js`.
  */
 export const getMediaUrl = (url: string | null | undefined, cacheTag?: string | null): string => {
   if (!url) return ''
 
-  if (cacheTag && cacheTag !== '') {
-    cacheTag = encodeURIComponent(cacheTag)
-  }
+  if (!cacheTag) return url
 
-  return cacheTag ? `${url}?${cacheTag}` : url
+  return `${url}?${MEDIA_CACHE_TAG_PARAM}=${encodeURIComponent(cacheTag)}`
 }

@@ -2,6 +2,10 @@ import { withPayload } from '@payloadcms/next/withPayload'
 
 import redirects from './redirects.js'
 import { THUMBNAIL_REMOTE_PATTERNS } from './src/blocks/MediaLinks/thumbnailHosts.js'
+import {
+  MEDIA_CACHE_TAG_PARAM,
+  MEDIA_IMMUTABLE_CACHE_CONTROL,
+} from './src/utilities/mediaCacheTag.js'
 
 /**
  * The staging copy of the site, served from the legacy site's registered domain.
@@ -48,6 +52,24 @@ const headers = async () => [
     headers: [{ key: 'Cache-Control', value: PUBLIC_ASSET_CACHE_CONTROL }],
     source,
   })),
+  /**
+   * An upload asked for by cache tag can be kept forever.
+   *
+   * The media route sets its own `Cache-Control`, but it is handed the response
+   * and nothing else, so it cannot tell a tagged URL from a bare one and has to
+   * answer both with the shorter window a bare URL needs. Here the request is
+   * visible, so the two can be told apart: `has` matches the cache-tag
+   * parameter `getMediaUrl` stamps, and this rule replaces the header on
+   * exactly those URLs. Everything else keeps what the route set.
+   *
+   * Same split Next itself draws between `/_next/static`, whose filenames carry
+   * a build hash, and `public/` above, whose do not.
+   */
+  {
+    has: [{ type: 'query', key: MEDIA_CACHE_TAG_PARAM }],
+    headers: [{ key: 'Cache-Control', value: MEDIA_IMMUTABLE_CACHE_CONTROL }],
+    source: '/api/media/file/:path*',
+  },
 ]
 
 const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
@@ -87,10 +109,7 @@ const nextConfig = {
      * document, so the media entry omits it — an omitted `search` matches any.
      * The second entry restores the default for every other local image.
      */
-    localPatterns: [
-      { pathname: '/api/media/file/**' },
-      { pathname: '**', search: '' },
-    ],
+    localPatterns: [{ pathname: '/api/media/file/**' }, { pathname: '**', search: '' }],
   },
   reactStrictMode: true,
   redirects,

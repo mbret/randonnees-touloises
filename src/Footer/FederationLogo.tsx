@@ -9,11 +9,10 @@ import React from 'react'
  *
  * The `?v` is the cache tag `getMediaUrl` would otherwise stamp from the
  * document's `updatedAt`, written by hand because nothing here reads the
- * document. Media is served `max-age=86400` with a month of
- * stale-while-revalidate behind it, so a badge replaced under the same
- * filename would otherwise take a day to reach anyone: bump this and it
- * lands at once. A badge uploaded under a new name changes the path instead,
- * and needs no bump.
+ * document. Carrying a tag is what earns a media URL its year of `immutable` —
+ * so this is the only handle on a badge replaced under the same filename, and
+ * replacing one means bumping this in the same commit. A badge uploaded under
+ * a new name changes the path instead, and needs no bump.
  */
 const FEDERATION_LOGO_URL = '/api/media/file/logo-ffr.svg?v=1'
 
