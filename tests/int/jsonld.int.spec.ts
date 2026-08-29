@@ -118,7 +118,7 @@ describe('programme event structured data', () => {
    */
   it('offers no places on an outing announced as full', () => {
     const event = programEventJsonLd(
-      post({ schedule: { startDate: '2026-09-11T22:00:00.000Z', isFull: true } }),
+      post({ schedule: { startDate: '2026-09-11T22:00:00.000Z', availability: 'full' as const } }),
     )
 
     expect(event?.offers).toMatchObject({ availability: 'https://schema.org/SoldOut' })
@@ -179,11 +179,38 @@ describe('programme event structured data', () => {
       }),
     )
     const full = programEventJsonLd(
-      post({ schedule: { startDate: '2026-09-19T22:00:00.000Z', isFull: true } }),
+      post({ schedule: { startDate: '2026-09-19T22:00:00.000Z', availability: 'full' as const } }),
     )
 
     expect(expired?.offers).not.toMatchObject({ availability: 'https://schema.org/SoldOut' })
     expect(full?.offers).toMatchObject({ availability: 'https://schema.org/SoldOut' })
+  })
+
+  /**
+   * `BackOrder` tells a crawler the place can still be queued for. Once the
+   * deadline has gone it cannot, and the card above says so — so the offer
+   * closes with it rather than keeping the list advertised.
+   */
+  it('closes a waiting list when its deadline has gone', () => {
+    const event = programEventJsonLd(
+      post({
+        schedule: {
+          startDate: '2026-09-19T22:00:00.000Z',
+          registrationDeadline: '2020-09-17T22:00:00.000Z',
+          availability: 'waitlist',
+        },
+      }),
+    )
+
+    expect(event?.offers).toMatchObject({ availability: 'https://schema.org/OutOfStock' })
+  })
+
+  it('still offers the list while the deadline stands', () => {
+    const event = programEventJsonLd(
+      post({ schedule: { startDate: '2026-09-19T22:00:00.000Z', availability: 'waitlist' } }),
+    )
+
+    expect(event?.offers).toMatchObject({ availability: 'https://schema.org/BackOrder' })
   })
 
   /** A claim the page itself does not make has no business being marked up. */

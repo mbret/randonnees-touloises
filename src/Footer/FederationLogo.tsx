@@ -16,7 +16,11 @@ import React from 'react'
  */
 const FEDERATION_LOGO_URL = '/api/media/file/logo-ffr.svg?v=1'
 
-/** Intrinsic size of that file, so the row does not shift as it loads. */
+/**
+ * Intrinsic size of that file, so the row does not shift as it loads. Not the
+ * size it is drawn at — that is the `h-8` below, and the two are meant to
+ * differ: these are the proportions, that is the height.
+ */
 const FEDERATION_LOGO_SIZE = { width: 340, height: 103 }
 
 /**
@@ -31,7 +35,7 @@ const FEDERATION_LOGO_SIZE = { width: 340, height: 103 }
 export const FederationLogo = ({ className }: { className?: string }) => (
   <Image
     alt=""
-    className={clsx('h-12 w-auto object-contain', className)}
+    className={clsx('h-8 w-auto object-contain', className)}
     height={FEDERATION_LOGO_SIZE.height}
     src={FEDERATION_LOGO_URL}
     width={FEDERATION_LOGO_SIZE.width}

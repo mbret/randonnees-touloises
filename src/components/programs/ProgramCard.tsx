@@ -25,8 +25,9 @@ import { registrationStatus } from './registrationStatus'
  * every entry has a page, and that page is the only thing the card is for.
  */
 export function ProgramCard({
+  availability,
   endDate,
-  isFull,
+  openToAll,
   registrationDeadline,
   slug,
   startDate,
@@ -34,7 +35,11 @@ export function ProgramCard({
   title,
 }: ProgramEntry) {
   const badge = formatBadge(startDate)
-  const status = registrationStatus({ deadline: registrationDeadline, isFull })
+  const status = registrationStatus({
+    availability,
+    deadline: registrationDeadline,
+    openToAll,
+  })
 
   return (
     <Item asChild variant="outline">

@@ -8,7 +8,7 @@ import type { Media as MediaDoc } from '@/payload-types'
 import { Media } from '@/collections/Media'
 import { getImageURL } from '@/seo/imageUrl'
 import { getMediaUrl } from '@/utilities/getMediaUrl'
-import { MEDIA_CACHE_TAG_PARAM } from '@/utilities/mediaCacheTag.js'
+import { MEDIA_CACHE_TAG_PARAM, withMediaCacheControl } from '@/utilities/mediaCacheTag'
 
 beforeAll(() => {
   process.env.NEXT_PUBLIC_SERVER_URL = 'https://abonnes.randonnees-touloises.net'
@@ -87,56 +87,80 @@ describe('media file caching', () => {
 })
 
 /**
- * A URL carrying a cache tag is answered by `next.config.js` instead, where the
- * request — and so the tag — is visible.
+ * A URL carrying a cache tag is answered by the media file route, which holds
+ * the request and the finished response together and so can tell a tagged URL
+ * from a bare one.
+ *
+ * These run the wrapper over real responses rather than reading a rule off a
+ * config object. The rule this replaces was declared correctly in
+ * `next.config.js` and never reached a single response — a route handler's own
+ * `Cache-Control` overwrites one set from there — so a test that read the rule
+ * passed throughout. Only an answer can show the difference.
  */
 describe('an upload asked for by cache tag', () => {
-  /** The rules `next.config.js` declares, as Next will read them. */
-  const headerRules = async () => {
-    const { default: config } = await import('../../next.config.js')
+  const MEDIA_URL = 'https://example.invalid/api/media/file/photo.webp'
 
-    return await config.headers!()
-  }
+  /** What the media route answers with before it is wrapped. */
+  const served = (status = 200) =>
+    new Response(status === 304 ? null : 'bytes', {
+      headers: { 'Cache-Control': 'public, max-age=86400', 'Content-Type': 'image/webp' },
+      status,
+    })
 
-  /** The rule that answers a media URL carrying a cache tag, if there is one. */
-  const taggedMediaRule = async () =>
-    (await headerRules()).find(
-      (rule) =>
-        rule.source.startsWith('/api/media/file') &&
-        rule.has?.some(({ key, type }) => type === 'query' && key === MEDIA_CACHE_TAG_PARAM),
-    )
+  const answer = (url: string, response: Response = served()) =>
+    withMediaCacheControl(new Request(url), response)
 
-  it('may be kept for a year, since replacing the file changes the URL', async () => {
-    const cacheControl = (await taggedMediaRule())?.headers.find(
-      ({ key }) => key.toLowerCase() === 'cache-control',
-    )?.value
+  const tagged = getMediaUrl(MEDIA_URL, REVISION)
 
-    expect(seconds(cacheControl ?? null, 'max-age')).toBeGreaterThanOrEqual(365 * DAY)
-    expect(seconds(cacheControl ?? null, 's-maxage')).toBeGreaterThanOrEqual(365 * DAY)
+  it('may be kept for a year, since replacing the file changes the URL', () => {
+    const cacheControl = answer(tagged).headers.get('Cache-Control')
+
+    expect(seconds(cacheControl, 'max-age')).toBeGreaterThanOrEqual(365 * DAY)
+    expect(seconds(cacheControl, 's-maxage')).toBeGreaterThanOrEqual(365 * DAY)
   })
 
-  it('is never revalidated, not even on a reload', async () => {
-    const cacheControl = (await taggedMediaRule())?.headers.find(
-      ({ key }) => key.toLowerCase() === 'cache-control',
-    )?.value
+  it('is never revalidated, not even on a reload', () => {
+    expect(answer(tagged).headers.get('Cache-Control')).toContain('immutable')
+  })
 
-    expect(cacheControl).toContain('immutable')
+  /** The bare URL is the one nothing can invalidate, so it keeps the short window. */
+  it('leaves a URL naming no revision on the window the route set', () => {
+    expect(answer(MEDIA_URL).headers.get('Cache-Control')).toBe('public, max-age=86400')
+  })
+
+  it('hands back the file the route served, and nothing else changed', async () => {
+    expect(answer(tagged).headers.get('Content-Type')).toBe('image/webp')
+    expect(await answer(tagged).text()).toBe('bytes')
+  })
+
+  /** A 304 answers "still fresh?", so it is what carries the new window home. */
+  it('extends the window on a revalidation that found nothing to send', () => {
+    const answered = answer(tagged, served(304))
+
+    expect(answered.status).toBe(304)
+    expect(answered.headers.get('Cache-Control')).toContain('immutable')
+  })
+
+  /** A year of 404 would outlive the upload that fixes it. */
+  it('promises nothing for a file that was never served', () => {
+    expect(
+      answer(tagged, new Response(null, { status: 404 })).headers.get('Cache-Control'),
+    ).toBeNull()
   })
 
   /**
-   * The rule matches a query parameter by name, and `getMediaUrl` chooses that
-   * name. Renaming one alone breaks no page — it drops every upload back to the
-   * media route's short window, silently, which is why the two are pinned here.
+   * The route reads the parameter by name, and `getMediaUrl` chooses that name.
+   * Renaming one alone breaks no page — it drops every upload back to the media
+   * route's short window, silently, which is why the two are pinned here.
    */
-  it('is recognised by the very URLs the site renders', async () => {
-    const rule = await taggedMediaRule()
+  it('is recognised on the very URLs the site renders', () => {
     const url = new URL(
       getMediaUrl('/api/media/file/photo.webp', REVISION),
       'https://example.invalid',
     )
 
-    expect(rule).toBeDefined()
     expect(url.searchParams.get(MEDIA_CACHE_TAG_PARAM)).toBe(REVISION)
+    expect(answer(url.href).headers.get('Cache-Control')).toContain('immutable')
   })
 })
 

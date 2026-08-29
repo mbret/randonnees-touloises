@@ -90,10 +90,11 @@ export const PostHero: React.FC<{
 
   const startDate = schedule?.startDate ? dayInFrance(schedule.startDate) : undefined
   const status = registrationStatus({
+    availability: schedule?.availability,
     deadline: schedule?.registrationDeadline
       ? dayInFrance(schedule.registrationDeadline)
       : undefined,
-    isFull: schedule?.isFull,
+    openToAll: schedule?.openToAll,
   })
 
   const onImage = Boolean(media) && typeof media !== 'string'

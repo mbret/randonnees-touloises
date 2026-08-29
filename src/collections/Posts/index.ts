@@ -225,11 +225,33 @@ export const Posts: CollectionConfig<'posts'> = {
           },
         },
         {
-          name: 'isFull',
-          type: 'checkbox',
-          label: 'Complet',
+          name: 'availability',
+          type: 'select',
+          label: 'Places',
+          defaultValue: 'open',
+          options: [
+            { label: 'Places disponibles', value: 'open' },
+            { label: 'Complet', value: 'full' },
+            { label: 'Liste d’attente', value: 'waitlist' },
+          ],
           admin: {
-            description: 'Affiché à la place de la date limite : plus aucune place disponible.',
+            description:
+              'Une liste d’attente se dit autrement d’un complet sec : il n’y a plus de place, mais on peut encore s’inscrire dessus.',
+          },
+        },
+        /**
+         * Marked the way round the club actually works: nearly everything is
+         * for members, so it is the outing open to everyone that is worth
+         * saying — and worth saying loudly, since the people it is addressed to
+         * are exactly the ones not yet in the club.
+         */
+        {
+          name: 'openToAll',
+          type: 'checkbox',
+          label: 'Ouverte à tous',
+          admin: {
+            description:
+              'Par défaut une sortie est réservée aux adhérent(e)s. À cocher pour celles qui ne le sont pas.',
           },
         },
       ],

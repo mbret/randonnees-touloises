@@ -12,7 +12,7 @@ describe('what the club has said about signing up', () => {
 
   it('names the last day while it is still to come', () => {
     expect(registrationStatus({ deadline: '2026-09-18' }, TODAY)).toEqual({
-      full: false,
+      openToAll: false,
       deadline: { day: '2026-09-18', closed: false },
     })
   })
@@ -41,25 +41,73 @@ describe('what the club has said about signing up', () => {
    * waiting list, a cancellation — so being full does not hide it.
    */
   it('keeps the deadline on an outing that has filled up early', () => {
-    expect(registrationStatus({ deadline: '2026-09-18', isFull: true }, TODAY)).toEqual({
-      full: true,
+    expect(registrationStatus({ deadline: '2026-09-18', availability: 'full' }, TODAY)).toEqual({
+      openToAll: false,
+      places: 'full',
       deadline: { day: '2026-09-18', closed: false },
     })
   })
 
   it('reports both when a full outing has also closed', () => {
-    expect(registrationStatus({ deadline: '2026-09-14', isFull: true }, TODAY)).toEqual({
-      full: true,
+    expect(registrationStatus({ deadline: '2026-09-14', availability: 'full' }, TODAY)).toEqual({
+      openToAll: false,
+      places: 'full',
       deadline: { day: '2026-09-14', closed: true },
     })
   })
 
   it('reports a full outing with no deadline at all', () => {
-    expect(registrationStatus({ isFull: true }, TODAY)).toEqual({ full: true })
+    expect(registrationStatus({ availability: 'full' }, TODAY)).toEqual({
+      openToAll: false,
+      places: 'full',
+    })
   })
 
-  it('treats an unticked box as nothing said', () => {
-    expect(registrationStatus({ isFull: false }, TODAY)).toBeNull()
+  /** Places available is the ordinary case, and says nothing worth printing. */
+  it('treats places available as nothing said', () => {
+    expect(registrationStatus({ availability: 'open' }, TODAY)).toBeNull()
+  })
+
+  /**
+   * A waiting list is not a softer « complet » but a different instruction:
+   * there is no place, and there is still something to do about it.
+   */
+  it('keeps a waiting list distinct from a plain complet', () => {
+    expect(registrationStatus({ availability: 'waitlist' }, TODAY)?.places).toBe('waitlist')
+    expect(registrationStatus({ availability: 'full' }, TODAY)?.places).toBe('full')
+  })
+
+  /**
+   * Members-only is the club's default, so it is the outing open to everyone
+   * that gets said — the reverse would put a marker on nearly every card.
+   */
+  it('announces an outing open to everyone, and says nothing of the rest', () => {
+    expect(registrationStatus({ openToAll: true }, TODAY)).toEqual({ openToAll: true })
+    expect(registrationStatus({ openToAll: false }, TODAY)).toBeNull()
+  })
+
+  /**
+   * A waiting list is the one state that invites an action, and a closed
+   * deadline is the club saying there is none left. Someone may still be added
+   * by asking a human; nothing rendered from this should say so.
+   */
+  it('retires a waiting list once the deadline has gone', () => {
+    expect(
+      registrationStatus({ availability: 'waitlist', deadline: '2026-09-14' }, TODAY)?.places,
+    ).toBeUndefined()
+  })
+
+  it('keeps the waiting list while the deadline is still to come', () => {
+    expect(
+      registrationStatus({ availability: 'waitlist', deadline: '2026-09-18' }, TODAY)?.places,
+    ).toBe('waitlist')
+  })
+
+  /** « Complet » invites nothing, and says more about why than « closes » does. */
+  it('leaves complet standing after its deadline', () => {
+    expect(
+      registrationStatus({ availability: 'full', deadline: '2026-09-14' }, TODAY)?.places,
+    ).toBe('full')
   })
 })
 

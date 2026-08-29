@@ -1,6 +1,8 @@
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 
+import type { Availability } from './registrationStatus'
+
 import { dayInFrance, todayInFrance } from '@/utilities/parisDay'
 
 /**
@@ -23,8 +25,10 @@ export type ProgramEntry = {
   summary?: string
   /** `YYYY-MM-DD`, the last day an inscription is accepted. */
   registrationDeadline?: string
-  /** No places left. */
-  isFull?: boolean
+  /** What the club has said about places. */
+  availability?: Availability
+  /** Open to people who are not members. */
+  openToAll?: boolean
 }
 
 /**
@@ -68,7 +72,8 @@ export const getPrograms = async ({ limit }: { limit?: number } = {}): Promise<P
     return [
       {
         endDate,
-        isFull: doc.schedule.isFull ?? undefined,
+        availability: doc.schedule.availability ?? undefined,
+        openToAll: doc.schedule.openToAll ?? undefined,
         registrationDeadline: doc.schedule.registrationDeadline
           ? dayInFrance(doc.schedule.registrationDeadline)
           : undefined,
