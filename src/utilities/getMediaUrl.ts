@@ -1,4 +1,4 @@
-import { MEDIA_CACHE_TAG_PARAM } from './mediaCacheTag.js'
+import { MEDIA_CACHE_TAG_PARAM } from './mediaCacheTag'
 
 /**
  * Processes media resource URL to ensure proper formatting
@@ -15,9 +15,9 @@ import { MEDIA_CACHE_TAG_PARAM } from './mediaCacheTag.js'
  * Storage adapters hand back absolute URLs, which still pass through untouched.
  *
  * The tag is written as a named parameter rather than a bare query string, so
- * that `next.config.js` can recognise a URL carrying one: `has` matches a query
- * parameter by name, and a tag has no fixed value to match on. Naming it is
- * what lets those URLs be cached forever — see `mediaCacheTag.js`.
+ * that the media file route can recognise a URL carrying one: it looks the
+ * parameter up by name, and a tag has no fixed value to match on. Naming it is
+ * what lets those URLs be cached forever — see `mediaCacheTag.ts`.
  */
 export const getMediaUrl = (url: string | null | undefined, cacheTag?: string | null): string => {
   if (!url) return ''
