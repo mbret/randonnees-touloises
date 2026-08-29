@@ -12,8 +12,6 @@ import styles from './AdminBar.module.scss'
 
 import { getClientSideURL } from '@/utilities/getURL'
 
-const baseClass = 'admin-bar'
-
 /**
  * `@payloadcms/admin-bar` builds its labels as `Edit ${singular}` / `New
  * ${singular}` and hardcodes "Exit preview mode" — it takes no translations, so

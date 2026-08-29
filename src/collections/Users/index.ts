@@ -1,12 +1,9 @@
 import type { CollectionConfig } from 'payload'
 
-import { authenticated } from '../../access/authenticated'
 import { publicAccess } from '@/access/publicAccess'
 import { adminOnly } from '@/access/adminOnly'
 import { adminOrSelf } from '@/access/adminOrSelf'
 import { checkRole } from '@/access/utilities'
-import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
-import { ensureFirstUserIsAdmin } from './hooks/ensureFirstUserIsAdmin'
 import { roleField } from '@/fields/role'
 
 export const Users: CollectionConfig = {
