@@ -6,6 +6,13 @@ import { getPayload } from 'payload'
 import { RenderParams } from '@/components/common/RenderParams/RenderParams'
 // import { AccountNav } from '@/components/AccountNav'
 
+/**
+ * The account area is behind a session: it reads the auth cookie and redirects
+ * before anything renders, so there is no shell worth prefetching and the
+ * navigation is allowed to block on the server.
+ */
+export const instant = false
+
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const headers = await getHeaders()
   const payload = await getPayload({ config: configPromise })

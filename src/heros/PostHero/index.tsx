@@ -72,8 +72,10 @@ function PostHeading({ authors, onImage, startDate, status, title, when }: Headi
  * moves to the foot of the article instead.
  */
 export const PostHero: React.FC<{
+  /** Today in Toul, from a cached read; see `cachedTodayInFrance`. */
+  today?: string
   post: Post
-}> = async ({ post }) => {
+}> = async ({ post, today }) => {
   const { heroImage, populatedAuthors, schedule, title } = post
   const medias = await getCachedMedias()()
   const heroMedia = typeof heroImage === 'object' ? heroImage : null
@@ -89,12 +91,15 @@ export const PostHero: React.FC<{
     : undefined
 
   const startDate = schedule?.startDate ? dayInFrance(schedule.startDate) : undefined
-  const status = registrationStatus({
-    deadline: schedule?.registrationDeadline
-      ? dayInFrance(schedule.registrationDeadline)
-      : undefined,
-    isFull: schedule?.isFull,
-  })
+  const status = registrationStatus(
+    {
+      deadline: schedule?.registrationDeadline
+        ? dayInFrance(schedule.registrationDeadline)
+        : undefined,
+      isFull: schedule?.isFull,
+    },
+    today,
+  )
 
   const onImage = Boolean(media) && typeof media !== 'string'
   const heading = (

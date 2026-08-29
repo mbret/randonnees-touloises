@@ -1,4 +1,5 @@
 import configPromise from '@payload-config'
+import { cacheLife } from 'next/cache'
 import { draftMode } from 'next/headers'
 import { getPayload } from 'payload'
 import React, { cache } from 'react'
@@ -9,6 +10,7 @@ import { breadcrumbJsonLd, postTrail } from '@/seo/jsonld/breadcrumbs'
 import { JsonLd } from '@/seo/jsonld/JsonLd'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { PostHero } from '@/heros/PostHero'
+import { cachedTodayInFrance } from '@/utilities/cachedToday'
 import { programEventJsonLd } from '@/seo/jsonld/event'
 import { PostViewClient } from './PostViewClient'
 import { PublishedAt } from './PublishedAt'
@@ -25,7 +27,8 @@ export async function PostView({ post }: { post: Post }) {
   // outing a reader can turn up to, an undated one only has its trail. Both sit
   // inside the password gate, so a post whose body is withheld does not describe
   // itself to a crawler either.
-  const event = programEventJsonLd(post)
+  const today = await cachedTodayInFrance()
+  const event = programEventJsonLd(post, today)
   const breadcrumbs = breadcrumbJsonLd(postTrail(post))
 
   return (
@@ -38,7 +41,7 @@ export async function PostView({ post }: { post: Post }) {
 
         {draft && <LivePreviewListener />}
 
-        <PostHero post={post} />
+        <PostHero post={post} today={today} />
 
         <div className="flex flex-col items-center gap-4 pt-8">
           <div className="container">
@@ -57,20 +60,51 @@ export async function PostView({ post }: { post: Post }) {
   )
 }
 
-export const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
-  const { isEnabled: draft } = await draftMode()
+/**
+ * The published post. Cached, so that the pages built from
+ * `generateStaticParams` prerender instead of hitting the database per request.
+ */
+const queryPublishedPostBySlug = async ({ slug }: { slug: string }) => {
+  'use cache'
+  cacheLife('hours')
+
   const payload = await getPayload({ config: configPromise })
 
   const result = await payload.find({
     collection: 'posts',
-    draft,
+    draft: false,
     limit: 1,
-    overrideAccess: draft,
+    overrideAccess: false,
     pagination: false,
     where: { slug: { equals: slug } },
   })
 
   return result.docs?.[0] || null
+}
+
+/**
+ * The draft. Read per request and never cached — it is only reached while an
+ * editor is previewing from the admin.
+ */
+const queryDraftPostBySlug = cache(async ({ slug }: { slug: string }) => {
+  const payload = await getPayload({ config: configPromise })
+
+  const result = await payload.find({
+    collection: 'posts',
+    draft: true,
+    limit: 1,
+    overrideAccess: true,
+    pagination: false,
+    where: { slug: { equals: slug } },
+  })
+
+  return result.docs?.[0] || null
+})
+
+export const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
+  const { isEnabled: draft } = await draftMode()
+
+  return draft ? queryDraftPostBySlug({ slug }) : queryPublishedPostBySlug({ slug })
 })
 
 /**

@@ -11,6 +11,9 @@ import { getPayload } from 'payload'
 import { redirect } from 'next/navigation'
 import { CreateAccountForm } from '@/components/auth/CreateAccountForm'
 
+/** Reads the session to bounce an already-logged-in visitor; see the account layout. */
+export const instant = false
+
 export default async function CreateAccount() {
   const headers = await getHeaders()
   const payload = await getPayload({ config: configPromise })

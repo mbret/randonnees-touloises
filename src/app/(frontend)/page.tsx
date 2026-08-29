@@ -5,15 +5,17 @@ import { HomeHero } from '@/components/home/HomeHero'
 import { HomePrograms } from '@/components/programs/HomePrograms'
 import { servedAt } from '@/seo/servedAt'
 import { SEO_DESCRIPTION } from '@/seo/constants'
+import { cacheLife } from 'next/cache'
 import React from 'react'
 
 /**
  * The agenda drops events once their day has passed, so the page has to be
  * re-rendered on a clock rather than pinned to the last build.
  */
-export const revalidate = 3600
+export default async function Page() {
+  'use cache'
+  cacheLife('hours')
 
-export default function Page() {
   return (
     <>
       <HomeHero />

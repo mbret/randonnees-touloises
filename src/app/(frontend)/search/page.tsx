@@ -4,8 +4,9 @@ import { CollectionArchive } from '@/components/CollectionArchive'
 import { servedAt } from '@/seo/servedAt'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import React from 'react'
+import React, { Suspense } from 'react'
 import { Search } from '@/search/Component'
+import { ArchiveSkeleton } from '@/components/CollectionArchive/ArchiveSkeleton'
 import PageClient from './page.client'
 import { CardPostData } from '@/components/posts/PostCard'
 
@@ -18,8 +19,34 @@ type Args = {
     q: string
   }>
 }
-export default async function Page({ searchParams: searchParamsPromise }: Args) {
-  const { q: query } = await searchParamsPromise
+
+/**
+ * The heading and the input do not depend on the query, so they are prerendered
+ * and prefetched; only the results wait on `searchParams`, below the boundary.
+ */
+export default function Page({ searchParams }: Args) {
+  return (
+    <div className="pt-24 pb-24">
+      <PageClient />
+      <div className="container mb-16">
+        <div className="prose dark:prose-invert max-w-none text-center">
+          <h1 className="mb-8 lg:mb-16">Rechercher</h1>
+
+          <div className="max-w-200 mx-auto">
+            <Search />
+          </div>
+        </div>
+      </div>
+
+      <Suspense fallback={<ArchiveSkeleton />}>
+        <Results searchParams={searchParams} />
+      </Suspense>
+    </div>
+  )
+}
+
+async function Results({ searchParams }: Args) {
+  const { q: query } = await searchParams
   const payload = await getPayload({ config: configPromise })
 
   const posts = await payload.find({
@@ -64,26 +91,11 @@ export default async function Page({ searchParams: searchParamsPromise }: Args) 
       : {}),
   })
 
-  return (
-    <div className="pt-24 pb-24">
-      <PageClient />
-      <div className="container mb-16">
-        <div className="prose dark:prose-invert max-w-none text-center">
-          <h1 className="mb-8 lg:mb-16">Rechercher</h1>
+  if (posts.totalDocs === 0) {
+    return <div className="container">Aucun résultat ne correspond à votre recherche.</div>
+  }
 
-          <div className="max-w-200 mx-auto">
-            <Search />
-          </div>
-        </div>
-      </div>
-
-      {posts.totalDocs > 0 ? (
-        <CollectionArchive posts={posts.docs as CardPostData[]} />
-      ) : (
-        <div className="container">Aucun résultat ne correspond à votre recherche.</div>
-      )}
-    </div>
-  )
+  return <CollectionArchive posts={posts.docs as CardPostData[]} />
 }
 
 export function generateMetadata(): Metadata {

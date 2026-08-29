@@ -11,6 +11,9 @@ import { redirect } from 'next/navigation'
 import { RenderParams } from '@/components/common/RenderParams/RenderParams'
 import { LoginForm } from '@/components/auth/LoginForm'
 
+/** Reads the session to bounce an already-logged-in visitor; see the account layout. */
+export const instant = false
+
 export default async function Login() {
   const headers = await getHeaders()
   const payload = await getPayload({ config: configPromise })

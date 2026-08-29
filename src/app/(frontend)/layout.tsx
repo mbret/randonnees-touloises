@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { cn } from '@/components/ui'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 import { AdminBar } from '@/components/AdminBar/AdminBar'
 import { Footer } from '@/Footer/Component'
@@ -41,11 +41,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           <MediaProvider media={siteAssets}>
             <Providers>
-              <AdminBar
-                adminBarProps={{
-                  preview: isEnabled,
-                }}
-              />
+              {/*
+                Editor-only chrome that reads the current route segments, so it
+                streams in rather than holding the rest of the page out of the
+                prerendered shell. Anonymous visitors never see it at all.
+              */}
+              <Suspense fallback={null}>
+                <AdminBar
+                  adminBarProps={{
+                    preview: isEnabled,
+                  }}
+                />
+              </Suspense>
               <Header />
               {children}
               <Footer />
