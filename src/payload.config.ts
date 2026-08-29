@@ -1,6 +1,5 @@
 import { s3Storage } from '@payloadcms/storage-s3'
 import { fr } from '@payloadcms/translations/languages/fr'
-import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 
 import sharp from 'sharp' // sharp-import
@@ -28,7 +27,23 @@ import { ContactSubmissions } from './collections/ContactSubmissions'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-const connectionString = process.env.POSTGRES_URL || ''
+/**
+ * `sslmode=require` in the connection URL does not mean today what it will mean
+ * tomorrow. `pg` treats `prefer`, `require` and `verify-ca` as aliases for
+ * `verify-full`, and warns on every connection — twice a build, once more per
+ * serverless cold start — that pg v9 will give them libpq's meaning instead,
+ * where `require` encrypts without checking who is on the other end.
+ *
+ * So say `verify-full` outright. It is the behaviour the connection already
+ * has, which is why nothing changes now; the point is that it stays that
+ * behaviour through the upgrade rather than quietly loosening on a minor bump
+ * of a transitive dependency. A URL naming any other mode, or none at all —
+ * every local one — is left exactly as it was given.
+ */
+const withExplicitSslMode = (url: string) =>
+  url.replace(/([?&]sslmode=)(prefer|require|verify-ca)(?=&|$)/i, '$1verify-full')
+
+const connectionString = withExplicitSslMode(process.env.POSTGRES_URL || '')
 
 /**
  * `.env` carries the Vercel/Neon values, and `.env.local` — which points at the
