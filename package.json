@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "cross-env NODE_OPTIONS=--no-deprecation next build",
-    "ci": "pnpm lint && payload migrate && pnpm build",
+    "ci": "pnpm lint && pnpm run migrate:deploy && pnpm build",
     "dev": "cross-env NODE_OPTIONS=--no-deprecation pnpm run docker:dev:infra && next dev",
     "dev:prod": "cross-env NODE_OPTIONS=--no-deprecation rm -rf .next && pnpm build && pnpm start",
     "docker:dev:infra": "docker compose -f docker-compose.dev.yml up -d --wait postgres",
@@ -15,6 +15,7 @@
     "ii": "cross-env NODE_OPTIONS=--no-deprecation pnpm --ignore-workspace install",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation eslint .",
     "lint:fix": "cross-env NODE_OPTIONS=--no-deprecation eslint . --fix",
+    "migrate:deploy": "node scripts/migrate-on-deploy.mjs",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "reinstall": "cross-env NODE_OPTIONS=--no-deprecation rm -rf node_modules && rm pnpm-lock.yaml && pnpm --ignore-workspace install",
     "seed:local": "pnpm run docker:dev:infra && node scripts/seed-local.mjs",
