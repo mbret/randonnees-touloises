@@ -350,9 +350,13 @@ export interface Post {
      */
     registrationDeadline?: string | null;
     /**
-     * Affiché à la place de la date limite : plus aucune place disponible.
+     * Une liste d’attente se dit autrement d’un complet sec : il n’y a plus de place, mais on peut encore s’inscrire dessus.
      */
-    isFull?: boolean | null;
+    availability?: ('open' | 'full' | 'waitlist') | null;
+    /**
+     * Par défaut une sortie est réservée aux adhérent(e)s. À cocher pour celles qui ne le sont pas.
+     */
+    openToAll?: boolean | null;
   };
   publishedAt?: string | null;
   authors?: (number | User)[] | null;
@@ -1969,7 +1973,8 @@ export interface PostsSelect<T extends boolean = true> {
         startDate?: T;
         endDate?: T;
         registrationDeadline?: T;
-        isFull?: T;
+        availability?: T;
+        openToAll?: T;
       };
   publishedAt?: T;
   authors?: T;
