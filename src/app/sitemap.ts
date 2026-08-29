@@ -1,20 +1,25 @@
 import type { MetadataRoute } from 'next'
 
 import config from '@payload-config'
+import { cacheLife } from 'next/cache'
 import { getPayload } from 'payload'
 
 import { sitemapEntries } from '@/seo/sitemap'
 import { getServerSideURL } from '@/utilities/getURL'
 
 /**
- * Next caches this route by default and the collection hooks invalidate it by
- * path when a document is published, so a crawler is served a file rather than a
- * pair of queries. The hourly window is only the backstop for anything that
- * changes without a write — a programme entry ageing out of the listing, say.
+ * Cached, and the collection hooks invalidate it by path when a document is
+ * published, so a crawler is served a file rather than a pair of queries. The
+ * hourly window is only the backstop for anything that changes without a write —
+ * a programme entry ageing out of the listing, say.
+ *
+ * Expressed as `cacheLife` rather than `export const revalidate`, which Cache
+ * Components does not accept.
  */
-export const revalidate = 3600
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  'use cache'
+  cacheLife('hours')
+
   const payload = await getPayload({ config })
 
   const published = {

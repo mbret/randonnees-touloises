@@ -113,6 +113,31 @@ const nextConfig = {
   },
   reactStrictMode: true,
   redirects,
+  /**
+   * Cache Components: `use cache` and `cacheLife` replace the `dynamic` and
+   * `revalidate` route segment configs, and validation reports in `next dev`
+   * which navigations would not be instant.
+   */
+  cacheComponents: true,
+  /**
+   * One reusable App Shell is prefetched per route rather than a separate
+   * prefetch per visible link, so the many cards on the home page and the
+   * listings that point at the same route cost one request between them.
+   */
+  partialPrefetching: true,
+  cacheLife: {
+    /**
+     * The cadence the listings and the portrait pages were on as
+     * `revalidate = 600`. The built-in `minutes` profile revalidates every
+     * minute, which would be ten times the database traffic for content that
+     * changes a few times a week.
+     */
+    tenMinutes: {
+      stale: 300, // 5 minutes
+      revalidate: 600, // 10 minutes
+      expire: 3600, // 1 hour
+    },
+  },
 }
 
 export default withPayload(nextConfig, { devBundleServerPackages: false })

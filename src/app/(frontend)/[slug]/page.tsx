@@ -36,9 +36,22 @@ type Args = {
   }>
 }
 
-export default async function Page({ params: paramsPromise }: Args) {
+/**
+ * Whether the page exists decides the status code, and a status cannot be
+ * changed once the response has begun, so the lookup has to finish before
+ * anything is sent. That rules out resolving it below a `<Suspense>` boundary:
+ * the shell would commit a 200 and a missing page would answer 200 with the
+ * not-found page inside it.
+ *
+ * So this route is allowed to block. The pages it knows about are still
+ * prerendered from `generateStaticParams`; only a slug that was never generated
+ * pays for the lookup, which is the case that answers 404.
+ */
+export const instant = false
+
+export default async function Page({ params }: Args) {
   const { isEnabled: draft } = await draftMode()
-  const { slug = '' } = await paramsPromise
+  const { slug = '' } = await params
   const url = '/' + slug
 
   const page = await queryPageBySlug({ slug })

@@ -5,6 +5,7 @@ import { trombinoscope } from '@/data/trombinoscope'
 import { servedAt } from '@/seo/servedAt'
 import { getInitials } from '@/utilities/getInitials'
 import { getMediaByFilenames } from '@/utilities/getMediaByFilenames'
+import { cacheLife } from 'next/cache'
 import React from 'react'
 
 /**
@@ -13,11 +14,10 @@ import React from 'react'
  * then — an empty one renders every member as initials until the next deploy.
  * Ten minutes, matching the posts and events listings.
  */
-export const dynamic = 'force-static'
-
-export const revalidate = 600
-
 export default async function Page() {
+  'use cache'
+  cacheLife('tenMinutes')
+
   const portraits = await getMediaByFilenames(trombinoscope.map(({ photo }) => photo))
 
   return (

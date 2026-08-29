@@ -10,16 +10,16 @@ import { NEWS_PAGE_SIZE } from '@/utilities/postPath'
 import { getPayload } from 'payload'
 import React from 'react'
 import PageClient from './page.client'
-
-export const dynamic = 'force-static'
-
-export const revalidate = 600
+import { cacheLife } from 'next/cache'
 
 const TITLE = 'Actualités'
 const DESCRIPTION =
   'Les actualités, comptes-rendus de sorties et informations de la vie associative des Randonnées Touloises.'
 
 export default async function Page() {
+  'use cache'
+  cacheLife('tenMinutes')
+
   const payload = await getPayload({ config: configPromise })
 
   const posts = await payload.find({
