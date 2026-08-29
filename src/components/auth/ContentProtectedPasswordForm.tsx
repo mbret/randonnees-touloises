@@ -20,6 +20,19 @@ const formSchema = z.object({
   password: z.string(),
 })
 
+const CONTENT_PASSWORD_MAX_AGE = 60 * 60 * 24 * 7
+
+/**
+ * Writing the cookie lives out here rather than in the submit handler because
+ * `document` is not the component's to touch: the React Compiler reads an
+ * assignment to it inside a component as mutating something defined outside,
+ * which it cannot reason about. Out here it is what it always was — a browser
+ * side effect, run from an event.
+ */
+const rememberContentPassword = (password: string) => {
+  document.cookie = `contentPassword=${encodeURIComponent(password)}; path=/; max-age=${CONTENT_PASSWORD_MAX_AGE}; SameSite=Lax`
+}
+
 export const ContentProtectedPasswordForm = ({ general }: { general: General }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -32,7 +45,7 @@ export const ContentProtectedPasswordForm = ({ general }: { general: General }) 
     // Compared here in the browser, which is what puts the password in the page.
     // Soft lock, known — see the note on `WithContentProtectedPassword`.
     if (data.password === general.contentPassword) {
-      document.cookie = `contentPassword=${encodeURIComponent(data.password)}; path=/; max-age=604800; SameSite=Lax`
+      rememberContentPassword(data.password)
 
       return window.location.reload()
     }
