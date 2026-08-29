@@ -17,10 +17,10 @@ import type { OrderedNavItem } from './staticNavItems'
 
 /**
  * How many of the leading nav items sit outside the "Plus" menu: two below
- * `md`, and one more at each breakpoint above, to six at `2xl`. Each entry
- * pairs a class for the item's shortcut with the complementary one for its
- * entry in the menu, so exactly one of the two copies shows at any width and
- * the menu never repeats what is already on display.
+ * `md`, three below `lg`, four above. Each entry pairs a class for the item's
+ * shortcut with the complementary one for its entry in the menu, so exactly one
+ * of the two copies shows at any width and the menu never repeats what is
+ * already on display.
  *
  * The counts are deliberately conservative — they hold even for long labels — so
  * that the split can be plain CSS. Measuring the viewport instead renders one
@@ -33,7 +33,6 @@ const shortcutLadder = [
   { shortcut: 'max-md:hidden', menu: 'md:hidden' },
   { shortcut: 'max-lg:hidden', menu: 'lg:hidden' },
   { shortcut: 'max-xl:hidden', menu: 'xl:hidden' },
-  { shortcut: 'max-2xl:hidden', menu: '2xl:hidden' },
 ]
 
 function ListItem({ url, isExternal, className, ...rest }: ComponentProps<typeof CMSLink>) {
