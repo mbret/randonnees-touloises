@@ -10,6 +10,7 @@ import { breadcrumbJsonLd, postTrail } from '@/seo/jsonld/breadcrumbs'
 import { JsonLd } from '@/seo/jsonld/JsonLd'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { PostHero } from '@/heros/PostHero'
+import { cachedTodayInFrance } from '@/utilities/cachedToday'
 import { programEventJsonLd } from '@/seo/jsonld/event'
 import { PostViewClient } from './PostViewClient'
 import { PublishedAt } from './PublishedAt'
@@ -26,7 +27,8 @@ export async function PostView({ post }: { post: Post }) {
   // outing a reader can turn up to, an undated one only has its trail. Both sit
   // inside the password gate, so a post whose body is withheld does not describe
   // itself to a crawler either.
-  const event = programEventJsonLd(post)
+  const today = await cachedTodayInFrance()
+  const event = programEventJsonLd(post, today)
   const breadcrumbs = breadcrumbJsonLd(postTrail(post))
 
   return (
@@ -39,7 +41,7 @@ export async function PostView({ post }: { post: Post }) {
 
         {draft && <LivePreviewListener />}
 
-        <PostHero post={post} />
+        <PostHero post={post} today={today} />
 
         <div className="flex flex-col items-center gap-4 pt-8">
           <div className="container">

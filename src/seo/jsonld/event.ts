@@ -56,12 +56,15 @@ const DAY_MS = 24 * 60 * 60 * 1000
  * on an outing whose places were never counted is a claim the page does not
  * make.
  */
-const offers = (post: Post) => {
+const offers = (post: Post, today?: string) => {
   const deadline = post.schedule?.registrationDeadline
-  const status = registrationStatus({
-    deadline: deadline ? dayInFrance(deadline) : undefined,
-    isFull: post.schedule?.isFull,
-  })
+  const status = registrationStatus(
+    {
+      deadline: deadline ? dayInFrance(deadline) : undefined,
+      isFull: post.schedule?.isFull,
+    },
+    today,
+  )
 
   if (!status) return {}
 
@@ -83,7 +86,7 @@ const offers = (post: Post) => {
   }
 }
 
-export const programEventJsonLd = (post: Post): JsonLdNode | null => {
+export const programEventJsonLd = (post: Post, today?: string): JsonLdNode | null => {
   const start = post.schedule?.startDate
 
   // The date is what makes a post a programme entry; without one it is news, and
@@ -103,7 +106,7 @@ export const programEventJsonLd = (post: Post): JsonLdNode | null => {
     url: absoluteUrl(postPath(post)),
     image: getImageURL(post.meta?.image),
     eventStatus: 'https://schema.org/EventScheduled',
-    ...offers(post),
+    ...offers(post, today),
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     // Google needs a location for an event, and the only one the site publishes
     // is the area the club walks: where each outing meets is written in the body
