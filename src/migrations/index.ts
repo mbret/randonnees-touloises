@@ -9,7 +9,8 @@ import * as migration_20260821_111814_icon_cards_block from './20260821_111814_i
 import * as migration_20260822_091833_media_links_block from './20260822_091833_media_links_block';
 import * as migration_20260823_132746_membership_tiers_block from './20260823_132746_membership_tiers_block';
 import * as migration_20260823_140300_membership_tier_enable_link from './20260823_140300_membership_tier_enable_link';
-import * as migration_20260828_150007_program_registration_status from './20260828_150007_program_registration_status';
+import * as migration_20260828_150007_program_registration_status from './20260828_150007_program_registration_status'
+import * as migration_20260829_program_availability_and_audience from './20260829_program_availability_and_audience';
 
 export const migrations = [
   {
@@ -71,5 +72,10 @@ export const migrations = [
     up: migration_20260828_150007_program_registration_status.up,
     down: migration_20260828_150007_program_registration_status.down,
     name: '20260828_150007_program_registration_status'
+  },
+  {
+    up: migration_20260829_program_availability_and_audience.up,
+    down: migration_20260829_program_availability_and_audience.down,
+    name: '20260829_program_availability_and_audience'
   },
 ];
