@@ -59,11 +59,13 @@ const DAY_MS = 24 * 60 * 60 * 1000
 const offers = (post: Post) => {
   const deadline = post.schedule?.registrationDeadline
   const status = registrationStatus({
+    availability: post.schedule?.availability,
     deadline: deadline ? dayInFrance(deadline) : undefined,
-    isFull: post.schedule?.isFull,
+    openToAll: post.schedule?.openToAll,
   })
 
-  if (!status) return {}
+  /* Who it is for is not an offer — it is said separately, below. */
+  if (!status?.places && !status?.deadline) return {}
 
   const availabilityEnds = deadline
     ? new Date(new Date(`${dayInFrance(deadline)}T00:00:00Z`).getTime() + DAY_MS)
@@ -71,7 +73,17 @@ const offers = (post: Post) => {
         .slice(0, 10)
     : undefined
 
-  const availability = status.full ? 'SoldOut' : status.deadline?.closed ? 'OutOfStock' : 'InStock'
+  /* `BackOrder` for a waiting list: the places are gone, but a name can still be
+   * put down — which is precisely what schema.org means by it, and what
+   * `SoldOut` would throw away. */
+  const availability =
+    status.places === 'full'
+      ? 'SoldOut'
+      : status.places === 'waitlist'
+        ? 'BackOrder'
+        : status.deadline?.closed
+          ? 'OutOfStock'
+          : 'InStock'
 
   return {
     offers: {
@@ -82,6 +94,18 @@ const offers = (post: Post) => {
     },
   }
 }
+
+/**
+ * Who the outing is for.
+ *
+ * Only said when it is open to everyone. Nearly every outing is for members, so
+ * marking that up on all of them would be noise carrying no signal — and the
+ * one worth a crawler's attention is the one a stranger could actually come to.
+ */
+const audience = (post: Post) =>
+  post.schedule?.openToAll
+    ? { audience: { '@type': 'Audience', audienceType: 'Ouverte à tous' } }
+    : {}
 
 export const programEventJsonLd = (post: Post): JsonLdNode | null => {
   const start = post.schedule?.startDate
@@ -104,6 +128,7 @@ export const programEventJsonLd = (post: Post): JsonLdNode | null => {
     image: getImageURL(post.meta?.image),
     eventStatus: 'https://schema.org/EventScheduled',
     ...offers(post),
+    ...audience(post),
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     // Google needs a location for an event, and the only one the site publishes
     // is the area the club walks: where each outing meets is written in the body

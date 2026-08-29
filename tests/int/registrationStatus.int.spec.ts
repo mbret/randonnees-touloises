@@ -12,7 +12,7 @@ describe('what the club has said about signing up', () => {
 
   it('names the last day while it is still to come', () => {
     expect(registrationStatus({ deadline: '2026-09-18' }, TODAY)).toEqual({
-      full: false,
+      openToAll: false,
       deadline: { day: '2026-09-18', closed: false },
     })
   })
@@ -41,25 +41,31 @@ describe('what the club has said about signing up', () => {
    * waiting list, a cancellation — so being full does not hide it.
    */
   it('keeps the deadline on an outing that has filled up early', () => {
-    expect(registrationStatus({ deadline: '2026-09-18', isFull: true }, TODAY)).toEqual({
-      full: true,
+    expect(registrationStatus({ deadline: '2026-09-18', availability: 'full' }, TODAY)).toEqual({
+      openToAll: false,
+      places: 'full',
       deadline: { day: '2026-09-18', closed: false },
     })
   })
 
   it('reports both when a full outing has also closed', () => {
-    expect(registrationStatus({ deadline: '2026-09-14', isFull: true }, TODAY)).toEqual({
-      full: true,
+    expect(registrationStatus({ deadline: '2026-09-14', availability: 'full' }, TODAY)).toEqual({
+      openToAll: false,
+      places: 'full',
       deadline: { day: '2026-09-14', closed: true },
     })
   })
 
   it('reports a full outing with no deadline at all', () => {
-    expect(registrationStatus({ isFull: true }, TODAY)).toEqual({ full: true })
+    expect(registrationStatus({ availability: 'full' }, TODAY)).toEqual({
+      openToAll: false,
+      places: 'full',
+    })
   })
 
-  it('treats an unticked box as nothing said', () => {
-    expect(registrationStatus({ isFull: false }, TODAY)).toBeNull()
+  /** Places available is the ordinary case, and says nothing worth printing. */
+  it('treats places available as nothing said', () => {
+    expect(registrationStatus({ availability: 'open' }, TODAY)).toBeNull()
   })
 })
 
