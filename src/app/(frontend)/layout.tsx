@@ -48,9 +48,15 @@ const instrumentSans = Instrument_Sans({
   display: 'swap',
 })
 
+/**
+ * Plex Mono has no variable cut, so each weight is a file and the ones asked
+ * for here are exactly the ones the mono elements use: 400 for an end time,
+ * 500 for a start time, 600 for the day on a programme card. Ask for fewer and
+ * the browser fakes the missing weight rather than falling back to a real one.
+ */
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ['latin'],
-  weight: ['400', '500'],
+  weight: ['400', '500', '600'],
   variable: '--font-ibm-plex-mono',
   display: 'swap',
 })
