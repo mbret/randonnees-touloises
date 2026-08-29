@@ -1,10 +1,9 @@
-import type { HeaderNavItem } from './staticNavItems'
-
 import configPromise from '@payload-config'
 import { unstable_cache } from 'next/cache'
 import { getPayload } from 'payload'
 
 import { pagePath } from '@/utilities/pagePath'
+import { DEFAULT_NAV_ORDER, type OrderedNavItem } from './staticNavItems'
 
 /**
  * The menu entries the pages collection asks for, read rather than copied.
@@ -22,7 +21,7 @@ import { pagePath } from '@/utilities/pagePath'
  * Cached under the header's own tag, so `revalidateHeader` and `revalidatePage`
  * both refresh it.
  */
-const getPageNavItems = async (): Promise<HeaderNavItem[]> => {
+const getPageNavItems = async (): Promise<OrderedNavItem[]> => {
   const payload = await getPayload({ config: configPromise })
 
   const { docs } = await payload.find({
@@ -36,17 +35,21 @@ const getPageNavItems = async (): Promise<HeaderNavItem[]> => {
     },
   })
 
-  /* Sorted here rather than in the query: Postgres puts nulls at one end of an
-   * ORDER BY whatever the direction, and an unset order should read as zero. */
+  /* `withStaticNavItems` sorts the menu it assembles, so what this ordering
+   * settles is only which of two pages naming the same order comes first. It is
+   * done here rather than in the query because Postgres puts nulls at one end
+   * of an ORDER BY whatever the direction, and an unset order is a page asking
+   * for `DEFAULT_NAV_ORDER` rather than for either extreme. */
   return docs
     .filter((page) => Boolean(page.slug))
     .sort(
       (a, b) =>
-        (a.navOrder ?? 0) - (b.navOrder ?? 0) ||
+        (a.navOrder ?? DEFAULT_NAV_ORDER) - (b.navOrder ?? DEFAULT_NAV_ORDER) ||
         (a.title ?? '').localeCompare(b.title ?? '', 'fr'),
     )
     .map((page) => ({
       id: `page-${page.id}`,
+      navOrder: page.navOrder,
       link: {
         label: page.navLabel || page.title,
         type: 'custom' as const,

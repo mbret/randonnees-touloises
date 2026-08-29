@@ -351,11 +351,10 @@ const main = async () => {
     },
     layout,
     navLabel: 'Adhésions',
-    /* Ahead of the pages an editor adds later, and ahead of nothing else: the
-     * static entries are rendered before every page entry whatever this says.
-     * A negative order is what puts it first among the pages, since an unset
-     * order counts as zero. */
-    navOrder: -10,
+    /* Between Contact (10) and Actualités (20): `navOrder` positions an entry
+     * against the whole menu, static entries included, so a number in the gap
+     * between two of them is what puts the page there. */
+    navOrder: 15,
     meta: {
       title: `Adhésions saison ${SEASON}`,
       description:

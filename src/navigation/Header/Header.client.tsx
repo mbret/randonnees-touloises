@@ -4,13 +4,13 @@ import { useHeaderTheme } from '@/navigation/Header/HeaderThemeProvider'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
-import type { HeaderNavItem } from './staticNavItems'
+import type { OrderedNavItem } from './staticNavItems'
 import { Logo } from '@/components/Logo/Logo'
 import { DesktopNav } from './DesktopNav'
 import { MobileNav } from './MobileNav'
 
 interface HeaderClientProps {
-  navItems: HeaderNavItem[]
+  navItems: OrderedNavItem[]
 }
 
 export function HeaderClient({ navItems }: HeaderClientProps) {
