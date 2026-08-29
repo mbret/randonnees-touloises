@@ -11,6 +11,7 @@ import * as migration_20260823_132746_membership_tiers_block from './20260823_13
 import * as migration_20260823_140300_membership_tier_enable_link from './20260823_140300_membership_tier_enable_link';
 import * as migration_20260828_150007_program_registration_status from './20260828_150007_program_registration_status'
 import * as migration_20260829_program_availability_and_audience from './20260829_program_availability_and_audience';
+import * as migration_20260830_restore_schedule_is_full from './20260830_restore_schedule_is_full';
 
 export const migrations = [
   {
@@ -77,5 +78,10 @@ export const migrations = [
     up: migration_20260829_program_availability_and_audience.up,
     down: migration_20260829_program_availability_and_audience.down,
     name: '20260829_program_availability_and_audience'
+  },
+  {
+    up: migration_20260830_restore_schedule_is_full.up,
+    down: migration_20260830_restore_schedule_is_full.down,
+    name: '20260830_restore_schedule_is_full'
   },
 ];
