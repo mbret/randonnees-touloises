@@ -191,6 +191,31 @@ We have configured [Scheduled Publish](https://payloadcms.com/docs/versions/draf
 
 > Note: When deployed on Vercel, depending on the plan tier, you may be limited to daily cron only.
 
+## Where the site runs
+
+`vercel.json` pins the serverless functions to `fra1` (Frankfurt) — beside the
+Neon database rather than beside the members. Everything served cold goes
+through one of them: an ISR page being rebuilt, `/login`, `/account`, `/search`,
+the media route on a CDN cache miss. Pages already in the CDN are answered from
+the visitor's nearest edge whatever this says, so the region only decides where
+the work happens when there is work to do.
+
+It sits with the database because that is the cost that multiplies. A render
+makes several queries, and a cold function opens a connection before the first
+of them, which is several round trips more; each of those is about ten
+milliseconds from Paris and about one from Frankfurt. Against that, a visitor in
+France pays a single extra hop over Vercel's backbone — their TLS is terminated
+at the edge nearest them either way — so the hop is paid once and the queries
+are paid over and over.
+
+Which means the two have to be moved together. Check the Neon project's region
+before changing either, and read the region a response was actually computed in
+out of the middle field of `x-vercel-id`:
+
+```sh
+curl -sI https://abonnes.randonnees-touloises.net/api/users/me | grep x-vercel-id
+```
+
 ## Website
 
 This template includes a beautifully designed, production-ready front-end built with the [Next.js App Router](https://nextjs.org), served right alongside your Payload app in a instance. This makes it so that you can deploy both your backend and website where you need it.
