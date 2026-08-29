@@ -21,7 +21,7 @@ export function EventCard({ content, endTime, startTime, title }: AgendaEvent) {
   return (
     <Item variant="outline">
       {startTime && (
-        <ItemMedia className="w-14 flex-col items-start gap-0 font-mono text-sm font-medium tabular-nums">
+        <ItemMedia className="w-14 flex-col items-start gap-0 text-sm font-medium tabular-nums">
           <time>{startTime}</time>
           {endTime && <time className="text-muted-foreground font-normal">{endTime}</time>}
         </ItemMedia>
