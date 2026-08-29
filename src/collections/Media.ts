@@ -69,11 +69,13 @@ export const Media: CollectionConfig = {
      * Not `immutable`, and finite: this hook sees only the response, so it
      * cannot tell a URL carrying the `updatedAt` cache tag `getMediaUrl` stamps
      * on it from a bare `/api/media/file/<filename>` — a URL anyone can
-     * request, that Payload's own admin renders, and that nothing can
-     * invalidate. A year of immutable on the second kind is unfixable without
-     * purging a CDN, so this is the header the bare kind needs.
+     * request, and that nothing can invalidate once it has been linked from
+     * outside this codebase. A year of immutable on the second kind is
+     * unfixable without purging a CDN, so this is the header the bare kind
+     * needs.
      *
-     * The tagged kind is answered by `next.config.js`, where the request is
+     * The tagged kind is answered by the route that wraps this one —
+     * `src/app/(payload)/api/media/file/[filename]` — where the request is
      * visible and a tagged URL can be recognised and kept forever. What is set
      * here is therefore the floor, not the ceiling.
      *
