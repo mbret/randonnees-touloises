@@ -9,9 +9,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { ChevronRightIcon, ExternalLinkIcon, SearchIcon } from 'lucide-react'
 import { Item, ItemActions, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { Logo } from '@/components/Logo/Logo'
-import type { HeaderNavItem } from './staticNavItems'
+import type { OrderedNavItem } from './staticNavItems'
 
-export const MobileNav: React.FC<{ navItems: HeaderNavItem[] }> = ({ navItems }) => {
+export const MobileNav: React.FC<{ navItems: OrderedNavItem[] }> = ({ navItems }) => {
   const [open, setOpen] = useState(false)
 
   return (
