@@ -7,6 +7,14 @@ import { generateMeta } from '@/seo/generateMeta'
 import { redirect } from 'next/navigation'
 import React from 'react'
 
+/**
+ * The registration status is worked out against today's date, so the page has
+ * to be re-rendered on a clock rather than pinned to the last build: a deadline
+ * passes on its own, with no edit to the post to revalidate it. Same hour the
+ * listings use.
+ */
+export const revalidate = 3600
+
 export async function generateStaticParams() {
   return postSlugs({ scheduled: true })
 }

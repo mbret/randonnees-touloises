@@ -5,18 +5,25 @@ import type { Post } from '@/payload-types'
 import { Media } from '@/components/Media'
 import { formatAuthors } from '@/utilities/formatAuthors'
 import { formatSchedule } from '@/components/programs/formatSchedule'
+import { RegistrationStatus } from '@/components/programs/RegistrationStatus'
+import { registrationStatus } from '@/components/programs/registrationStatus'
 import { dayInFrance } from '@/utilities/parisDay'
 import { getCachedMedias } from '@/metadata/getMedias'
 
 type HeadingProps = {
   authors?: string
+  /** Set over a photo, where the heading is white and the pills must follow. */
+  onImage?: boolean
+  /** The outing's own day, for the deadline's year. */
+  startDate?: string
+  status?: ReturnType<typeof registrationStatus>
   title: string
   /** When the entry happens, for the posts that are programme entries. */
   when?: string
 }
 
 /** The title and its two subtitles, shared by both treatments below. */
-function PostHeading({ authors, title, when }: HeadingProps) {
+function PostHeading({ authors, onImage, startDate, status, title, when }: HeadingProps) {
   return (
     <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2">
       <h1 className="mb-6 text-3xl md:text-5xl lg:text-6xl">{title}</h1>
@@ -25,6 +32,26 @@ function PostHeading({ authors, title, when }: HeadingProps) {
         <div className="flex flex-col gap-1 text-sm md:flex-row md:gap-8">
           {when && <p>{when}</p>}
           {authors && <p>Par {authors}</p>}
+        </div>
+      )}
+
+      {/* Its own line rather than a third column beside the date and the
+          author: on an entry that is full this is the one thing a reader came
+          to find out, and it is lost among them. */}
+      {status && (
+        <div className="mt-3">
+          <RegistrationStatus
+            /* The pills carry theme colours, which are the page's own and go
+               invisible against a photo. Over one they take the heading's
+               white instead. */
+            className={
+              onImage
+                ? '[&>span]:bg-transparent [&>span]:text-white [&>span]:ring-white/50'
+                : undefined
+            }
+            startDate={startDate}
+            status={status}
+          />
         </div>
       )}
     </div>
@@ -61,9 +88,27 @@ export const PostHero: React.FC<{
       )
     : undefined
 
-  const heading = <PostHeading authors={authors || undefined} title={title} when={when} />
+  const startDate = schedule?.startDate ? dayInFrance(schedule.startDate) : undefined
+  const status = registrationStatus({
+    deadline: schedule?.registrationDeadline
+      ? dayInFrance(schedule.registrationDeadline)
+      : undefined,
+    isFull: schedule?.isFull,
+  })
 
-  if (!media || typeof media === 'string') {
+  const onImage = Boolean(media) && typeof media !== 'string'
+  const heading = (
+    <PostHeading
+      authors={authors || undefined}
+      onImage={onImage}
+      startDate={startDate}
+      status={status}
+      title={title}
+      when={when}
+    />
+  )
+
+  if (!onImage) {
     return <header className="container">{heading}</header>
   }
 

@@ -345,6 +345,14 @@ export interface Post {
      * Pour les séjours et les week-ends.
      */
     endDate?: string | null;
+    /**
+     * Les inscriptions sont annoncées closes le lendemain. Laisser vide s’il n’y a pas de date limite.
+     */
+    registrationDeadline?: string | null;
+    /**
+     * Affiché à la place de la date limite : plus aucune place disponible.
+     */
+    isFull?: boolean | null;
   };
   publishedAt?: string | null;
   authors?: (number | User)[] | null;
@@ -1960,6 +1968,8 @@ export interface PostsSelect<T extends boolean = true> {
     | {
         startDate?: T;
         endDate?: T;
+        registrationDeadline?: T;
+        isFull?: T;
       };
   publishedAt?: T;
   authors?: T;

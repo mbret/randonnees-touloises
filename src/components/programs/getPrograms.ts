@@ -21,6 +21,10 @@ export type ProgramEntry = {
   endDate?: string
   /** The post's meta description, which `fillMeta` derives from its body. */
   summary?: string
+  /** `YYYY-MM-DD`, the last day an inscription is accepted. */
+  registrationDeadline?: string
+  /** No places left. */
+  isFull?: boolean
 }
 
 /**
@@ -64,6 +68,10 @@ export const getPrograms = async ({ limit }: { limit?: number } = {}): Promise<P
     return [
       {
         endDate,
+        isFull: doc.schedule.isFull ?? undefined,
+        registrationDeadline: doc.schedule.registrationDeadline
+          ? dayInFrance(doc.schedule.registrationDeadline)
+          : undefined,
         slug: doc.slug,
         startDate,
         summary: doc.meta?.description ?? undefined,
