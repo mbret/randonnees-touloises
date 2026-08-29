@@ -122,7 +122,7 @@
  * logo — one leads with the plaque, the other with the script.
  *
  * Every foreground/background pair below clears WCAG AA (4.5:1 for text):
- * the lowest of them, muted text on the muted surface, sits at 5.0:1.
+ * the lowest of them, a field error on the muted surface, sits at 4.5:1.
  * ---------------------------------------------------------------------------
  */
 :root {
@@ -205,7 +205,9 @@
   --muted-foreground: oklch(0.715 0.016 60);
   --accent: oklch(0.305 0.04 112);
   --accent-foreground: oklch(0.885 0.085 115);
-  --destructive: oklch(0.58 0.19 25);
+  /* Lighter than the printed red: at the light value it reads 4.0:1 on the
+   * ground, and `text-destructive text-sm` is a 14px field error. */
+  --destructive: oklch(0.68 0.19 25);
   --border: oklch(0.33 0.014 50);
   --input: oklch(0.43 0.016 50);
   --ring: var(--brand-orange);

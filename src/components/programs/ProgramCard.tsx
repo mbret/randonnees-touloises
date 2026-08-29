@@ -40,7 +40,7 @@ export function ProgramCard({
     <Item asChild variant="outline">
       <Link href={`${PROGRAMS_BASE}/${slug}`}>
         <ItemMedia className="w-14 flex-col items-start gap-0 tabular-nums">
-          <span className="text-lg leading-none font-semibold">{badge.day}</span>
+          <span className="font-mono text-lg leading-none font-semibold">{badge.day}</span>
           <span className="text-muted-foreground text-sm">{badge.month}</span>
         </ItemMedia>
         <ItemContent>
