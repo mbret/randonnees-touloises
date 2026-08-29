@@ -1,16 +1,17 @@
 'use client'
 
-import type { PayloadAdminBarProps, PayloadMeUser } from '@payloadcms/admin-bar'
+import type { PayloadAdminBarProps } from '@payloadcms/admin-bar'
 
 import { cn } from '@/components/ui'
 import { useSelectedLayoutSegments } from 'next/navigation'
 import { PayloadAdminBar } from '@payloadcms/admin-bar'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 import styles from './AdminBar.module.scss'
 
 import { getClientSideURL } from '@/utilities/getURL'
+import { useAuth } from '@/providers/auth'
 
 const baseClass = 'admin-bar'
 
@@ -36,20 +37,34 @@ const collectionLabels = {
 
 const Title: React.FC = () => <span>Administration</span>
 
+/**
+ * The bar an editor sees on the site, above the page they are looking at.
+ *
+ * Whether to show it is `AuthProvider`'s answer rather than the bar's own.
+ * `PayloadAdminBar` asks `/api/users/me` for itself the moment it mounts, and
+ * that is a function invocation nothing can cache — so rendering it hidden, as
+ * this did, spent one on every page view by every visitor, to be told what
+ * `FetchMe` had already asked in parallel and what is `null` for all but a
+ * handful of people.
+ *
+ * Mounting it only once a user is known leaves the anonymous visit with the one
+ * request the provider was making anyway. An editor still pays the bar's own,
+ * which is the price of a component that takes no user and accepts no way to
+ * skip the fetch.
+ */
 export const AdminBar: React.FC<{
   adminBarProps?: PayloadAdminBarProps
 }> = (props) => {
   const { adminBarProps } = props || {}
   const segments = useSelectedLayoutSegments()
-  const [show, setShow] = useState(false)
+  const { user } = useAuth()
   const collection = (
     collectionLabels[segments?.[1] as keyof typeof collectionLabels] ? segments[1] : 'pages'
   ) as keyof typeof collectionLabels
   const router = useRouter()
 
-  const onAuthChange = React.useCallback((user: PayloadMeUser) => {
-    setShow(Boolean(user?.id))
-  }, [])
+  /* `undefined` while the provider is still asking, `null` once it knows. */
+  const show = Boolean(user)
 
   useEffect(() => {
     if (show) {
@@ -59,16 +74,15 @@ export const AdminBar: React.FC<{
     }
   }, [show])
 
+  if (!show) return null
+
   return (
     <div
       className={cn(
         styles['admin-bar'],
         'admin-bar',
         'sticky z-12 top-0 h-[var(--admin-bar-height)] bg-black  border-b backdrop-blur-[8px] items-center justify-center',
-        {
-          flex: show,
-          hidden: !show,
-        },
+        'flex',
       )}
     >
       <div className="container">
@@ -87,7 +101,6 @@ export const AdminBar: React.FC<{
             singular: collectionLabels[collection]?.singular || 'page',
           }}
           logo={<Title />}
-          onAuthChange={onAuthChange}
           onPreviewExit={() => {
             fetch('/next/exit-preview').then(() => {
               router.push('/')
