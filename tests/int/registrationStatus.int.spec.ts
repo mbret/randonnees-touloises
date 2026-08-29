@@ -67,6 +67,48 @@ describe('what the club has said about signing up', () => {
   it('treats places available as nothing said', () => {
     expect(registrationStatus({ availability: 'open' }, TODAY)).toBeNull()
   })
+
+  /**
+   * A waiting list is not a softer « complet » but a different instruction:
+   * there is no place, and there is still something to do about it.
+   */
+  it('keeps a waiting list distinct from a plain complet', () => {
+    expect(registrationStatus({ availability: 'waitlist' }, TODAY)?.places).toBe('waitlist')
+    expect(registrationStatus({ availability: 'full' }, TODAY)?.places).toBe('full')
+  })
+
+  /**
+   * Members-only is the club's default, so it is the outing open to everyone
+   * that gets said — the reverse would put a marker on nearly every card.
+   */
+  it('announces an outing open to everyone, and says nothing of the rest', () => {
+    expect(registrationStatus({ openToAll: true }, TODAY)).toEqual({ openToAll: true })
+    expect(registrationStatus({ openToAll: false }, TODAY)).toBeNull()
+  })
+
+  /**
+   * A waiting list is the one state that invites an action, and a closed
+   * deadline is the club saying there is none left. Someone may still be added
+   * by asking a human; nothing rendered from this should say so.
+   */
+  it('retires a waiting list once the deadline has gone', () => {
+    expect(
+      registrationStatus({ availability: 'waitlist', deadline: '2026-09-14' }, TODAY)?.places,
+    ).toBeUndefined()
+  })
+
+  it('keeps the waiting list while the deadline is still to come', () => {
+    expect(
+      registrationStatus({ availability: 'waitlist', deadline: '2026-09-18' }, TODAY)?.places,
+    ).toBe('waitlist')
+  })
+
+  /** « Complet » invites nothing, and says more about why than « closes » does. */
+  it('leaves complet standing after its deadline', () => {
+    expect(
+      registrationStatus({ availability: 'full', deadline: '2026-09-14' }, TODAY)?.places,
+    ).toBe('full')
+  })
 })
 
 describe('how the last day is written', () => {

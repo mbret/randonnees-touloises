@@ -45,16 +45,28 @@ export const registrationStatus = (
   },
   today: string = todayInFrance(),
 ): RegistrationStatus | null => {
-  const places = availability && availability !== 'open' ? availability : undefined
+  const announced = availability && availability !== 'open' ? availability : undefined
+
+  /* The deadline is a day someone can still sign up on, so it is closed from the
+   * day after — comparing `YYYY-MM-DD` strings, which sort chronologically and
+   * carry no timezone to get wrong. */
+  const closed = Boolean(deadline && deadline < today)
+
+  /* A waiting list is the one state that invites an action, and a closed
+   * deadline is the club saying there is no action left. So the deadline wins
+   * and the list stops being announced — someone may well still be added by
+   * asking a human, but nothing here should say so in a form a machine will
+   * read as « you can still sign up ».
+   *
+   * « Complet » outlives its deadline untouched: it invites nothing, and it
+   * says more about why than a bare « closes » does. */
+  const places = closed && announced === 'waitlist' ? undefined : announced
 
   if (!places && !deadline && !openToAll) return null
 
   return {
     openToAll: Boolean(openToAll),
     ...(places ? { places } : {}),
-    /* The deadline is a day someone can still sign up on, so it is closed from
-     * the day after — comparing `YYYY-MM-DD` strings, which sort
-     * chronologically and carry no timezone to get wrong. */
-    ...(deadline ? { deadline: { day: deadline, closed: deadline < today } } : {}),
+    ...(deadline ? { deadline: { day: deadline, closed } } : {}),
   }
 }
