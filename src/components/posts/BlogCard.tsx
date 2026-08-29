@@ -31,7 +31,7 @@ export const BlogCard: React.FC<{
   return (
     <Card
       className={cn('hover:cursor-pointer pt-0', className)}
-      ref={card.ref as Ref<HTMLDivElement>}
+      ref={card as Ref<HTMLDivElement>}
       {...rest}
     >
       <CardContent className="relative w-full px-0">
@@ -54,7 +54,7 @@ export const BlogCard: React.FC<{
         )}
         {titleToUse && (
           <CardTitle>
-            <Link href={href} ref={link.ref}>
+            <Link href={href} ref={link}>
               {titleToUse}
             </Link>
           </CardTitle>

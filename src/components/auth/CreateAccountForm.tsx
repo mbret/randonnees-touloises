@@ -10,7 +10,7 @@ import { useAuth } from '@/providers/auth'
 import { getServerSideURL } from '@/utilities/getURL'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 type FormData = {
@@ -29,13 +29,10 @@ export const CreateAccountForm: React.FC = () => {
 
   const {
     formState: { errors },
+    getValues,
     handleSubmit,
     register,
-    watch,
   } = useForm<FormData>()
-
-  const password = useRef({})
-  password.current = watch('password', '')
 
   const onSubmit = useCallback(
     async (data: FormData) => {
@@ -110,7 +107,7 @@ export const CreateAccountForm: React.FC = () => {
             {...register('passwordConfirm', {
               required: 'Veuillez confirmer votre mot de passe.',
               validate: (value) =>
-                value === password.current || 'Les mots de passe ne correspondent pas.',
+                value === getValues('password') || 'Les mots de passe ne correspondent pas.',
             })}
             type="password"
           />

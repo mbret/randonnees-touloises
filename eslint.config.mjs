@@ -11,17 +11,13 @@ export default defineConfig([
     // it, so the overrides below need `react-hooks` registered here too.
     plugins: { 'react-hooks': reactHooks },
     rules: {
-      // eslint-config-next 16 ships eslint-plugin-react-hooks 7, which turns the
-      // React Compiler correctness rules on as errors. They flag pre-existing
-      // code, including vendored shadcn/ui files (ui/sidebar.tsx,
-      // ui/hooks/use-mobile.ts) and idioms that are not actually wrong here
-      // (`document.cookie = ...`, react-hook-form's `handleSubmit`).
-      // Kept visible as warnings rather than silently refactoring runtime
-      // behaviour as part of a dependency upgrade.
-      'react-hooks/immutability': 'warn',
-      'react-hooks/purity': 'warn',
-      'react-hooks/refs': 'warn',
-      'react-hooks/set-state-in-effect': 'warn',
+      // The React Compiler correctness rules that eslint-plugin-react-hooks 7
+      // turns on are left at the error they ship as. They were held at `warn`
+      // through the upgrade that introduced them, so as not to refactor
+      // runtime behaviour in the same change; that refactor has since been
+      // done, and the one place the advice genuinely does not apply — the
+      // header's theme, which has to wait for hydration — says so on the line
+      // itself rather than for the whole repository.
       '@typescript-eslint/ban-ts-comment': 'warn',
       '@typescript-eslint/no-empty-object-type': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
@@ -37,6 +33,19 @@ export default defineConfig([
           caughtErrorsIgnorePattern: '^(_|ignore)',
         },
       ],
+    },
+  },
+  {
+    /**
+     * Migrations are written by `payload migrate:create`, which gives every
+     * `up` and `down` the same `{ db, payload, req }` signature whether or not
+     * the body uses all three. Renaming the arguments would fix the warning
+     * once and be undone by the next generated file, so the rule is off for
+     * generated code instead.
+     */
+    files: ['src/migrations/**'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
     },
   },
   {

@@ -2,22 +2,21 @@ import type { User } from '@/payload-types'
 
 import { createContext } from 'react'
 
-// eslint-disable-next-line no-unused-vars
 export type ResetPassword = (args: {
   password: string
   passwordConfirm: string
   token: string
 }) => Promise<void>
 
-export type ForgotPassword = (args: { email: string }) => Promise<void> // eslint-disable-line no-unused-vars
+export type ForgotPassword = (args: { email: string }) => Promise<void>
 
 export type Create = (args: {
   email: string
   password: string
   passwordConfirm: string
-}) => Promise<void> // eslint-disable-line no-unused-vars
+}) => Promise<void>
 
-export type Login = (args: { email: string; password: string }) => Promise<User> // eslint-disable-line no-unused-vars
+export type Login = (args: { email: string; password: string }) => Promise<User>
 
 export type Logout = () => Promise<void>
 
@@ -27,7 +26,7 @@ export type AuthContext = {
   login: Login
   logout: Logout
   resetPassword: ResetPassword
-  setUser: (user: User | null) => void // eslint-disable-line no-unused-vars
+  setUser: (user: User | null) => void
   status: 'loggedIn' | 'loggedOut' | undefined
   setStatus: (status: 'loggedIn' | 'loggedOut' | undefined) => void
   user?: User | null

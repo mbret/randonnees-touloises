@@ -6,12 +6,13 @@ import { Label } from '@/components/ui/label'
 import { User } from '@/payload-types'
 // import { useAuth } from '@/providers/Auth'
 import { useRouter } from 'next/navigation'
-import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import React, { Fragment, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 // import { toast } from 'sonner'
 import { getClientSideURL } from '@/utilities/getURL'
 import { FormItem } from '@/components/common/FormItem'
 import { FormError } from '@/components/common/FormError'
+import type { AuthContext } from '@/providers/auth/context'
 
 type FormData = {
   email: string
@@ -22,19 +23,16 @@ type FormData = {
 
 export const AccountForm: React.FC = () => {
   //   const { setUser, user } = useAuth()
-  const { setUser, user } = {} as any
+  const { setUser, user } = {} as Pick<AuthContext, 'setUser' | 'user'>
   const [changePassword, setChangePassword] = useState(false)
 
   const {
     formState: { errors, isLoading, isSubmitting, isDirty },
     handleSubmit,
     register,
+    getValues,
     reset,
-    watch,
   } = useForm<FormData>()
-
-  const password = useRef({})
-  password.current = watch('password', '')
 
   const router = useRouter()
 
@@ -173,7 +171,8 @@ export const AccountForm: React.FC = () => {
                 id="passwordConfirm"
                 {...register('passwordConfirm', {
                   required: 'Please confirm your new password.',
-                  validate: (value) => value === password.current || 'The passwords do not match',
+                  validate: (value) =>
+                    value === getValues('password') || 'The passwords do not match',
                 })}
                 type="password"
               />
