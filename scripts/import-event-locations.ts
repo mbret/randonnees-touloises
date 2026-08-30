@@ -57,6 +57,16 @@ const USER_AGENT =
 /** How far two pins for one place may sit apart before it is worth a mention. */
 const PIN_TOLERANCE_M = 3
 
+/**
+ * Past this, two pins are not one car park pinned twice — a village hall does
+ * not move half a kilometre — so the club's data has a wrong link in it and the
+ * report should say so rather than shrug about metres.
+ */
+const SAME_PLACE_MAX_M = 500
+
+/** How close two *differently named* places must sit to be worth merging. */
+const NEAR_DUPLICATE_M = 200
+
 /** Words a French place name keeps in lower case once it is not the first. */
 const PARTICLES = new Set(['aux', 'de', 'des', 'du', 'en', 'et', 'la', 'le', 'les', 'sous', 'sur'])
 
@@ -162,13 +172,31 @@ export const parsePlace = (line: string): { commune: string; spot?: string } | n
  */
 const isMapLink = (url: string) => /maps\.|maps\/|goo\.gl|osm\.org|openstreetmap|^geo:/i.test(url)
 
-/** The « Lieu de départ » line's target, or any map link in the body. */
+/**
+ * The « Lieu de départ » target, or any map link in the body.
+ *
+ * Two layouts, both real. Usually the URL sits on the label's own line; but an
+ * event may end « Lieu de départ : » with the link on the next paragraph, and
+ * that same event may carry a *second* map link further up for the covoiturage
+ * point. Reading only the label's line there falls through to « any map link »,
+ * which is a coin toss between the start and the car share — so the line after
+ * the label is read too, before any fallback.
+ */
 const mapLink = (event: Event): string | undefined => {
-  const urls = linkUrls(event.content)
-  const departure = lines(event.content).find((line) => /lieu de d[ée]part/i.test(line))
-  const inLine = departure?.match(/https?:\/\/\S+/)?.[0]
+  const body = lines(event.content)
+  const label = body.findIndex((line) => /lieu de d[ée]part/i.test(line))
 
-  return inLine ?? urls.find(isMapLink)
+  if (label >= 0) {
+    const onTheLine = body[label].match(/https?:\/\/\S+/)?.[0]
+
+    if (onTheLine) return onTheLine
+
+    const onTheNext = body[label + 1]?.match(/^https?:\/\/\S+$/)?.[0]
+
+    if (onTheNext && isMapLink(onTheNext)) return onTheNext
+  }
+
+  return linkUrls(event.content).find(isMapLink)
 }
 
 /**
@@ -288,7 +316,9 @@ async function main() {
 
         if (apart > PIN_TOLERANCE_M) {
           conflicts.push(
-            `${location.title ?? key}: ${label} pins it ${apart} m from the pin already stored — keeping the first`,
+            apart > SAME_PLACE_MAX_M
+              ? `${location.title ?? key}: ${label} pins it ${apart} m away — too far to be the same place, so one of the two links is wrong. Keeping the first; fix the event, then rerun.`
+              : `${location.title ?? key}: ${label} pins it ${apart} m from the pin already stored — keeping the first`,
           )
         }
       }
@@ -337,6 +367,35 @@ async function main() {
   if (conflicts.length) {
     console.log(`\nPins that disagree (${conflicts.length}) — worth a look:`)
     conflicts.forEach((line) => console.log(`  ! ${line}`))
+  }
+
+  /**
+   * Two names for one place, which the key cannot catch: « salle Bouchot » and
+   * « salle des Fêtes » are the same hall in Chaudeney, one metre apart, and
+   * « Les Acacias » and « Acacias » are ten. Reported rather than merged — a
+   * village can genuinely have two meeting points a hundred metres apart, and
+   * collapsing those would lose a distinction the club draws on purpose.
+   */
+  const pinned = [...known.values()].flatMap((location) =>
+    typeof location.latitude === 'number' && typeof location.longitude === 'number'
+      ? [{ at: { latitude: location.latitude, longitude: location.longitude }, location }]
+      : [],
+  )
+  const nearDuplicates = pinned.flatMap(({ at, location }, index) =>
+    pinned.slice(index + 1).flatMap((other) => {
+      const apart = metresApart(at, other.at)
+
+      return apart <= NEAR_DUPLICATE_M
+        ? [`${apart} m apart: « ${location.title} » and « ${other.location.title} »`]
+        : []
+    }),
+  )
+
+  if (nearDuplicates.length) {
+    console.log(
+      `\nDifferent names, nearly the same spot (${nearDuplicates.length}) — merge by hand if they are one place:`,
+    )
+    nearDuplicates.forEach((line) => console.log(`  = ${line}`))
   }
 
   if (report.unresolved.length) {
