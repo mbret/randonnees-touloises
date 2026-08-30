@@ -15,10 +15,9 @@ export async function Footer() {
   const navItems = footerData?.navItems || []
 
   return (
-    /* `plaque` and `dark` together: see the note on `.plaque` in globals.css.
-     * `dark` supplies the cream text and the green links, `plaque` re-grounds
-     * it on the logo's brown. */
-    <footer className="plaque dark text-foreground mt-auto py-8">
+    /* See the note on `.plaque` in globals.css: it carries its own palette, and
+     * only on a light page. */
+    <footer className="plaque text-foreground mt-auto py-8">
       <div className="container flex justify-center flex-col items-center gap-2">
         <p className="text-sm">randonnées-touloises.net - © 2025</p>
         <p className="text-sm text-center">
