@@ -1,4 +1,4 @@
-import type { Event, Media } from '@/payload-types'
+import type { Event, Location, Media } from '@/payload-types'
 
 import { todayInFrance } from '@/utilities/parisDay'
 
@@ -29,7 +29,15 @@ export type AgendaEvent = {
   endTime?: string
   /** Whatever the entry needs to say, laid out however the editor wants. */
   content?: Event['content']
+  /**
+   * Where the walk starts, once it is a document rather than a line of prose.
+   * Absent on an event nobody has linked yet, which the card simply omits.
+   */
+  startLocation?: AgendaLocation
 }
+
+/** A start location as a card shows it: the name, the pin, the parking note. */
+export type AgendaLocation = Pick<Location, 'id' | 'latitude' | 'longitude' | 'notes' | 'title'>
 
 export type AgendaDay = {
   date: string
