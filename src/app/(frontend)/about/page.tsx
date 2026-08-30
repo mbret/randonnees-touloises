@@ -2,17 +2,11 @@ import type { Metadata } from 'next/types'
 
 import aboutHero from '@/assets/about-hero.webp'
 import { Card, CardContent } from '@/components/ui/card'
+import { ABOUT_FIGURES } from '@/data/keyFigures'
 import { servedAt } from '@/seo/servedAt'
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
-
-const keyFigures = [
-  { label: 'Année de création', value: '1987' },
-  { label: 'Adhérents', value: '260' },
-  { label: 'Animateurs et animatrices diplômés', value: '20' },
-  { label: 'Kilomètres parcourus en 2025', value: '59 000' },
-]
 
 export default function Page() {
   return (
@@ -36,7 +30,7 @@ export default function Page() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-12 lg:grid-cols-4">
-          {keyFigures.map(({ label, value }) => (
+          {ABOUT_FIGURES.map(({ label, value }) => (
             <Card key={label}>
               <CardContent className="text-center">
                 <p className="text-3xl font-semibold">{value}</p>
