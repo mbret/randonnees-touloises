@@ -252,6 +252,50 @@
   --sidebar-ring: var(--brand-orange);
 }
 
+/**
+ * The footer, set as the logo's own object.
+ *
+ * `logo.webp` is a rounded brown plaque carrying light text and a green script.
+ * Repeating that at page scale gives a light page a base to sit on, and ends
+ * every page on something of the club rather than the near-black every site's
+ * footer defaults to.
+ *
+ * Scoped to a light page on purpose, and that is the whole idea rather than a
+ * caveat: a dark page is already deep, so a dark band at the foot of it is not
+ * a band at all. Outside `html:not(.dark)` this rule simply does not apply and
+ * the footer is the page, which is what it should be there.
+ *
+ * The values are written out rather than borrowed by putting `dark` on the
+ * footer. That was the first shape of this and it was wrong: `dark` is the
+ * global theme marker, and `@custom-variant dark (&:is(.dark *))` means every
+ * `dark:` utility inside the element fires. An outline button rendered in the
+ * footer came out with `dark:bg-input/30` and dark's input border while the
+ * same markup in the page did not — a trap for anything added here later, and
+ * `ModeToggle` would have shown a moon on a light page. A section that wants a
+ * palette should state one, not raise the theme flag.
+ *
+ * On this ground:
+ *   - the brown is a little warmer than the logo's own #544742. That hex is
+ *     chroma 0.0196, a whisker off neutral: at plaque size, ringed by white and
+ *     a bright green, simultaneous contrast reads it as a warm brown, and
+ *     across a full-width band with nothing to push against it reads muddy
+ *     instead. Same lightness, same hue, chroma raised to 0.042 — the colour
+ *     the plaque looks rather than the colour it is, and the only place on the
+ *     site that does not use `--brand-brown` verbatim.
+ *   - the club's green is its lighter cut, the one the dark palette uses. The
+ *     deep green light mode is set in reads 1.89:1 here — invisible.
+ *   - `--muted-foreground` is lifted: the stock grey reads 3.52:1 on this
+ *     ground, under AA. Nothing is set in it today, since the band reads flat
+ *     when its text is grey, but anything muted added later starts compliant.
+ */
+html:not(.dark) .plaque {
+  background-color: oklch(0.41 0.042 42);
+  --foreground: oklch(0.94 0.008 80);
+  --brand-green: oklch(0.78 0.155 119);
+  --primary: var(--brand-green);
+  --muted-foreground: oklch(0.8 0.016 60);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

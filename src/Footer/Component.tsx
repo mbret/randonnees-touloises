@@ -15,10 +15,12 @@ export async function Footer() {
   const navItems = footerData?.navItems || []
 
   return (
-    <footer className="mt-auto border-t border-border py-8">
+    /* See the note on `.plaque` in globals.css: it carries its own palette, and
+     * only on a light page. */
+    <footer className="plaque text-foreground mt-auto py-8">
       <div className="container flex justify-center flex-col items-center gap-2">
-        <p className="text-muted-foreground text-sm">randonnées-touloises.net - © 2025</p>
-        <p className="text-muted-foreground text-sm text-center">
+        <p className="text-sm">randonnées-touloises.net - © 2025</p>
+        <p className="text-sm text-center">
           Maison Des Associations 2, cours Raymond Poincaré 54200 Toul
         </p>
       </div>
@@ -28,12 +30,20 @@ export async function Footer() {
             listening through the footer. The badge is decorative because the
             wording beside it already names where the link goes. */}
         <Link
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-3 text-sm transition-colors"
+          className="hover:text-primary inline-flex items-center gap-3 text-sm transition-colors"
           href="https://www.ffrandonnee.fr/"
           rel="noopener noreferrer"
           target="_blank"
         >
-          <FederationLogo />
+          {/* The federation's mark is two fixed colours, #ED1C24 and #034EA2,
+              and it is theirs — we are licensed to display it, not to recolour
+              it. That blue is 1.11:1 on the plaque, so on this ground the mark
+              would half disappear. It gets the pale plate a partner logo
+              usually gets, which is also how the federation's own guidelines
+              present it. */}
+          <span className="bg-brand-brown-foreground inline-flex rounded-md px-2.5 py-1.5">
+            <FederationLogo />
+          </span>
           Affilié à la Fédération Française de Randonnée Pédestre
         </Link>
       </div>
