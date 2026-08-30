@@ -39,6 +39,20 @@ export type AgendaEvent = {
 /** A start location as a card shows it: the name, the pin, the parking note. */
 export type AgendaLocation = Pick<Location, 'id' | 'latitude' | 'longitude' | 'notes' | 'title'>
 
+/**
+ * What to call an outing: its own intitulé, or failing that its category.
+ *
+ * `||` and not `??`, which is the whole point. Clearing the intitulé in the
+ * admin does not store `null` — it stores an empty string, and `'' ?? 'Grande'`
+ * is `''`. A « Grande » whose title had been cleared by hand therefore arrived
+ * on the home page as a pictogram, a time and no name at all, while the
+ * forty-two events that had never had a title fell back correctly.
+ *
+ * Trimmed for the same reason: a title of spaces is a title nobody typed.
+ */
+export const outingName = (title?: null | string, category?: string): string | undefined =>
+  title?.trim() || category
+
 export type AgendaDay = {
   date: string
   /**
