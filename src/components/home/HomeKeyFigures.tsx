@@ -15,9 +15,14 @@ import { HOME_FIGURES } from '@/data/keyFigures'
 export function HomeKeyFigures() {
   return (
     <section aria-label="Le club en chiffres" className="border-border border-b">
-      <div className="container grid grid-cols-2 gap-y-8 py-10 sm:grid-cols-4 sm:gap-y-0 sm:divide-x sm:divide-border">
+      {/* The dividers are borders on the cells, and the cells carry the band's
+          vertical padding rather than the grid does — so each rule runs the
+          full height of the band, from the hero's edge down to the bottom rule,
+          instead of stopping at the text. Below `sm` the grid folds to 2×2 and
+          the rules go: a divider that only spans half a row reads as an error. */}
+      <div className="container grid grid-cols-2 gap-y-8 py-10 sm:grid-cols-4 sm:gap-y-0 sm:divide-x sm:divide-border sm:py-0">
         {HOME_FIGURES.map(({ label, suffix, value }) => (
-          <div className="sm:px-6 sm:first:pl-0 sm:last:pr-0" key={label}>
+          <div className="sm:px-6 sm:py-10 sm:first:pl-0 sm:last:pr-0" key={label}>
             <p className="font-display text-brand-orange text-3xl leading-none font-bold sm:text-4xl">
               {value}
               {suffix && <sup className="align-super text-[0.5em]">{suffix}</sup>}
