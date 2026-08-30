@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { User } from '@/payload-types'
-// import { useAuth } from '@/providers/Auth'
+import { useAuth } from '@/providers/auth'
 import { useRouter } from 'next/navigation'
 import React, { Fragment, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -12,7 +12,7 @@ import { useForm } from 'react-hook-form'
 import { getClientSideURL } from '@/utilities/getURL'
 import { FormItem } from '@/components/common/FormItem'
 import { FormError } from '@/components/common/FormError'
-import type { AuthContext } from '@/providers/auth/context'
+import { Message } from '@/components/common/Message'
 
 type FormData = {
   email: string
@@ -22,9 +22,10 @@ type FormData = {
 }
 
 export const AccountForm: React.FC = () => {
-  //   const { setUser, user } = useAuth()
-  const { setUser, user } = {} as Pick<AuthContext, 'setUser' | 'user'>
+  const { setUser, user } = useAuth()
   const [changePassword, setChangePassword] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   const {
     formState: { errors, isLoading, isSubmitting, isDirty },
@@ -38,34 +39,54 @@ export const AccountForm: React.FC = () => {
 
   const onSubmit = useCallback(
     async (data: FormData) => {
-      if (user) {
-        const response = await fetch(`${getClientSideURL()}/api/users/${user.id}`, {
-          // Make sure to include cookies with fetch
-          body: JSON.stringify(data),
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          method: 'PATCH',
-        })
+      if (!user) return
 
-        if (response.ok) {
-          const json = await response.json()
-          setUser(json.doc)
-          //   toast.success('Successfully updated account.')
-          setChangePassword(false)
-          reset({
-            name: json.doc.name,
-            email: json.doc.email,
-            password: '',
-            passwordConfirm: '',
-          })
-        } else {
-          //   toast.error('There was a problem updating your account.')
-        }
+      setError(null)
+      setSuccess(null)
+
+      /**
+       * Only the half of the form on screen is sent. React Hook Form keeps the
+       * values of fields it is not currently rendering, so the whole `FormData`
+       * carries `password: ''` and `passwordConfirm` while the details are
+       * showing. Payload does tolerate both today — an empty password is
+       * ignored rather than set, and `passwordConfirm` is not a field on the
+       * collection at all — but that is its leniency, not our intent, and
+       * "change the details" should not be a request that mentions the
+       * password.
+       */
+      const body = changePassword
+        ? { password: data.password }
+        : { email: data.email, name: data.name }
+
+      const response = await fetch(`${getClientSideURL()}/api/users/${user.id}`, {
+        // Make sure to include cookies with fetch
+        body: JSON.stringify(body),
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        method: 'PATCH',
+      })
+
+      if (!response.ok) {
+        setError('There was a problem updating your account.')
+
+        return
       }
+
+      const json = await response.json()
+
+      setUser(json.doc)
+      setSuccess(changePassword ? 'Password updated.' : 'Account updated.')
+      setChangePassword(false)
+      reset({
+        name: json.doc.name,
+        email: json.doc.email,
+        password: '',
+        passwordConfirm: '',
+      })
     },
-    [user, setUser, reset],
+    [changePassword, reset, setUser, user],
   )
 
   useEffect(() => {
@@ -90,6 +111,8 @@ export const AccountForm: React.FC = () => {
 
   return (
     <form className="max-w-xl" onSubmit={handleSubmit(onSubmit)}>
+      <Message error={error} success={success} />
+
       {!changePassword ? (
         <Fragment>
           <div className="prose dark:prose-invert mb-8">
@@ -181,7 +204,11 @@ export const AccountForm: React.FC = () => {
           </div>
         </Fragment>
       )}
-      <Button disabled={isLoading || isSubmitting || !isDirty} type="submit" variant="default">
+      <Button
+        disabled={isLoading || isSubmitting || !isDirty || !user}
+        type="submit"
+        variant="default"
+      >
         {isLoading || isSubmitting
           ? 'Processing'
           : changePassword
