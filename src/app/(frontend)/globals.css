@@ -267,8 +267,18 @@
  *
  *   - the ground becomes the plaque rather than dark's `--background`;
  *   - `--muted-foreground` is lifted. Dark's grey is chosen against #150F0C and
- *     reads 3.52:1 on the plaque — under AA, and it is the copyright and the
- *     club's address that are set in it. At 0.80 it clears at 4.77:1.
+ *     reads 3.52:1 here, under AA. Nothing in the footer is set in it today —
+ *     the band reads flat when its text is grey, so the text is the foreground
+ *     — but it is left lifted so anything muted added later starts compliant
+ *     rather than starting broken.
+ *
+ * The ground is a little warmer than the logo's own #544742. That hex is
+ * chroma 0.0196, a whisker off neutral: at plaque size, ringed by white and a
+ * bright green, simultaneous contrast reads it as a warm brown, and across a
+ * full-width band with nothing to push against it reads muddy instead. So the
+ * band takes the colour the plaque *looks* rather than the colour it *is* —
+ * same lightness, same hue, chroma raised to 0.042. Deliberate, and the only
+ * place on the site that does not use `--brand-brown` verbatim.
  *
  * A note for anyone re-enabling the theme switch: in dark mode this band and
  * the page are both dark, so the footer stops reading as a separate object. It
@@ -276,7 +286,7 @@
  * is the one place the plaque idea does not survive the switch.
  */
 .plaque {
-  background-color: var(--brand-brown);
+  background-color: oklch(0.41 0.042 42);
   --muted-foreground: oklch(0.8 0.016 60);
 }
 

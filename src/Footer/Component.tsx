@@ -20,8 +20,8 @@ export async function Footer() {
      * it on the logo's brown. */
     <footer className="plaque dark text-foreground mt-auto py-8">
       <div className="container flex justify-center flex-col items-center gap-2">
-        <p className="text-muted-foreground text-sm">randonnées-touloises.net - © 2025</p>
-        <p className="text-muted-foreground text-sm text-center">
+        <p className="text-sm">randonnées-touloises.net - © 2025</p>
+        <p className="text-sm text-center">
           Maison Des Associations 2, cours Raymond Poincaré 54200 Toul
         </p>
       </div>
@@ -31,7 +31,7 @@ export async function Footer() {
             listening through the footer. The badge is decorative because the
             wording beside it already names where the link goes. */}
         <Link
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-3 text-sm transition-colors"
+          className="hover:text-primary inline-flex items-center gap-3 text-sm transition-colors"
           href="https://www.ffrandonnee.fr/"
           rel="noopener noreferrer"
           target="_blank"
