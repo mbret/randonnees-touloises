@@ -58,30 +58,42 @@ export const AccountForm: React.FC = () => {
         ? { password: data.password }
         : { email: data.email, name: data.name }
 
-      const response = await fetch(`${getClientSideURL()}/api/users/${user.id}`, {
-        // Make sure to include cookies with fetch
-        body: JSON.stringify(body),
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        method: 'PATCH',
-      })
+      /**
+       * Every way this can fail lands in one place. A refusal answers with a
+       * status, but a connection that never arrives — offline, dropped mid
+       * flight — rejects instead, and so does a body that will not parse, and
+       * neither of those reaches a check on `response.ok`. Leaving them
+       * uncaught would put the save back to failing in silence, which is the
+       * thing this form was doing in the first place.
+       */
+      let doc: User
 
-      if (!response.ok) {
+      try {
+        const response = await fetch(`${getClientSideURL()}/api/users/${user.id}`, {
+          // Make sure to include cookies with fetch
+          body: JSON.stringify(body),
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'PATCH',
+        })
+
+        if (!response.ok) throw new Error(`The server answered ${response.status}.`)
+
+        doc = (await response.json()).doc
+      } catch {
         setError('There was a problem updating your account.')
 
         return
       }
 
-      const json = await response.json()
-
-      setUser(json.doc)
+      setUser(doc)
       setSuccess(changePassword ? 'Password updated.' : 'Account updated.')
       setChangePassword(false)
       reset({
-        name: json.doc.name,
-        email: json.doc.email,
+        name: doc.name,
+        email: doc.email,
         password: '',
         passwordConfirm: '',
       })
