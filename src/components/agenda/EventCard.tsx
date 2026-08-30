@@ -23,22 +23,19 @@ import { cn } from '@/components/ui'
  * square in that space reads as an image that failed to load, where an absence
  * reads as what it is.
  *
- * On a phone the column lies down: the tile sits beside the times rather than
- * above them, which is a row 40 px tall instead of a stack 88 px tall. Height is
- * what a phone is short of, and the 38 px of width it costs the details there is
- * the cheaper side of that trade — the reverse of the desktop bargain, where
- * width is scarce and the fixed `w-14` column is what protects it.
+ * Narrow enough and `Item` wraps, putting that column on a line of its own above
+ * the details — as it already did for the times alone. There the column is the
+ * wrong shape: stacked, it is 88 px of a phone's height, and the width it was
+ * protecting is no longer contested by anything. So below 480 px it lies down,
+ * the tile beside the times, and the line is 40 px instead.
  *
- * `min-w-0` on the details, and a break allowed anywhere in them, are what let
- * either arrangement sit beside the text instead of being thrown onto a line of
- * its own. `Item` wraps its own children, and a flex item refuses by default to
- * be narrower than its longest unbreakable word: here the `maps.app.goo.gl` link
- * still pasted in the body text, which is wider than any phone. That one word
- * cost the card 100 px of height to save a width nothing was competing for.
- *
- * So the link is allowed to break instead. It is the ugly half of the trade and
- * the temporary half: the meeting point is a `startLocation` now, and the line
- * it is read from comes out of the body text when the agenda prints the field.
+ * 480 px because that is where the card was measured to wrap, not because of a
+ * breakpoint. The wrap is decided by the details' minimum width — today the
+ * unbreakable `maps.app.goo.gl` link still pasted in the body text — so this can
+ * only ever approximate it, and both ways of being wrong are harmless. A card
+ * that wraps above 480 px keeps the standing column on its own line; one that
+ * fits below 480 px gets the lying-down column beside its details, and a card
+ * whose details fit in that space is by definition not short of width.
  *
  * The details deliberately opt out of `prose`: it caps its width at 65ch and
  * centres what is left, which indents the text away from the title, and it sizes
@@ -49,7 +46,7 @@ export function EventCard({ content, endTime, logo, startTime, title }: AgendaEv
   return (
     <Item variant="outline">
       {(logo || startTime) && (
-        <ItemMedia className="w-auto flex-row items-center gap-3 sm:w-14 sm:flex-col sm:items-start sm:gap-2">
+        <ItemMedia className="w-auto flex-row items-center gap-3 min-[480px]:w-14 min-[480px]:flex-col min-[480px]:items-start min-[480px]:gap-2">
           {logo && (
             /* The alt text comes from the media record and is empty there on
              * purpose: the category's name is printed beside the tile, so a
@@ -65,12 +62,12 @@ export function EventCard({ content, endTime, logo, startTime, title }: AgendaEv
           )}
         </ItemMedia>
       )}
-      <ItemContent className="min-w-0">
+      <ItemContent>
         {title && <ItemTitle className="text-base">{title}</ItemTitle>}
         {content && (
           <RichText
             className={cn(
-              'text-muted-foreground space-y-1 text-sm [overflow-wrap:anywhere]',
+              'text-muted-foreground space-y-1 text-sm',
               '[&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-primary',
               '[&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5',
               '[&_:is(h1,h2,h3,h4)]:text-foreground [&_:is(h1,h2,h3,h4)]:font-semibold',
