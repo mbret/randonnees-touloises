@@ -4,7 +4,7 @@ import { getPayload } from 'payload'
 import type { Media } from '@/payload-types'
 
 import type { AgendaEvent, AgendaLocation } from './groupEvents'
-import { dayInFrance, todayInFrance } from './groupEvents'
+import { dayInFrance, outingName, todayInFrance } from './groupEvents'
 
 /**
  * How far back the query reaches beyond the cutoff day. The database filter can
@@ -150,7 +150,7 @@ export const getAgendaEvents = async (): Promise<AgendaEvent[]> => {
         // The title is the exception — « Journée interclubs santé » — and the
         // category is the rule. Publishing an event with neither is refused, so
         // one of the two is always here.
-        title: doc.title ?? category?.title,
+        title: outingName(doc.title, category?.title),
         logo: category?.logo,
         date: dayInFrance(doc.date),
         startTime: doc.startTime ?? undefined,
