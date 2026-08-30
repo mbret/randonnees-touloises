@@ -61,6 +61,7 @@ export const Events: CollectionConfig<'events'> = {
     startTime: true,
     endTime: true,
     content: true,
+    startLocation: true,
   },
   defaultSort: 'date',
   admin: {
@@ -114,6 +115,26 @@ export const Events: CollectionConfig<'events'> = {
           },
         },
       ],
+    },
+    /**
+     * Where the walk starts, as a document rather than as a line of the body
+     * text and a Google Maps short link pasted beside it. The same places come
+     * round constantly, so this is a pick from a list far more often than it is
+     * a new entry — and the pin behind it belongs to the place, not to this
+     * one outing, so correcting it corrects every event that meets there.
+     *
+     * The body text is left exactly as it is for now: nothing renders this
+     * yet, so removing the line would take the meeting point off the site.
+     */
+    {
+      name: 'startLocation',
+      type: 'relationship',
+      label: 'Lieu de départ',
+      relationTo: 'locations',
+      admin: {
+        description: 'Cherchez un lieu déjà utilisé, ou créez-le s’il est nouveau.',
+        position: 'sidebar',
+      },
     },
     {
       name: 'content',

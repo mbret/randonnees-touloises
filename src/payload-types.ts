@@ -75,6 +75,7 @@ export interface Config {
     pages: Page;
     posts: Post;
     events: Event;
+    locations: Location;
     media: Media;
     categories: Category;
     users: User;
@@ -116,6 +117,7 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
+    locations: LocationsSelect<false> | LocationsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -292,7 +294,7 @@ export interface Page {
    */
   navLabel?: string | null;
   /**
-   * Classement croissant, puis par titre. Vide compte comme zéro, donc une page sans ordre passe avant une page qui en a un positif.
+   * Classement croissant sur l’ensemble du menu. Les entrées fixes occupent 0 Recherche, 10 Contact, 20 Actualités, 30 À propos, 40 Nos activités, 50 Programme hebdomadaire, 60 Conseil d’administration, 70 Équipe d’animation, 80 Trombinoscope. Sans valeur, la page se place en 100, donc après elles. Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact et Actualités — et à nombre égal la page passe devant l’entrée fixe.
    */
   navOrder?: number | null;
   /**
@@ -1318,6 +1320,10 @@ export interface Event {
   startTime?: string | null;
   endTime?: string | null;
   /**
+   * Cherchez un lieu déjà utilisé, ou créez-le s’il est nouveau.
+   */
+  startLocation?: (number | null) | Location;
+  /**
    * Tout ce qu’il faut savoir, présenté comme vous le souhaitez.
    */
   content?: {
@@ -1339,6 +1345,30 @@ export interface Event {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "locations".
+ */
+export interface Location {
+  id: number;
+  /**
+   * La commune seule, par exemple « Boucq ».
+   */
+  commune: string;
+  /**
+   * L’endroit dans la commune, tel qu’il apparaîtra entre parenthèses : « terrain de foot », « Mairie », « ancienne gare ».
+   */
+  spot?: string | null;
+  title?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  /**
+   * Facultatif : ce qu’il faut savoir pour arriver et se garer.
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1601,6 +1631,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'events';
         value: number | Event;
+      } | null)
+    | ({
+        relationTo: 'locations';
+        value: number | Location;
       } | null)
     | ({
         relationTo: 'media';
@@ -2000,11 +2034,26 @@ export interface EventsSelect<T extends boolean = true> {
   date?: T;
   startTime?: T;
   endTime?: T;
+  startLocation?: T;
   content?: T;
   categories?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "locations_select".
+ */
+export interface LocationsSelect<T extends boolean = true> {
+  commune?: T;
+  spot?: T;
+  title?: T;
+  latitude?: T;
+  longitude?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
