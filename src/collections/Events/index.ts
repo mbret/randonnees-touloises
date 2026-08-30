@@ -92,6 +92,23 @@ export const Events: CollectionConfig<'events'> = {
       type: 'text',
       label: 'Intitulé',
       validate: requireTitleOrCategory,
+      hooks: {
+        /**
+         * Clearing the field in the admin submits an empty string, not `null`,
+         * and an empty string is a value: it survives `??`, it is not caught by
+         * `exists: false`, and it reads as « this event has a title » to
+         * anything that does not think to trim it. One did, and a « Grande »
+         * whose intitulé had been cleared by hand went on the home page with no
+         * name at all.
+         *
+         * So the absence is stored as an absence. Rows written before this keep
+         * their empty string until they are next saved, which is why the agenda
+         * also treats one as no title rather than relying on this alone.
+         */
+        beforeValidate: [
+          ({ value }) => (typeof value === 'string' && !value.trim() ? null : value),
+        ],
+      },
       admin: {
         description:
           'Le nom de l’événement quand la catégorie ne suffit pas : « Assemblée générale », « Journée interclubs santé ».',
