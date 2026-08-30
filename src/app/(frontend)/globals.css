@@ -121,8 +121,9 @@
  * into it; `primary` becomes the lime instead. Both modes stay inside the
  * logo — one leads with the plaque, the other with the script.
  *
- * Every foreground/background pair below clears WCAG AA (4.5:1 for text):
- * the lowest of them, a field error on the muted surface, sits at 4.5:1.
+ * Every text pair below clears WCAG AA (4.5:1); the lowest, a field error on
+ * the muted surface, sits at 4.5:1. One non-text pair sits lower on purpose —
+ * see the note on `--brand-green`.
  * ---------------------------------------------------------------------------
  */
 :root {
@@ -131,8 +132,30 @@
   /* The logo's three colours, unmodified. */
   --brand-brown: oklch(0.41 0.02 42); /* #544742 */
   --brand-brown-foreground: oklch(0.985 0.006 75);
-  --brand-green: oklch(0.73 0.166 119); /* #9EB515 */
-  --brand-green-foreground: oklch(0.265 0.017 45);
+  /**
+   * Deeper than the logo prints it, and deliberately so. #9EB515 is a *light*
+   * colour — L 0.73 — so on cream it has almost nothing to separate it from the
+   * page: 2.23:1, which is why it reads washed out here and vivid on the dark
+   * ground, where the same hue gets 9.81:1. Light needs its own value of the
+   * club's green; the hue is untouched.
+   *
+   * L 0.55 rather than something shallower because of what sits *on* it. A
+   * filled badge needs 4.5:1 against its own label, and around L 0.60 neither
+   * foreground manages it — ink reaches 4.01, cream 3.67, so the colour carries
+   * no text at all. At 0.55 cream clears it at 4.54:1, which also makes cream
+   * the foreground here rather than the ink the lighter green took. Going
+   * deeper is barely available anyway: oklch(0.52 …) at this hue is already
+   * outside sRGB.
+   *
+   * As a mark it reaches 4.54:1 on the page and 4.72:1 on a card. On the muted
+   * surface it is 4.01:1 — the one pair in this palette under 4.5 — and that is
+   * accepted rather than missed: what the green marks there are bullets, rules
+   * and borders, which are non-text and answer to 3:1. Buying the extra half
+   * point means oklch(0.52 0.12 …), a notch darker and flatter for nothing a
+   * reader would notice.
+   */
+  --brand-green: oklch(0.55 0.13 119);
+  --brand-green-foreground: oklch(0.985 0.006 75);
   --brand-orange: oklch(0.672 0.155 54); /* #DD7723 */
   /* Ink rather than cream: white on this orange is 3.0:1 and fails AA. */
   --brand-orange-foreground: oklch(0.265 0.017 45);
@@ -149,7 +172,10 @@
   --secondary-foreground: oklch(0.33 0.019 45);
   --muted: oklch(0.945 0.013 80);
   --muted-foreground: oklch(0.505 0.019 48);
-  --accent: oklch(0.93 0.048 115);
+  /* A hover wash, not a colour in its own right: roughly half the chroma it
+   * carried, so hovering an outline button reads as "this responds" rather
+   * than as a green button. */
+  --accent: oklch(0.945 0.028 115);
   --accent-foreground: oklch(0.31 0.055 110);
   --destructive: oklch(0.55 0.19 27);
   --border: oklch(0.885 0.014 75);
@@ -165,7 +191,7 @@
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--brand-brown);
   --sidebar-primary-foreground: var(--brand-brown-foreground);
-  --sidebar-accent: oklch(0.93 0.048 115);
+  --sidebar-accent: oklch(0.945 0.028 115);
   --sidebar-accent-foreground: oklch(0.31 0.055 110);
   --sidebar-border: oklch(0.885 0.014 75);
   --sidebar-ring: var(--brand-orange);
