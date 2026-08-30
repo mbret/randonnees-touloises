@@ -29,6 +29,13 @@ import { cn } from '@/components/ui'
  * protecting is no longer contested by anything. So below 480 px it lies down,
  * the tile beside the times, and the line is 40 px instead.
  *
+ * Lying down, the times come first and the tile follows. Leading with the tile
+ * would set the times in from the edge on a walk that has one and flush against
+ * it on a walk that has none — « Moyenne », an assemblée générale — so the times
+ * would shift left and right down a day and have to be re-found on every card.
+ * Reading the times first pins them to the edge whatever follows, and pins the
+ * tile too: `HH:MM` in a tabular mono face is the same width whatever the hour.
+ *
  * 480 px because that is where the card was measured to wrap, not because of a
  * breakpoint. The wrap is decided by the details' minimum width — today the
  * unbreakable `maps.app.goo.gl` link still pasted in the body text — so this can
@@ -52,7 +59,13 @@ export function EventCard({ content, endTime, logo, startTime, title }: AgendaEv
              * purpose: the category's name is printed beside the tile, so a
              * screen reader that announced the image would say « Grande »
              * twice. The tile is decoration for a name already given. */
-            <Media htmlElement={null} imgClassName="size-10" resource={logo} size="40px" />
+            <Media
+              htmlElement={null}
+              imgClassName="size-10"
+              pictureClassName="order-last min-[480px]:order-none"
+              resource={logo}
+              size="40px"
+            />
           )}
           {startTime && (
             <div className="flex flex-col font-mono text-sm font-medium tabular-nums">
