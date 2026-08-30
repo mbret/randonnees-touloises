@@ -12,8 +12,16 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        // Diverges from stock shadcn on one point: `hover:border-brand-green/55`.
+        // The hover wash alone is 1.00:1 against the muted surface — identical
+        // luminance, so a borderless hover would be invisible there — and a
+        // neutral ring around a green wash reads as belonging to another
+        // component. 55% is enough for the ring to belong to the fill without
+        // competing with the focus ring, which is the orange at full strength.
+        // Dark keeps its neutral hover border: its hover fill is `input/50`,
+        // not the accent.
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground hover:border-brand-green/55 dark:bg-input/30 dark:border-input dark:hover:bg-input/50 dark:hover:border-input",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
