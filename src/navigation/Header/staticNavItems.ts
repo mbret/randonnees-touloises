@@ -50,11 +50,6 @@ export const staticNavItems: StaticNavItem[] = [
   { id: 'static-news', navOrder: 20, link: { label: 'Actualités', type: 'custom', url: '/news' } },
   { id: 'static-about', navOrder: 30, link: { label: 'À propos', type: 'custom', url: '/about' } },
   {
-    id: 'static-activities',
-    navOrder: 40,
-    link: { label: 'Nos activités', type: 'custom', url: '/activities' },
-  },
-  {
     id: 'static-programs',
     navOrder: 50,
     link: { label: 'Programme hebdomadaire', type: 'custom', url: '/programs' },
