@@ -14,10 +14,52 @@ import { dayInFrance, todayInFrance } from './groupEvents'
 const QUERY_MARGIN_MS = 24 * 60 * 60 * 1000
 
 /**
+ * The name of every outing category the given events point at, in one query.
+ *
+ * An ordinary outing is named by its category now — « Grande », « Petite » —
+ * and its own title carries only what the category cannot say. So the agenda
+ * has to read the category, or a perfectly ordinary walk arrives on the home
+ * page as a time and nothing else.
+ *
+ * Fetched separately rather than by raising the events query to `depth: 1`:
+ * that would populate every start location and every upload the rich text
+ * references too, none of which this page reads. One extra query against a
+ * handful of rows is the cheaper half of that trade.
+ */
+const readCategoryTitles = async (
+  payload: Awaited<ReturnType<typeof getPayload>>,
+  events: { outingCategory?: unknown }[],
+): Promise<Map<number, string>> => {
+  const ids = [
+    ...new Set(
+      events.flatMap((doc) => (typeof doc.outingCategory === 'number' ? [doc.outingCategory] : [])),
+    ),
+  ]
+
+  if (!ids.length) return new Map()
+
+  const { docs } = await payload.find({
+    collection: 'outingCategories',
+    depth: 0,
+    overrideAccess: false,
+    pagination: false,
+    select: { title: true },
+    where: {
+      id: {
+        in: ids,
+      },
+    },
+  })
+
+  return new Map(docs.map((category) => [category.id, category.title]))
+}
+
+/**
  * Every published event from today onwards, in the flat shape the agenda groups.
  *
  * Events carry no page of their own, so this is a plain read of the collection —
- * no slugs to resolve and nothing to populate beyond the fields the card shows.
+ * no slugs to resolve, and nothing populated beyond the one relationship that
+ * can hold the outing's name.
  */
 export const getAgendaEvents = async (): Promise<AgendaEvent[]> => {
   const payload = await getPayload({ config: configPromise })
@@ -37,12 +79,20 @@ export const getAgendaEvents = async (): Promise<AgendaEvent[]> => {
     },
   })
 
+  const categoryTitles = await readCategoryTitles(payload, docs)
+
   return docs.flatMap((doc) => {
     if (!doc.date) return []
 
+    const category =
+      typeof doc.outingCategory === 'number' ? categoryTitles.get(doc.outingCategory) : undefined
+
     return [
       {
-        title: doc.title,
+        // The title is the exception — « Journée interclubs santé » — and the
+        // category is the rule. Publishing an event with neither is refused, so
+        // one of the two is always here.
+        title: doc.title ?? category,
         date: dayInFrance(doc.date),
         startTime: doc.startTime ?? undefined,
         endTime: doc.endTime ?? undefined,

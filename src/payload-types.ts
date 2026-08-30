@@ -75,6 +75,7 @@ export interface Config {
     pages: Page;
     posts: Post;
     events: Event;
+    outingCategories: OutingCategory;
     locations: Location;
     media: Media;
     categories: Category;
@@ -117,6 +118,7 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
+    outingCategories: OutingCategoriesSelect<false> | OutingCategoriesSelect<true>;
     locations: LocationsSelect<false> | LocationsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
@@ -1313,10 +1315,14 @@ export interface TeamSectionBlock {
 export interface Event {
   id: number;
   /**
-   * Le nom de l’événement, par exemple « Grande » ou « Assemblée générale ».
+   * Le nom de l’événement quand la catégorie ne suffit pas : « Assemblée générale », « Journée interclubs santé ».
    */
-  title: string;
+  title?: string | null;
   date: string;
+  /**
+   * Choisissez la catégorie, ou créez-la si le club en propose une nouvelle.
+   */
+  outingCategory?: (number | null) | OutingCategory;
   startTime?: string | null;
   endTime?: string | null;
   /**
@@ -1345,6 +1351,36 @@ export interface Event {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "outingCategories".
+ */
+export interface OutingCategory {
+  id: number;
+  /**
+   * Le nom que le club emploie, par exemple « Grande » ou « Nordique ».
+   */
+  title: string;
+  /**
+   * Le pictogramme qui accompagne les sorties de cette catégorie.
+   */
+  logo?: (number | null) | Media;
+  /**
+   * La distance ou le rythme, tels qu’ils sont annoncés : « 11 à 15 km ».
+   */
+  summary?: string | null;
+  /**
+   * Du plus petit au plus grand. Laissé vide, la catégorie passe en fin de liste.
+   */
+  sortOrder?: number | null;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1631,6 +1667,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'events';
         value: number | Event;
+      } | null)
+    | ({
+        relationTo: 'outingCategories';
+        value: number | OutingCategory;
       } | null)
     | ({
         relationTo: 'locations';
@@ -2032,6 +2072,7 @@ export interface PostsSelect<T extends boolean = true> {
 export interface EventsSelect<T extends boolean = true> {
   title?: T;
   date?: T;
+  outingCategory?: T;
   startTime?: T;
   endTime?: T;
   startLocation?: T;
@@ -2040,6 +2081,20 @@ export interface EventsSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "outingCategories_select".
+ */
+export interface OutingCategoriesSelect<T extends boolean = true> {
+  title?: T;
+  logo?: T;
+  summary?: T;
+  sortOrder?: T;
+  generateSlug?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
