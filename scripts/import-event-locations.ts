@@ -25,10 +25,12 @@
  * forward extra argv to a script. DRY_RUN=1 reports without writing, LIMIT=N
  * takes the first N events, and a remote database needs ALLOW_REMOTE_DB=1.
  *
- * Reruns are safe. An event that already points at a location is left alone, and
- * a location whose title is already in the collection is reused rather than
- * duplicated — so this tops up after new events are added, and re-running it
- * changes nothing.
+ * Reruns are safe, and are also inert: an event that already points at a
+ * location is left alone, and a location already in the collection is reused as
+ * it stands. So this tops up after new events are added, but it never revisits
+ * what it has already decided — correcting a bad link in an event and running
+ * again will not move the pin. That is what the report is for, and why it is
+ * worth reading a dry run to the end before dropping DRY_RUN.
  *
  * The body text is deliberately left untouched. Nothing renders `startLocation`
  * yet, so stripping the lines it was read from would take the meeting point off
@@ -317,7 +319,7 @@ async function main() {
         if (apart > PIN_TOLERANCE_M) {
           conflicts.push(
             apart > SAME_PLACE_MAX_M
-              ? `${location.title ?? key}: ${label} pins it ${apart} m away — too far to be the same place, so one of the two links is wrong. Keeping the first; fix the event, then rerun.`
+              ? `${location.title ?? key}: ${label} pins it ${apart} m away — too far to be the same place, so one of the two links is wrong and the one kept may be the wrong one. Fix the event BEFORE the real run: a rerun does not re-derive a pin.`
               : `${location.title ?? key}: ${label} pins it ${apart} m from the pin already stored — keeping the first`,
           )
         }
