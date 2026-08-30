@@ -15,11 +15,14 @@
  *
  * Deduplicating is the point of the exercise, so the key ignores case and
  * accents: the same six weeks hold « MARON (ancienne gare) » and « MARON
- * (ancienne Gare) », which are one car park. Where two events pin the same
- * place differently — and every repeated place in the seed data does, by six to
- * twenty-seven metres — the first pin is kept and the disagreement is reported
- * rather than averaged. A metre or two is the animateur's finger; anything more
- * is a question for a human.
+ * (ancienne Gare) », which are one car park. Nothing beyond that is merged —
+ * « Les Acacias » and « Acacias » stay apart, and near-misses are reported for
+ * a human to judge, because a village can have two meeting points on purpose.
+ *
+ * Where two events pin one place differently, a few metres is the animateur's
+ * finger and the first is kept; past half a kilometre one of the two links is
+ * simply wrong and neither is kept, since guessing would store the error as
+ * fact.
  *
  * Configured through the environment, not flags: the payload CLI does not
  * forward extra argv to a script. DRY_RUN=1 reports without writing, LIMIT=N
@@ -36,9 +39,8 @@
  * yet, so stripping the lines it was read from would take the meeting point off
  * the site; they come out when the agenda starts printing the field instead.
  */
-import type { Event } from '@/payload-types'
-
 import { parseCoordinates, type Coordinates } from '@/utilities/mapCoordinates'
+import { dedupeKey, lines, parsePlace, startMapLink } from '@/collections/Events/startLocationText'
 
 const DRY_RUN = Boolean(process.env.DRY_RUN)
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : undefined
@@ -68,138 +70,6 @@ const SAME_PLACE_MAX_M = 500
 
 /** How close two *differently named* places must sit to be worth merging. */
 const NEAR_DUPLICATE_M = 200
-
-/** Words a French place name keeps in lower case once it is not the first. */
-const PARTICLES = new Set(['aux', 'de', 'des', 'du', 'en', 'et', 'la', 'le', 'les', 'sous', 'sur'])
-
-const capitalise = (word: string) =>
-  word
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join('-')
-
-/**
- * « VILLEY LE SEC » → « Villey le Sec ».
- *
- * The club types communes in capitals, which is a shout on a web page rather
- * than a name. Hyphens are not invented on the way — the commune really is
- * « Villey-le-Sec » — because guessing which spaces are hyphens across forty
- * places would get some of them wrong silently, and they are one edit each now
- * that there is one row per place instead of one line per event.
- */
-const titleCase = (value: string) =>
-  value
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((word, index) =>
-      index > 0 && PARTICLES.has(word.toLowerCase()) ? word.toLowerCase() : capitalise(word),
-    )
-    .join(' ')
-
-/** Case- and accent-blind, so two spellings of one car park land on one row. */
-const dedupeKey = (commune: string, spot?: string) =>
-  [commune, spot ?? '']
-    .map((value) =>
-      value
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/\s+/g, ' ')
-        .trim(),
-    )
-    .join('|')
-
-type LexicalNode = {
-  children?: LexicalNode[]
-  fields?: { url?: string }
-  root?: LexicalNode
-  text?: string
-  type?: string
-}
-
-/** Every top-level paragraph of an event's body, as the plain line it was. */
-const lines = (content: Event['content']): string[] => {
-  const root = (content as LexicalNode | null | undefined)?.root
-
-  return (root?.children ?? [])
-    .map((paragraph) => {
-      const text = (node: LexicalNode): string => {
-        if (typeof node.text === 'string') return node.text
-
-        return (node.children ?? []).map(text).join('')
-      }
-
-      return text(paragraph).replace(/\s+/g, ' ').trim()
-    })
-    .filter(Boolean)
-}
-
-/** Any link target in the body, since the importer made the URLs real links. */
-const linkUrls = (content: Event['content']): string[] => {
-  const found: string[] = []
-
-  const walk = (node: LexicalNode) => {
-    if (node.type === 'link' && node.fields?.url) found.push(node.fields.url)
-    if (node.root) walk(node.root)
-    ;(node.children ?? []).forEach(walk)
-  }
-
-  walk((content ?? {}) as LexicalNode)
-
-  return found
-}
-
-/** « BOUCQ (terrain de foot) » → the two halves the collection stores. */
-export const parsePlace = (line: string): { commune: string; spot?: string } | null => {
-  const match = /^(.*?)\s*\(([^)]*)\)\s*$/.exec(line.trim())
-
-  if (match) {
-    const commune = titleCase(match[1])
-    const spot = match[2].trim()
-
-    return commune ? { commune, ...(spot ? { spot } : {}) } : null
-  }
-
-  const commune = titleCase(line)
-
-  return commune ? { commune } : null
-}
-
-/**
- * Whether a URL is a map at all.
- *
- * Events carry other links — an inscription form, the animateur's write-up —
- * and taking the first one on the page put a Google Form in the « no pin »
- * column and would have put it in the location had it parsed.
- */
-const isMapLink = (url: string) => /maps\.|maps\/|goo\.gl|osm\.org|openstreetmap|^geo:/i.test(url)
-
-/**
- * The « Lieu de départ » target, or any map link in the body.
- *
- * Two layouts, both real. Usually the URL sits on the label's own line; but an
- * event may end « Lieu de départ : » with the link on the next paragraph, and
- * that same event may carry a *second* map link further up for the covoiturage
- * point. Reading only the label's line there falls through to « any map link »,
- * which is a coin toss between the start and the car share — so the line after
- * the label is read too, before any fallback.
- */
-const mapLink = (event: Event): string | undefined => {
-  const body = lines(event.content)
-  const label = body.findIndex((line) => /lieu de d[ée]part/i.test(line))
-
-  if (label >= 0) {
-    const onTheLine = body[label].match(/https?:\/\/\S+/)?.[0]
-
-    if (onTheLine) return onTheLine
-
-    const onTheNext = body[label + 1]?.match(/^https?:\/\/\S+$/)?.[0]
-
-    if (onTheNext && isMapLink(onTheNext)) return onTheNext
-  }
-
-  return linkUrls(event.content).find(isMapLink)
-}
 
 /**
  * What a short link points at.
@@ -282,7 +152,7 @@ async function main() {
       continue
     }
 
-    const link = mapLink(event)
+    const link = startMapLink(event.content)
     let coordinates: Coordinates | null = null
 
     if (link) {
