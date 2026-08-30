@@ -113,8 +113,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
          * The dark palette in `globals.css` is still maintained, and
          * `defaultTheme`/`enableSystem` are left in place underneath: deleting
          * the `forcedTheme` line below is the whole of re-enabling the choice.
-         * `ModeToggle` is unmounted from the footer for the same reason — kept,
-         * not deleted.
+         * `ModeToggle` is commented out in the footer for the same reason —
+         * kept, not deleted, so uncommenting one block puts the switch back.
          */}
         <ThemeProvider
           attribute="class"
