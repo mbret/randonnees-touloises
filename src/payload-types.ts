@@ -296,7 +296,7 @@ export interface Page {
    */
   navLabel?: string | null;
   /**
-   * Classement croissant sur l’ensemble du menu. Les entrées fixes occupent 0 Recherche, 10 Contact, 20 Actualités, 30 À propos, 40 Nos activités, 50 Programme hebdomadaire, 60 Conseil d’administration, 70 Équipe d’animation, 80 Trombinoscope. Sans valeur, la page se place en 100, donc après elles. Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact et Actualités — et à nombre égal la page passe devant l’entrée fixe.
+   * Classement croissant sur l’ensemble du menu. Les entrées fixes occupent 0 Recherche, 10 Contact, 20 Actualités, 30 À propos, 50 Programme hebdomadaire, 60 Conseil d’administration, 70 Équipe d’animation, 80 Trombinoscope. Sans valeur, la page se place en 100, donc après elles. Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact et Actualités — et à nombre égal la page passe devant l’entrée fixe.
    */
   navOrder?: number | null;
   /**
