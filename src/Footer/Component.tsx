@@ -15,7 +15,10 @@ export async function Footer() {
   const navItems = footerData?.navItems || []
 
   return (
-    <footer className="mt-auto border-t border-border py-8">
+    /* `plaque` and `dark` together: see the note on `.plaque` in globals.css.
+     * `dark` supplies the cream text and the green links, `plaque` re-grounds
+     * it on the logo's brown. */
+    <footer className="plaque dark text-foreground mt-auto py-8">
       <div className="container flex justify-center flex-col items-center gap-2">
         <p className="text-muted-foreground text-sm">randonnées-touloises.net - © 2025</p>
         <p className="text-muted-foreground text-sm text-center">
@@ -33,7 +36,15 @@ export async function Footer() {
           rel="noopener noreferrer"
           target="_blank"
         >
-          <FederationLogo />
+          {/* The federation's mark is two fixed colours, #ED1C24 and #034EA2,
+              and it is theirs — we are licensed to display it, not to recolour
+              it. That blue is 1.11:1 on the plaque, so on this ground the mark
+              would half disappear. It gets the pale plate a partner logo
+              usually gets, which is also how the federation's own guidelines
+              present it. */}
+          <span className="bg-brand-brown-foreground inline-flex rounded-md px-2.5 py-1.5">
+            <FederationLogo />
+          </span>
           Affilié à la Fédération Française de Randonnée Pédestre
         </Link>
       </div>

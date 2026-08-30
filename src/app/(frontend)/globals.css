@@ -252,6 +252,34 @@
   --sidebar-ring: var(--brand-orange);
 }
 
+/**
+ * The footer, set as the logo's own object.
+ *
+ * `logo.webp` is a rounded brown plaque carrying light text and a green script.
+ * Repeating that at page scale gives a light page a base to sit on and puts
+ * something of the club at the foot of every page, rather than the near-black
+ * every site's footer defaults to.
+ *
+ * This is worn together with `dark`, which does most of the work: it is what
+ * turns the footer's text cream and its links the lime, because `--primary` in
+ * the dark block is the green. What is left here is re-grounding that block,
+ * which assumes a near-black page and gets a mid-brown one:
+ *
+ *   - the ground becomes the plaque rather than dark's `--background`;
+ *   - `--muted-foreground` is lifted. Dark's grey is chosen against #150F0C and
+ *     reads 3.52:1 on the plaque — under AA, and it is the copyright and the
+ *     club's address that are set in it. At 0.80 it clears at 4.77:1.
+ *
+ * A note for anyone re-enabling the theme switch: in dark mode this band and
+ * the page are both dark, so the footer stops reading as a separate object. It
+ * is not a regression — that is how it looked when dark was reachable — but it
+ * is the one place the plaque idea does not survive the switch.
+ */
+.plaque {
+  background-color: var(--brand-brown);
+  --muted-foreground: oklch(0.8 0.016 60);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
