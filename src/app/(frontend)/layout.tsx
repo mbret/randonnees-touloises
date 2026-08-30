@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 
 import { cn } from '@/components/ui'
-import { GeistMono } from 'geist/font/mono'
-import { GeistSans } from 'geist/font/sans'
+import { Archivo, IBM_Plex_Mono, Instrument_Sans } from 'next/font/google'
 import React from 'react'
 
 import { AdminBar } from '@/components/AdminBar/AdminBar'
@@ -22,12 +21,56 @@ import { getCachedMedias } from '@/metadata/getMedias'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
+/**
+ * Self-hosted by `next/font`, so no request leaves for Google at runtime and
+ * the metric-compatible fallback keeps the first paint from reflowing.
+ *
+ * `subsets: ['latin']` is what the site needs and no more — it covers the
+ * accented characters French uses, and asking for anything wider would only
+ * make the preloaded file bigger.
+ *
+ * Archivo is loaded as the variable family rather than as single-weight
+ * Archivo Black, because headings on the site are set at several weights; the
+ * display face reads as Archivo Black at the top of the range without the
+ * browser faking the ones in between. `weight` is deliberately left off — a
+ * variable Google font that is asked for one takes a single static cut, and
+ * the range syntax `next/font/local` accepts is rejected here.
+ */
+const archivo = Archivo({
+  subsets: ['latin'],
+  variable: '--font-archivo',
+  display: 'swap',
+})
+
+const instrumentSans = Instrument_Sans({
+  subsets: ['latin'],
+  variable: '--font-instrument-sans',
+  display: 'swap',
+})
+
+/**
+ * Plex Mono has no variable cut, so each weight is a file and the ones asked
+ * for here are exactly the ones the mono elements use: 400 for an end time,
+ * 500 for a start time, 600 for the day on a programme card. Ask for fewer and
+ * the browser fakes the missing weight rather than falling back to a real one.
+ */
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-ibm-plex-mono',
+  display: 'swap',
+})
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { isEnabled } = await draftMode()
   const siteAssets = await getCachedMedias()()
 
   return (
-    <html className={cn(GeistSans.variable, GeistMono.variable)} lang="fr" suppressHydrationWarning>
+    <html
+      className={cn(archivo.variable, instrumentSans.variable, ibmPlexMono.variable)}
+      lang="fr"
+      suppressHydrationWarning
+    >
       <head>
         <Favicon />
         <ClubJsonLd />
