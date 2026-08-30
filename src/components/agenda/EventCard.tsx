@@ -28,20 +28,25 @@ import { StartLocation } from './StartLocation'
  * square in that space reads as an image that failed to load, where an absence
  * reads as what it is.
  *
- * Narrow enough and `Item` wraps, putting that column on a line of its own above
- * the details — as it already did for the times alone. There the column is the
- * wrong shape: stacked, it is 88 px of a phone's height, and the width it was
- * protecting is no longer contested by anything. So below 480 px it lies down,
- * the tile beside the times, and the line is 40 px instead.
+ * Below 480 px the column stops being a column: it takes a line of its own
+ * above the details and lies down across it, the tile beside the times, 40 px
+ * of height instead of the 88 px it costs stacked. What it was protecting on a
+ * phone is nothing — a leading column narrows the details by its own width plus
+ * a gap, and the details are the part with no room to spare.
  *
- * 480 px because that is where the card was measured to wrap, not because of a
- * breakpoint. The wrap is decided by the details' minimum width — the longest
- * unbreakable run in them, today a `maps.app.goo.gl` link still pasted in the
- * body text — so this can only ever approximate it, and both ways of being
- * wrong are harmless. A card that wraps above 480 px keeps the standing column
- * on its own line; one that fits below 480 px gets the lying-down column beside
- * its details, and a card whose details fit in that space is by definition not
- * short of width.
+ * That line is claimed outright, with `w-full`, rather than left to `Item`'s
+ * `flex-wrap`. Wrapping only fires when the details' *minimum* width no longer
+ * fits beside the column, and their minimum is the longest unbreakable run in
+ * them — a word, or a `maps.app.goo.gl` link still pasted in the body text.
+ * That is far narrower than the width the details want, so a phone sails past
+ * 480 px with the column still beside them: the tile lay down as intended and
+ * the details never moved, which is the one arrangement nobody designed. Only a
+ * viewport narrow enough to break that longest run would have wrapped it.
+ *
+ * So 480 px decides both halves of the switch, and the details keep the whole
+ * width of a phone. `justify-start` comes with the full width: `ItemMedia`
+ * centres its contents, which shrink-wrapped was invisible and across a whole
+ * line would float the tile into the middle of the card.
  *
  * The details deliberately opt out of `prose`: it caps its width at 65ch and
  * centres what is left, which indents the text away from the title, and it sizes
@@ -59,7 +64,7 @@ export function EventCard({
   return (
     <Item variant="outline">
       {(logo || startTime) && (
-        <ItemMedia className="w-auto flex-row items-center gap-3 min-[480px]:w-14 min-[480px]:flex-col min-[480px]:items-start min-[480px]:gap-2">
+        <ItemMedia className="w-full flex-row items-center justify-start gap-3 min-[480px]:w-14 min-[480px]:flex-col min-[480px]:items-start min-[480px]:gap-2">
           {logo && (
             /* The alt text comes from the media record and is empty there on
              * purpose: the category's name is printed beside the tile, so a
