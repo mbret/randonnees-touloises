@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  DEFAULT_NAV_ORDER,
   staticNavItems,
   withStaticNavItems,
-  type HeaderNavItem,
+  type OrderedNavItem,
 } from '@/navigation/Header/staticNavItems'
 import { linkHref } from '@/utilities/linkHref'
 
@@ -12,26 +13,36 @@ const CONTACT = '/contact'
 /** A Header global entry naming an address outright. */
 const custom = (
   url: string,
-  { authCondition, label = url }: { authCondition?: 'loggedIn' | 'loggedOut'; label?: string } = {},
-): HeaderNavItem => ({ link: { authCondition, label, type: 'custom', url } })
+  {
+    authCondition,
+    label = url,
+    navOrder,
+  }: {
+    authCondition?: 'loggedIn' | 'loggedOut'
+    label?: string
+    navOrder?: number
+  } = {},
+): OrderedNavItem => ({ navOrder, link: { authCondition, label, type: 'custom', url } })
 
 /** A Header global entry pointing at a document — the default link type. */
 const reference = (
   slug: string,
   { relationTo = 'pages', label = slug }: { relationTo?: 'pages' | 'posts'; label?: string } = {},
-): HeaderNavItem =>
+): OrderedNavItem =>
   ({
     link: { label, reference: { relationTo, value: { slug } }, type: 'reference' },
-  }) as HeaderNavItem
+  }) as OrderedNavItem
 
 /** A derived entry, as `pageNavItems` builds them: an address, no condition. */
-const derived = (url: string, label = url): HeaderNavItem => ({
+const derived = (url: string, label = url, navOrder?: number): OrderedNavItem => ({
   id: `page-${url}`,
+  navOrder,
   link: { label, type: 'custom', url },
 })
 
-const hrefs = (items: HeaderNavItem[]) => items.map((item) => linkHref(item.link))
-const occurrences = (items: HeaderNavItem[], href: string) =>
+const hrefs = (items: OrderedNavItem[]) => items.map((item) => linkHref(item.link))
+const labels = (items: OrderedNavItem[]) => items.map((item) => item.link.label)
+const occurrences = (items: OrderedNavItem[], href: string) =>
   hrefs(items).filter((candidate) => candidate === href).length
 
 describe('linkHref', () => {
@@ -69,11 +80,54 @@ describe('linkHref', () => {
 })
 
 describe('withStaticNavItems', () => {
-  it('keeps the static entries ahead of everything else', () => {
+  it('leaves an entry naming no order of its own behind every static entry', () => {
     const merged = withStaticNavItems([custom('/from-global')], [derived('/from-page')])
 
     expect(merged.slice(0, staticNavItems.length)).toEqual(staticNavItems)
     expect(hrefs(merged).slice(-2)).toEqual(['/from-global', '/from-page'])
+  })
+
+  it('renders the static entries in the order they are listed', () => {
+    expect(labels(withStaticNavItems(null))).toEqual(labels(staticNavItems))
+  })
+
+  // The placement the whole ordering exists for: an editorial page in the gap
+  // the static entries were spaced out to leave.
+  it('places a page between the two static entries its order falls between', () => {
+    const merged = withStaticNavItems(null, [derived('/adhesion', 'Adhésions', 15)])
+
+    expect(labels(merged).slice(0, 4)).toEqual(['Recherche', 'Contact', 'Adhésions', 'Actualités'])
+  })
+
+  // So that `0` reads as the front of the menu rather than as second place.
+  it('lets an editorial entry win an order it shares with a static one', () => {
+    const merged = withStaticNavItems(null, [derived('/adhesion', 'Adhésions', 0)])
+
+    expect(labels(merged).slice(0, 2)).toEqual(['Adhésions', 'Recherche'])
+  })
+
+  it('keeps a Header global entry ahead of a page naming the same order', () => {
+    const merged = withStaticNavItems(
+      [custom('/global', { label: 'Global', navOrder: 15 })],
+      [derived('/page', 'Page', 15)],
+    )
+
+    expect(labels(merged).slice(0, 5)).toEqual([
+      'Recherche',
+      'Contact',
+      'Global',
+      'Page',
+      'Actualités',
+    ])
+  })
+
+  it('reads an order past the last static entry as the back of the menu', () => {
+    const merged = withStaticNavItems(null, [
+      derived('/loin', 'Loin', DEFAULT_NAV_ORDER + 1),
+      derived('/defaut', 'Défaut'),
+    ])
+
+    expect(labels(merged).slice(-2)).toEqual(['Défaut', 'Loin'])
   })
 
   it('drops a derived entry a static entry already points at', () => {
@@ -126,7 +180,7 @@ describe('withStaticNavItems', () => {
   })
 
   it('leaves entries whose address cannot be resolved alone', () => {
-    const orphan = { link: { label: 'Orphelin', type: 'reference' } } as HeaderNavItem
+    const orphan = { link: { label: 'Orphelin', type: 'reference' } } as OrderedNavItem
     const merged = withStaticNavItems([orphan, orphan])
 
     expect(merged.length).toBe(staticNavItems.length + 2)

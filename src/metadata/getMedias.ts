@@ -1,5 +1,3 @@
-import type { Config } from 'src/payload-types'
-
 import configPromise from '@payload-config'
 import { SITE_ASSET_FILENAMES } from './siteAssets'
 import { getPayload } from 'payload'

@@ -13,7 +13,7 @@ import {
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu'
 import { cn } from '@/components/ui'
-import type { HeaderNavItem } from './staticNavItems'
+import type { OrderedNavItem } from './staticNavItems'
 
 /**
  * How many of the leading nav items sit outside the "Plus" menu: two below
@@ -60,7 +60,7 @@ function ListItem({ url, isExternal, className, ...rest }: ComponentProps<typeof
   )
 }
 
-export const DesktopNav: React.FC<{ navItems: HeaderNavItem[] }> = ({ navItems }) => {
+export const DesktopNav: React.FC<{ navItems: OrderedNavItem[] }> = ({ navItems }) => {
   const laddered = navItems.slice(0, shortcutLadder.length)
 
   /* Reversed so the first item to drop out sits next to the "Plus" trigger. */

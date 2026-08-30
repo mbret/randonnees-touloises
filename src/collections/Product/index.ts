@@ -110,7 +110,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
                   },
                   filterOptions: ({ data }) => {
                     if (data?.enableVariants && data?.variantTypes?.length) {
-                      const variantTypeIDs = data.variantTypes.map((item: any) => {
+                      const variantTypeIDs = data.variantTypes.map((item: DefaultDocumentIDType | { id: DefaultDocumentIDType }) => {
                         if (typeof item === 'object' && item?.id) {
                           return item.id
                         }

@@ -33,6 +33,26 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
+  /**
+   * Three families, each with a job.
+   *
+   * `--font-display` is Archivo, loaded as a variable font and used heavy. The
+   * logo sets « Rando » in a broad, confident sans, and headings echo it. It is
+   * deliberately the variable family rather than the single-weight Archivo
+   * Black: headings across the site carry `font-bold`, `font-semibold` and
+   * `font-medium`, and a one-weight family would leave the browser to
+   * synthesise every one of them.
+   *
+   * `--font-sans` is Instrument Sans for running text — humanist, slightly
+   * warm, and quiet enough to sit under a display face this loud.
+   *
+   * `--font-mono` is IBM Plex Mono, for the things that are data rather than
+   * prose: start and end times, the day a séjour begins. Its figures are
+   * tabular, so a column of times lines up instead of drifting.
+   */
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo), var(--font-instrument-sans), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -211,9 +231,22 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 
+  /**
+   * Headings take the display face by default, so a section title picks it up
+   * without every component having to remember a class. The weight is only a
+   * fallback: this sits in the base layer, so any `font-bold`, `font-semibold`
+   * or `font-medium` a component already sets still wins.
+   */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+  }
 }
 
 /**

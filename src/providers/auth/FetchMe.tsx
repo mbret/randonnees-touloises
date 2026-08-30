@@ -23,14 +23,14 @@ export const FetchMe = () => {
         } else {
           throw new Error('An error occurred while fetching your account.')
         }
-      } catch (e) {
+      } catch {
         setUser(null)
         throw new Error('An error occurred while fetching your account.')
       }
     }
 
     void fetchMe()
-  }, [])
+  }, [setStatus, setUser])
 
   return null
 }

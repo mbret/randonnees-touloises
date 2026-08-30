@@ -25,6 +25,19 @@ import {
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
 import { TeamSectionBlockConfig } from '@/blocks/TeamSectionBlock/config'
+import { DEFAULT_NAV_ORDER, staticNavItems } from '@/navigation/Header/staticNavItems'
+
+/**
+ * What an editor needs in order to aim at a gap: the positions the menu's fixed
+ * entries actually occupy, read off the menu itself rather than restated here,
+ * where the two would drift apart the first time one of them moved.
+ */
+const navOrderDescription =
+  'Classement croissant sur l’ensemble du menu. Les entrées fixes occupent ' +
+  staticNavItems.map(({ link, navOrder }) => `${navOrder} ${link.label}`).join(', ') +
+  `. Sans valeur, la page se place en ${DEFAULT_NAV_ORDER}, donc après elles. ` +
+  'Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact ' +
+  'et Actualités — et à nombre égal la page passe devant l’entrée fixe.'
 
 export const Pages: CollectionConfig<'pages'> = {
   slug: 'pages',
@@ -166,8 +179,7 @@ export const Pages: CollectionConfig<'pages'> = {
       label: 'Ordre dans le menu',
       admin: {
         condition: (_, siblingData) => Boolean(siblingData?.showInNav),
-        description:
-          'Classement croissant, puis par titre. Vide compte comme zéro, donc une page sans ordre passe avant une page qui en a un positif.',
+        description: navOrderDescription,
         position: 'sidebar',
       },
     },

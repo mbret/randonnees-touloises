@@ -4,13 +4,13 @@ import { useHeaderTheme } from '@/navigation/Header/HeaderThemeProvider'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
-import type { HeaderNavItem } from './staticNavItems'
+import type { OrderedNavItem } from './staticNavItems'
 import { Logo } from '@/components/Logo/Logo'
 import { DesktopNav } from './DesktopNav'
 import { MobileNav } from './MobileNav'
 
 interface HeaderClientProps {
-  navItems: HeaderNavItem[]
+  navItems: OrderedNavItem[]
 }
 
 export function HeaderClient({ navItems }: HeaderClientProps) {
@@ -24,7 +24,23 @@ export function HeaderClient({ navItems }: HeaderClientProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname])
 
+  /**
+   * Deferring to an effect is the point here, not an oversight, so the rule
+   * against seeding state from one is suppressed rather than obeyed.
+   *
+   * The theme is not known to the server: `HeaderThemeProvider` reads it off
+   * `<html data-theme>` in the browser and has nothing to read while
+   * rendering on the server. Deriving `data-theme` from it during render would
+   * therefore emit an attribute the server never sent, and the header would
+   * hydrate mismatched. An effect runs after hydration, which is what makes
+   * the first client render agree with the HTML.
+   *
+   * Holding the last theme asked for also matters: navigating clears
+   * `headerTheme` above before the new page's own effect sets it, and this
+   * state is what stops the header falling back to its default in between.
+   */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (headerTheme && headerTheme !== theme) setTheme(headerTheme)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [headerTheme])

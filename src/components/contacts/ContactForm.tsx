@@ -1,6 +1,6 @@
 'use client'
 
-import { SelectField, TextField, TextareaField } from '@/components/form/fields'
+import { TextField, TextareaField } from '@/components/form/fields'
 import { Button } from '@/components/ui/button'
 import { FieldError, FieldGroup } from '@/components/ui/field'
 import React, { useCallback, useState } from 'react'
@@ -17,7 +17,6 @@ export type ContactFormData = {
 
 export const ContactForm: React.FC = () => {
   const {
-    control,
     formState: { errors },
     handleSubmit,
     register,
