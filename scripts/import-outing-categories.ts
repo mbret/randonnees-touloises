@@ -90,7 +90,14 @@ async function main() {
     if (!doc) {
       doc = DRY_RUN
         ? ({ id: -1, ...category } as Category)
-        : await payload.create({ collection: 'outingCategories', data: category })
+        : await payload.create({
+            collection: 'outingCategories',
+            // Same reason as the event updates below, and now a hard one: the
+            // collection's afterChange hook calls revalidatePath, which throws
+            // outside a Next request.
+            context: { disableRevalidate: true },
+            data: category,
+          })
 
       created++
       console.log(`  + ${category.title}`)

@@ -4,6 +4,10 @@ import { slugField } from 'payload'
 
 import { publicAccess } from '@/access/publicAccess'
 import { authenticated } from '../../access/authenticated'
+import {
+  revalidateOutingCategory,
+  revalidateOutingCategoryDelete,
+} from './hooks/revalidateOutingCategory'
 
 /**
  * What kind of outing an event is: « Grande », « Petite », « Douce »,
@@ -96,4 +100,8 @@ export const OutingCategories: CollectionConfig<'outingCategories'> = {
       position: undefined,
     }),
   ],
+  hooks: {
+    afterChange: [revalidateOutingCategory],
+    afterDelete: [revalidateOutingCategoryDelete],
+  },
 }
