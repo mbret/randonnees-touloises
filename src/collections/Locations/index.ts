@@ -132,12 +132,21 @@ export const Locations: CollectionConfig<'locations'> = {
         },
       ],
     },
+    /**
+     * Printed under the name on every card that meets here, which is both the
+     * point and the constraint: written once instead of retyped into each
+     * event, and therefore seen a dozen times a year. One short line.
+     */
     {
       name: 'notes',
       type: 'textarea',
       label: 'Accès et stationnement',
       admin: {
-        description: 'Facultatif : ce qu’il faut savoir pour arriver et se garer.',
+        description:
+          'Facultatif, une phrase courte : elle s’affiche sous le lieu à chaque sortie qui part d’ici. ' +
+          'Ce qui vaut pour l’endroit — « se garer le long de la voie » — et non pour une sortie en ' +
+          'particulier, qui se dit dans le détail de la sortie.',
+        placeholder: 'Se garer le long de la voie, le parking se remplit vite.',
       },
     },
   ],
