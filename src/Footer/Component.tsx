@@ -4,8 +4,11 @@ import React from 'react'
 import Link from 'next/link'
 
 import { CMSLink } from '@/components/Link'
-import { ModeToggle } from '@/theme/ModeToggle'
 import { FederationLogo } from './FederationLogo'
+// Commented out, not deleted, while the site is forced light — see the
+// reasoning at the `ThemeProvider` in `app/(frontend)/layout.tsx`. Uncomment
+// this together with the block below to bring the switch back.
+// import { ModeToggle } from '@/theme/ModeToggle'
 
 export async function Footer() {
   const footerData = await getCachedGlobal('footer', 1)()
@@ -35,9 +38,16 @@ export async function Footer() {
         </Link>
       </div>
       <div className="container py-8 gap-4 flex flex-col items-center md:grid md:grid-cols-[1fr_auto_1fr]">
+        {/* The theme switch, commented out while the site is forced light — see
+        the reasoning at the `ThemeProvider` in `app/(frontend)/layout.tsx`.
+        Uncomment the block below and the `ModeToggle` import at the top of this
+        file to bring it back. The nav sits in column 2 of a `1fr auto 1fr`
+        grid, so it stays centred whether or not this column is filled.
+
         <div className="md:col-start-1 md:row-start-1 md:justify-self-start">
           <ModeToggle />
         </div>
+        */}
         <nav className="flex flex-col md:flex-row items-center gap-4 md:col-start-2 md:row-start-1">
           <CMSLink appearance="link" label="Règlement intérieur" type="custom" url="/terms" />
           <CMSLink
