@@ -1,5 +1,13 @@
 'use client'
 
+/**
+ * Parked, not dead. Nothing mounts this while the site is forced light — the
+ * reasoning is at the `ThemeProvider` in `app/(frontend)/layout.tsx` — but the
+ * dark palette it switches to is still maintained, so this stays ready rather
+ * than being deleted and rewritten later. It used to sit in the footer's first
+ * column.
+ */
+
 import * as React from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'

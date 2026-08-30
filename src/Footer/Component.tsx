@@ -4,7 +4,6 @@ import React from 'react'
 import Link from 'next/link'
 
 import { CMSLink } from '@/components/Link'
-import { ModeToggle } from '@/theme/ModeToggle'
 import { FederationLogo } from './FederationLogo'
 
 export async function Footer() {
@@ -35,9 +34,11 @@ export async function Footer() {
         </Link>
       </div>
       <div className="container py-8 gap-4 flex flex-col items-center md:grid md:grid-cols-[1fr_auto_1fr]">
-        <div className="md:col-start-1 md:row-start-1 md:justify-self-start">
-          <ModeToggle />
-        </div>
+        {/* The theme switch is unmounted while the site is forced light — see
+         * the reasoning at the `ThemeProvider` in the frontend layout. Restoring
+         * it means putting `<ModeToggle />` back in this first grid column; the
+         * nav sits in column 2 of a `1fr auto 1fr` grid, so it stays centred
+         * either way. */}
         <nav className="flex flex-col md:flex-row items-center gap-4 md:col-start-2 md:row-start-1">
           <CMSLink appearance="link" label="Règlement intérieur" type="custom" url="/terms" />
           <CMSLink

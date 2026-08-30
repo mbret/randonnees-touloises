@@ -69,6 +69,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       className={cn(archivo.variable, instrumentSans.variable, ibmPlexMono.variable)}
       lang="fr"
+      /* Server-rendered rather than left to `next-themes`, which sets the same
+       * value from a script: native controls then render light even before that
+       * script runs, or if it never does. The palette needs no such help — dark
+       * requires an explicit `.dark` class, so light is already what the
+       * stylesheet does on its own. */
+      style={{ colorScheme: 'light' }}
       suppressHydrationWarning
     >
       <head>
@@ -76,8 +82,43 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ClubJsonLd />
       </head>
       <body className="min-h-screen flex flex-col">
+        {/**
+         * The site is light, for everyone, whatever the visitor's device is set
+         * to — `forcedTheme` overrides both the stored preference and the
+         * operating system's.
+         *
+         * Three reasons, in order of weight:
+         *
+         * The club's members. It was founded in 1987, it runs a Santé walk every
+         * Tuesday, and its membership skews older. Light text on a dark ground
+         * gets harder to read as eyes age: with astigmatism — common, and more
+         * so with age — light glyphs bloom against dark. Dark text on light
+         * gives most sighted people better reading performance, and the gap
+         * widens with age. Dark mode genuinely helps a minority, which is an
+         * argument for offering it, not for defaulting to it.
+         *
+         * Where the site is read. Its main job is answering « c'est quand, la
+         * prochaine ? » — on a phone, outdoors, often in daylight. A bright
+         * screen wins in sun; a dark interface is hardest to read in exactly the
+         * setting this site is used in most.
+         *
+         * And the programme gets printed and pinned up, which a dark page does
+         * badly.
+         *
+         * `enableColorScheme` is on by default, so this also puts
+         * `color-scheme: light` on the document and native controls — form
+         * fields, scrollbars, autofill — render light rather than following an
+         * operating system set to dark.
+         *
+         * The dark palette in `globals.css` is still maintained, and
+         * `defaultTheme`/`enableSystem` are left in place underneath: deleting
+         * the `forcedTheme` line below is the whole of re-enabling the choice.
+         * `ModeToggle` is unmounted from the footer for the same reason — kept,
+         * not deleted.
+         */}
         <ThemeProvider
           attribute="class"
+          forcedTheme="light"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
