@@ -23,6 +23,18 @@ import { cn } from '@/components/ui'
  * square in that space reads as an image that failed to load, where an absence
  * reads as what it is.
  *
+ * `min-w-0` on the details, and a break allowed anywhere in them, are what keep
+ * that column beside the text at every width rather than only on a desktop.
+ * `Item` wraps its own children, and a flex item refuses by default to be
+ * narrower than its longest unbreakable word: here the `maps.app.goo.gl` link
+ * still pasted in the body text, which is wider than a phone. That one word was
+ * enough to throw the whole column onto a line of its own below about 480 px —
+ * costing the card 100 px of height to save a width nothing was competing for.
+ *
+ * So the link is allowed to break instead. It is the ugly half of the trade and
+ * the temporary half: the meeting point is a `startLocation` now, and the line
+ * it is read from comes out of the body text when the agenda prints the field.
+ *
  * The details deliberately opt out of `prose`: it caps its width at 65ch and
  * centres what is left, which indents the text away from the title, and it sizes
  * headings for an article rather than a card. The few marks that survive in this
@@ -48,12 +60,12 @@ export function EventCard({ content, endTime, logo, startTime, title }: AgendaEv
           )}
         </ItemMedia>
       )}
-      <ItemContent>
+      <ItemContent className="min-w-0">
         {title && <ItemTitle className="text-base">{title}</ItemTitle>}
         {content && (
           <RichText
             className={cn(
-              'text-muted-foreground space-y-1 text-sm',
+              'text-muted-foreground space-y-1 text-sm [overflow-wrap:anywhere]',
               '[&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-primary',
               '[&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5',
               '[&_:is(h1,h2,h3,h4)]:text-foreground [&_:is(h1,h2,h3,h4)]:font-semibold',
