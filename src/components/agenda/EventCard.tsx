@@ -6,12 +6,17 @@ import { Media } from '@/components/Media'
 import RichText from '@/components/RichText'
 import { Item, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { cn } from '@/components/ui'
+import { StartLocation } from './StartLocation'
 
 /**
  * A single event: the club's pictogram and the departure and return times down
- * the leading column, then the kind of walk and the details as the editor laid
- * them out — meeting point, animateur, distance and so on all live in that rich
- * text rather than in fields of their own, so the card imposes no order on them.
+ * the leading column, then the kind of walk, where it starts, and the rest of
+ * the details as the editor laid them out.
+ *
+ * The meeting point is the one detail lifted out of that rich text and given a
+ * line of its own, because it is the only one a reader has to act on. The
+ * animateur, the kilométrage and the dénivelé stay in the text, in the order the
+ * editor chose — the card imposes none on them.
  *
  * The logo goes in the leading column rather than beside the name because that
  * column is already a fixed `w-14`: the tile costs the details not a pixel of
@@ -30,19 +35,27 @@ import { cn } from '@/components/ui'
  * the tile beside the times, and the line is 40 px instead.
  *
  * 480 px because that is where the card was measured to wrap, not because of a
- * breakpoint. The wrap is decided by the details' minimum width — today the
- * unbreakable `maps.app.goo.gl` link still pasted in the body text — so this can
- * only ever approximate it, and both ways of being wrong are harmless. A card
- * that wraps above 480 px keeps the standing column on its own line; one that
- * fits below 480 px gets the lying-down column beside its details, and a card
- * whose details fit in that space is by definition not short of width.
+ * breakpoint. The wrap is decided by the details' minimum width — the longest
+ * unbreakable run in them, today a `maps.app.goo.gl` link still pasted in the
+ * body text — so this can only ever approximate it, and both ways of being
+ * wrong are harmless. A card that wraps above 480 px keeps the standing column
+ * on its own line; one that fits below 480 px gets the lying-down column beside
+ * its details, and a card whose details fit in that space is by definition not
+ * short of width.
  *
  * The details deliberately opt out of `prose`: it caps its width at 65ch and
  * centres what is left, which indents the text away from the title, and it sizes
  * headings for an article rather than a card. The few marks that survive in this
  * space are styled here instead.
  */
-export function EventCard({ content, endTime, logo, startTime, title }: AgendaEvent) {
+export function EventCard({
+  content,
+  endTime,
+  logo,
+  startLocation,
+  startTime,
+  title,
+}: AgendaEvent) {
   return (
     <Item variant="outline">
       {(logo || startTime) && (
@@ -64,6 +77,7 @@ export function EventCard({ content, endTime, logo, startTime, title }: AgendaEv
       )}
       <ItemContent>
         {title && <ItemTitle className="text-base">{title}</ItemTitle>}
+        {startLocation && <StartLocation className="mt-0.5" location={startLocation} />}
         {content && (
           <RichText
             className={cn(

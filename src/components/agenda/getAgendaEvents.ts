@@ -3,7 +3,7 @@ import { getPayload } from 'payload'
 
 import type { Media } from '@/payload-types'
 
-import type { AgendaEvent } from './groupEvents'
+import type { AgendaEvent, AgendaLocation } from './groupEvents'
 import { dayInFrance, todayInFrance } from './groupEvents'
 
 /**
@@ -27,12 +27,12 @@ type CategoryCard = { logo?: Media; title: string }
  * page as a time and nothing else.
  *
  * Fetched separately rather than by raising the events query to `depth: 1`:
- * that would populate every start location and every upload the rich text
- * references too, none of which this page reads. `select` keeps this one
- * narrow in the same spirit — the name and the logo, not the summary, the slug
- * or the ordering — and `depth: 1` reaches through to the logo's own record,
- * which is where its URL and dimensions live. One extra query against five
- * rows is the cheaper half of that trade.
+ * that would populate every upload the rich text references too, which this
+ * page never reads. `select` keeps this one narrow in the same spirit — the
+ * name and the logo, not the summary, the slug or the ordering — and
+ * `depth: 1` reaches through to the logo's own record, which is where its URL
+ * and dimensions live. One extra query against five rows is the cheaper half
+ * of that trade.
  */
 const readCategories = async (
   payload: Awaited<ReturnType<typeof getPayload>>,
@@ -74,6 +74,44 @@ const readCategories = async (
 }
 
 /**
+ * Where every one of these events starts, in one query.
+ *
+ * The same shape as the categories above, and separate for the same reason:
+ * `depth: 1` on the events query would reach every upload the rich text
+ * references as well, which nothing here prints. `select` keeps this one to
+ * what a card shows — the name, the pin behind its map link, and the note
+ * about parking — leaving out the commune and the spot the title already
+ * holds.
+ */
+const readStartLocations = async (
+  payload: Awaited<ReturnType<typeof getPayload>>,
+  events: { startLocation?: unknown }[],
+): Promise<Map<number, AgendaLocation>> => {
+  const ids = [
+    ...new Set(
+      events.flatMap((doc) => (typeof doc.startLocation === 'number' ? [doc.startLocation] : [])),
+    ),
+  ]
+
+  if (!ids.length) return new Map()
+
+  const { docs } = await payload.find({
+    collection: 'locations',
+    depth: 0,
+    overrideAccess: false,
+    pagination: false,
+    select: { title: true, latitude: true, longitude: true, notes: true },
+    where: {
+      id: {
+        in: ids,
+      },
+    },
+  })
+
+  return new Map(docs.map((location) => [location.id, location]))
+}
+
+/**
  * Every published event from today onwards, in the flat shape the agenda groups.
  *
  * Events carry no page of their own, so this is a plain read of the collection —
@@ -99,6 +137,7 @@ export const getAgendaEvents = async (): Promise<AgendaEvent[]> => {
   })
 
   const categories = await readCategories(payload, docs)
+  const startLocations = await readStartLocations(payload, docs)
 
   return docs.flatMap((doc) => {
     if (!doc.date) return []
@@ -117,6 +156,9 @@ export const getAgendaEvents = async (): Promise<AgendaEvent[]> => {
         startTime: doc.startTime ?? undefined,
         endTime: doc.endTime ?? undefined,
         content: doc.content,
+        ...(typeof doc.startLocation === 'number' && startLocations.has(doc.startLocation)
+          ? { startLocation: startLocations.get(doc.startLocation) }
+          : {}),
       },
     ]
   })

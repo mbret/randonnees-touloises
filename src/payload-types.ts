@@ -1400,7 +1400,7 @@ export interface Location {
   latitude?: number | null;
   longitude?: number | null;
   /**
-   * Facultatif : ce qu’il faut savoir pour arriver et se garer.
+   * Facultatif, une phrase courte : elle s’affiche sous le lieu à chaque sortie qui part d’ici. Ce qui vaut pour l’endroit — « se garer le long de la voie » — et non pour une sortie en particulier, qui se dit dans le détail de la sortie.
    */
   notes?: string | null;
   updatedAt: string;
