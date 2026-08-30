@@ -40,6 +40,32 @@ describe('what names an outing on the agenda', () => {
     expect(await getAgendaEvents()).toMatchObject([{ title: 'Grande' }])
   })
 
+  /*
+   * The card draws the tile, so the query has to reach through the category to
+   * the media record behind it — `depth: 0` would hand back a bare id, which is
+   * nothing anyone can render.
+   */
+  it('carries the category logo through to the card', async () => {
+    const logo = { id: 9, filename: 'logo-grand-outing.png', url: '/api/media/file/x.png' }
+
+    database([event({ outingCategory: 3 })], [{ id: 3, title: 'Grande', logo }])
+
+    expect(await getAgendaEvents()).toMatchObject([{ logo, title: 'Grande' }])
+    expect(find).toHaveBeenLastCalledWith(
+      expect.objectContaining({ collection: 'outingCategories', depth: 1 }),
+    )
+  })
+
+  /** A category nobody has given a logo yet still names its outings. */
+  it('leaves the logo out when the category has none', async () => {
+    database([event({ outingCategory: 3 })], [{ id: 3, title: 'Douce', logo: null }])
+
+    const [agendaEvent] = await getAgendaEvents()
+
+    expect(agendaEvent.title).toBe('Douce')
+    expect(agendaEvent.logo).toBeUndefined()
+  })
+
   /** The title is what the category cannot say, so it wins where there is one. */
   it('keeps the title when the event carries one', async () => {
     database(

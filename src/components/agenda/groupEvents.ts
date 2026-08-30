@@ -1,4 +1,4 @@
-import type { Event } from '@/payload-types'
+import type { Event, Media } from '@/payload-types'
 
 import { todayInFrance } from '@/utilities/parisDay'
 
@@ -18,6 +18,12 @@ export type AgendaEvent = {
    * ordinary outing — 'Grande', 'Petite' — which used to be typed in here.
    */
   title?: string
+  /**
+   * The category's pictogram — the orange walker, the blue one, the brown
+   * skier. Drawn as a finished tile with its own rounded shape on
+   * transparency, so it is rendered as it comes rather than framed or masked.
+   */
+  logo?: Media
   date: string
   startTime?: string
   endTime?: string

@@ -1,6 +1,8 @@
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 
+import type { Media } from '@/payload-types'
+
 import type { AgendaEvent } from './groupEvents'
 import { dayInFrance, todayInFrance } from './groupEvents'
 
@@ -13,8 +15,11 @@ import { dayInFrance, todayInFrance } from './groupEvents'
  */
 const QUERY_MARGIN_MS = 24 * 60 * 60 * 1000
 
+/** What the card takes from a category: the name it prints, the tile it shows. */
+type CategoryCard = { logo?: Media; title: string }
+
 /**
- * The name of every outing category the given events point at, in one query.
+ * Every outing category the given events point at, in one query.
  *
  * An ordinary outing is named by its category now — « Grande », « Petite » —
  * and its own title carries only what the category cannot say. So the agenda
@@ -23,13 +28,16 @@ const QUERY_MARGIN_MS = 24 * 60 * 60 * 1000
  *
  * Fetched separately rather than by raising the events query to `depth: 1`:
  * that would populate every start location and every upload the rich text
- * references too, none of which this page reads. One extra query against a
- * handful of rows is the cheaper half of that trade.
+ * references too, none of which this page reads. `select` keeps this one
+ * narrow in the same spirit — the name and the logo, not the summary, the slug
+ * or the ordering — and `depth: 1` reaches through to the logo's own record,
+ * which is where its URL and dimensions live. One extra query against five
+ * rows is the cheaper half of that trade.
  */
-const readCategoryTitles = async (
+const readCategories = async (
   payload: Awaited<ReturnType<typeof getPayload>>,
   events: { outingCategory?: unknown }[],
-): Promise<Map<number, string>> => {
+): Promise<Map<number, CategoryCard>> => {
   const ids = [
     ...new Set(
       events.flatMap((doc) => (typeof doc.outingCategory === 'number' ? [doc.outingCategory] : [])),
@@ -40,10 +48,10 @@ const readCategoryTitles = async (
 
   const { docs } = await payload.find({
     collection: 'outingCategories',
-    depth: 0,
+    depth: 1,
     overrideAccess: false,
     pagination: false,
-    select: { title: true },
+    select: { logo: true, title: true },
     where: {
       id: {
         in: ids,
@@ -51,7 +59,18 @@ const readCategoryTitles = async (
     },
   })
 
-  return new Map(docs.map((category) => [category.id, category.title]))
+  return new Map(
+    docs.map((category) => [
+      category.id,
+      {
+        title: category.title,
+        // A category whose logo has not been picked yet comes back as null;
+        // one read at `depth: 0` would come back as a bare id. Neither is
+        // something the card can draw, so only the populated record passes.
+        ...(category.logo && typeof category.logo === 'object' ? { logo: category.logo } : {}),
+      },
+    ]),
+  )
 }
 
 /**
@@ -79,20 +98,21 @@ export const getAgendaEvents = async (): Promise<AgendaEvent[]> => {
     },
   })
 
-  const categoryTitles = await readCategoryTitles(payload, docs)
+  const categories = await readCategories(payload, docs)
 
   return docs.flatMap((doc) => {
     if (!doc.date) return []
 
     const category =
-      typeof doc.outingCategory === 'number' ? categoryTitles.get(doc.outingCategory) : undefined
+      typeof doc.outingCategory === 'number' ? categories.get(doc.outingCategory) : undefined
 
     return [
       {
         // The title is the exception — « Journée interclubs santé » — and the
         // category is the rule. Publishing an event with neither is refused, so
         // one of the two is always here.
-        title: doc.title ?? category,
+        title: doc.title ?? category?.title,
+        logo: category?.logo,
         date: dayInFrance(doc.date),
         startTime: doc.startTime ?? undefined,
         endTime: doc.endTime ?? undefined,
