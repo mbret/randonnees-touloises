@@ -23,13 +23,18 @@ import { cn } from '@/components/ui'
  * square in that space reads as an image that failed to load, where an absence
  * reads as what it is.
  *
- * `min-w-0` on the details, and a break allowed anywhere in them, are what keep
- * that column beside the text at every width rather than only on a desktop.
- * `Item` wraps its own children, and a flex item refuses by default to be
- * narrower than its longest unbreakable word: here the `maps.app.goo.gl` link
- * still pasted in the body text, which is wider than a phone. That one word was
- * enough to throw the whole column onto a line of its own below about 480 px —
- * costing the card 100 px of height to save a width nothing was competing for.
+ * On a phone the column lies down: the tile sits beside the times rather than
+ * above them, which is a row 40 px tall instead of a stack 88 px tall. Height is
+ * what a phone is short of, and the 38 px of width it costs the details there is
+ * the cheaper side of that trade — the reverse of the desktop bargain, where
+ * width is scarce and the fixed `w-14` column is what protects it.
+ *
+ * `min-w-0` on the details, and a break allowed anywhere in them, are what let
+ * either arrangement sit beside the text instead of being thrown onto a line of
+ * its own. `Item` wraps its own children, and a flex item refuses by default to
+ * be narrower than its longest unbreakable word: here the `maps.app.goo.gl` link
+ * still pasted in the body text, which is wider than any phone. That one word
+ * cost the card 100 px of height to save a width nothing was competing for.
  *
  * So the link is allowed to break instead. It is the ugly half of the trade and
  * the temporary half: the meeting point is a `startLocation` now, and the line
@@ -44,7 +49,7 @@ export function EventCard({ content, endTime, logo, startTime, title }: AgendaEv
   return (
     <Item variant="outline">
       {(logo || startTime) && (
-        <ItemMedia className="w-14 flex-col items-start gap-2">
+        <ItemMedia className="w-auto flex-row items-center gap-3 sm:w-14 sm:flex-col sm:items-start sm:gap-2">
           {logo && (
             /* The alt text comes from the media record and is empty there on
              * purpose: the category's name is printed beside the tile, so a
