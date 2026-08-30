@@ -27,7 +27,7 @@ export function EventCard({ content, endTime, startTime, title }: AgendaEvent) {
         </ItemMedia>
       )}
       <ItemContent>
-        <ItemTitle className="text-base">{title}</ItemTitle>
+        {title && <ItemTitle className="text-base">{title}</ItemTitle>}
         {content && (
           <RichText
             className={cn(

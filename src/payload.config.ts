@@ -12,6 +12,7 @@ import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { Locations } from './collections/Locations'
+import { OutingCategories } from './collections/OutingCategories'
 import { Users } from './collections/Users'
 import { Footer } from './Footer/config'
 import { Header } from './cms/globals/header/config'
@@ -149,6 +150,7 @@ export default buildConfig({
     Pages,
     Posts,
     Events,
+    OutingCategories,
     Locations,
     Media,
     Categories,

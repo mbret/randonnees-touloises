@@ -12,8 +12,12 @@ import { todayInFrance } from '@/utilities/parisDay'
  * and no event can slide onto the neighbouring day across a DST change.
  */
 export type AgendaEvent = {
-  /** How the club names it: 'Grande', 'Marche Breathwalk', 'Assemblée générale'… */
-  title: string
+  /**
+   * What the entry adds to its category: 'Marche Breathwalk', 'Assemblée
+   * générale', 'interclubs'. Optional since the category carries the name of an
+   * ordinary outing — 'Grande', 'Petite' — which used to be typed in here.
+   */
+  title?: string
   date: string
   startTime?: string
   endTime?: string

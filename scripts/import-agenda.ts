@@ -125,8 +125,11 @@ const main = async () => {
     },
   })
 
-  const identity = (event: { date: string; startTime?: string | null; title: string }) =>
-    `${event.date}|${event.startTime ?? ''}|${event.title}`
+  // An event's title is optional now that a category can name it; the seed
+  // always carries one, so an untitled event stored in the CMS simply never
+  // matches a line of the seed.
+  const identity = (event: { date: string; startTime?: string | null; title?: string | null }) =>
+    `${event.date}|${event.startTime ?? ''}|${event.title ?? ''}`
 
   const present = new Set(
     existing.map((doc) =>

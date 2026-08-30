@@ -42,7 +42,7 @@ export const getAgendaEvents = async (): Promise<AgendaEvent[]> => {
 
     return [
       {
-        title: doc.title,
+        title: doc.title ?? undefined,
         date: dayInFrance(doc.date),
         startTime: doc.startTime ?? undefined,
         endTime: doc.endTime ?? undefined,

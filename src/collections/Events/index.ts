@@ -25,6 +25,24 @@ const validateTime = (value: unknown) =>
     : 'Indiquez une heure au format HH:MM, par exemple 08:30.'
 
 /**
+ * The title is optional because the outing category now carries what it used to
+ * say — an event titled « Petite » next to a category reading « Petite » is the
+ * same word typed twice, and the one an editor forgets to update is the one the
+ * site shows. What is not allowed is an entry that names itself in neither
+ * place: that renders as a card with a time and nothing else.
+ *
+ * Only checked on publish. Payload skips field validation on drafts, so a
+ * half-filled event still saves and still autosaves.
+ */
+const requireTitleOrCategory = (
+  value: unknown,
+  { data }: { data?: { outingCategory?: unknown } },
+) =>
+  value || data?.outingCategory
+    ? true
+    : 'Donnez un intitulé, ou choisissez une catégorie de sortie.'
+
+/**
  * Anything the club puts on a date: the weekly randonnées, a sortie à la
  * journée, an assemblée générale.
  *
@@ -65,17 +83,18 @@ export const Events: CollectionConfig<'events'> = {
   },
   defaultSort: 'date',
   admin: {
-    defaultColumns: ['date', 'title', 'startTime'],
+    defaultColumns: ['date', 'outingCategory', 'title', 'startTime'],
     useAsTitle: 'title',
   },
   fields: [
     {
       name: 'title',
       type: 'text',
-      required: true,
       label: 'Intitulé',
+      validate: requireTitleOrCategory,
       admin: {
-        description: 'Le nom de l’événement, par exemple « Grande » ou « Assemblée générale ».',
+        description:
+          'Le nom de l’événement quand la catégorie ne suffit pas : « Assemblée générale », « Journée interclubs santé ».',
       },
     },
     {
@@ -88,6 +107,21 @@ export const Events: CollectionConfig<'events'> = {
         date: {
           pickerAppearance: 'dayOnly',
         },
+        position: 'sidebar',
+      },
+    },
+    /**
+     * Which of the club's walks this is. Optional, because an event is not
+     * always an outing — an assemblée générale has no category, and neither has
+     * an event created before this field existed.
+     */
+    {
+      name: 'outingCategory',
+      type: 'relationship',
+      label: 'Catégorie de sortie',
+      relationTo: 'outingCategories',
+      admin: {
+        description: 'Choisissez la catégorie, ou créez-la si le club en propose une nouvelle.',
         position: 'sidebar',
       },
     },
@@ -157,8 +191,11 @@ export const Events: CollectionConfig<'events'> = {
       }),
     },
     {
-      // Kept as the hook for typing events later — a select can be layered on
-      // these without a migration once there is more than randonnées in here.
+      // Superseded by `outingCategory` above, which is what typing an event
+      // turned out to need: one kind per outing, with a logo, in a list of its
+      // own rather than in the general-purpose taxonomy the shop also uses.
+      // Left in place only so that dropping it is a migration of its own, once
+      // production is confirmed to hold no event that uses it.
       name: 'categories',
       type: 'relationship',
       label: 'Catégories',
