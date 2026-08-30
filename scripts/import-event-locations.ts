@@ -316,11 +316,33 @@ async function main() {
       if (coordinates && pinned) {
         const apart = metresApart(coordinates, pinned)
 
-        if (apart > PIN_TOLERANCE_M) {
+        if (apart > SAME_PLACE_MAX_M) {
+          /* Neither pin survives. Past half a kilometre one of the two links is
+           * simply wrong, and nothing here can tell which — the one already
+           * stored is only "first by date", which on the club's own Villey-
+           * Saint-Étienne outings is the one twelve kilometres away. Keeping
+           * either would be a coin toss stored as fact, and a rerun does not
+           * revisit it. So the place keeps its name, loses its pin, and says
+           * so: a location visibly missing a pin invites the one edit that
+           * fixes it, where a confident wrong one invites nothing. */
           conflicts.push(
-            apart > SAME_PLACE_MAX_M
-              ? `${location.title ?? key}: ${label} pins it ${apart} m away — too far to be the same place, so one of the two links is wrong and the one kept may be the wrong one. Fix the event BEFORE the real run: a rerun does not re-derive a pin.`
-              : `${location.title ?? key}: ${label} pins it ${apart} m from the pin already stored — keeping the first`,
+            `${location.title ?? key}: ${label} pins it ${apart} m away — too far to be the same place, so one of the two links is wrong. Pin dropped rather than guessed; set it by hand, and fix the wrong link in the event.`,
+          )
+
+          if (!DRY_RUN) {
+            await payload.update({
+              collection: 'locations',
+              context: { disableRevalidate: true },
+              data: { latitude: null, longitude: null },
+              id: location.id,
+            })
+          }
+
+          location = { ...location, latitude: null, longitude: null }
+          known.set(key, location)
+        } else if (apart > PIN_TOLERANCE_M) {
+          conflicts.push(
+            `${location.title ?? key}: ${label} pins it ${apart} m from the pin already stored — keeping the first`,
           )
         }
       }
