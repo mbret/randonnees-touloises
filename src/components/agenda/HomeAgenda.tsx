@@ -1,12 +1,19 @@
 import React from 'react'
 
 import { AgendaMonth } from './AgendaMonth'
+import { AgendaMonthTabs } from './AgendaMonthTabs'
 import { getAgendaEvents } from './getAgendaEvents'
 import { groupEventsByMonth } from './groupEvents'
 
 /**
- * The whole upcoming programme, a section per month, with all but the first few
- * days of each month behind a disclosure so the page stays scannable.
+ * The upcoming programme, one month on show at a time.
+ *
+ * The club publishes some six weeks ahead, so there are rarely more than two
+ * months here — but laid end to end they were a long, samey scroll, and the
+ * home page has sections below this one. The tabs bound the section's height;
+ * the months they choose between are all server-rendered into the HTML, the
+ * inactive ones merely `hidden`, so nothing is lost to crawlers or to the
+ * browser's own page search. The tab row is the section's only client state.
  *
  * This is the only place the agenda appears — there is no separate programme
  * page, same as the site it replaces — so `/activities` links here by anchor.
@@ -30,10 +37,18 @@ export async function HomeAgenda() {
           Aucun événement n’est programmé pour le moment.
         </p>
       ) : (
-        <div className="mt-12 flex flex-col gap-16">
-          {months.map((month) => (
-            <AgendaMonth key={month.month} previewDays={3} {...month} />
-          ))}
+        <div className="mt-10">
+          <AgendaMonthTabs
+            months={months.map((month) => ({
+              month: month.month,
+              label: month.label,
+              count: month.days.reduce((total, day) => total + day.events.length, 0),
+            }))}
+          >
+            {months.map((month) => (
+              <AgendaMonth key={month.month} {...month} />
+            ))}
+          </AgendaMonthTabs>
         </div>
       )}
     </section>

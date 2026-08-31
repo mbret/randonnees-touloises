@@ -2,11 +2,10 @@ import React from 'react'
 
 import type { AgendaDay, AgendaMonth as AgendaMonthType } from './groupEvents'
 
-import { ChevronDownIcon } from 'lucide-react'
 import { ItemGroup } from '@/components/ui/item'
-import { EventCard } from './EventCard'
-import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/components/ui'
+import { EventCard } from './EventCard'
+import { groupDaysByWeek } from './groupEvents'
 
 function AgendaDayGroup({ date, label, events }: AgendaDay) {
   return (
@@ -28,63 +27,45 @@ function AgendaDayGroup({ date, label, events }: AgendaDay) {
 }
 
 /**
- * One month of the programme: a heading, then every day it holds with its
- * events underneath.
+ * One month of the programme, listed in full: every day it holds, with the
+ * weeks as landmarks between the day headings.
  *
- * The current site puts the days behind a filter and shows one at a time, which
- * hides most of the month behind a click and leaves nothing for search engines.
- * The whole month is listed instead, which also means no client state.
+ * The month used to cap itself at three days with the rest behind a
+ * disclosure, because every month was on the page at once. The tabs above now
+ * show one month at a time, and a reader who picked « Septembre » asked for
+ * September — not for its first three days. What keeps its nineteen day
+ * headings scannable instead is the week line every four or five of them; a
+ * month whose days all fit inside one week doesn't print it, because a
+ * landmark on a path of two steps is noise.
  *
- * `previewDays` caps how many days are on show before the rest go behind a
- * disclosure; leaving it out lists the month in full. The overflow is a plain
- * `<details>` rather than a toggle in React: the days are in the HTML either
- * way — so still crawlable and still findable with the browser's own search —
- * and the section stays free of client-side state.
+ * The heading is for screen readers and anchors only: the tab that opened
+ * this panel already says the month's name, and repeating it in display type
+ * directly underneath would be the same word twice in a row.
  */
-export function AgendaMonth({
-  days,
-  label,
-  month,
-  previewDays,
-}: AgendaMonthType & { previewDays?: number }) {
-  const shown = previewDays === undefined ? days : days.slice(0, previewDays)
-  const hidden = previewDays === undefined ? [] : days.slice(previewDays)
+export function AgendaMonth({ days, label, month }: AgendaMonthType) {
+  const weeks = groupDaysByWeek(days)
 
   return (
     <section aria-labelledby={`agenda-${month}`}>
-      <h3 className="scroll-mt-24 text-2xl font-semibold tracking-tight" id={`agenda-${month}`}>
+      <h3 className="sr-only scroll-mt-24" id={`agenda-${month}`}>
         {label}
       </h3>
 
-      <div className="mt-6 flex flex-col gap-8">
-        {shown.map((day) => (
-          <AgendaDayGroup key={day.date} {...day} />
-        ))}
-
-        {hidden.length > 0 && (
-          <details className="group">
-            <summary
-              className={cn(
-                /* Ghost, not outline: the cards around it are already bordered. */
-                buttonVariants({ variant: 'ghost' }),
-                'w-full cursor-pointer list-none [&::-webkit-details-marker]:hidden',
-              )}
-            >
-              <span className="group-open:hidden">
-                Voir{' '}
-                {hidden.length === 1 ? 'le jour suivant' : `les ${hidden.length} jours suivants`}
-              </span>
-              <span className="hidden group-open:inline">Réduire</span>
-              <ChevronDownIcon className="transition-transform group-open:rotate-180" />
-            </summary>
-
-            <div className="mt-8 flex flex-col gap-8">
-              {hidden.map((day) => (
+      <div className="flex flex-col gap-10">
+        {weeks.map((week) => (
+          <div key={week.start}>
+            {weeks.length > 1 && (
+              <p className="font-display text-primary text-xs font-semibold tracking-widest uppercase">
+                {week.label}
+              </p>
+            )}
+            <div className={cn('flex flex-col gap-8', weeks.length > 1 && 'mt-4')}>
+              {week.days.map((day) => (
                 <AgendaDayGroup key={day.date} {...day} />
               ))}
             </div>
-          </details>
-        )}
+          </div>
+        ))}
       </div>
     </section>
   )
