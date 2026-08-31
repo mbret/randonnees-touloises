@@ -21,11 +21,16 @@ import type { Pin } from './mapLink'
 const TILE_SIZE = 256
 
 /**
- * How close in. 14 is the zoom at which a village fits the window with its
- * approaches: enough to recognise the place and find the car park in it,
- * without the walk's start becoming a street name nobody outside it knows.
+ * How close in.
+ *
+ * A zoom is only meaningful against the size of the window showing it, and the
+ * window here is 112 px — about 1.4 km across at 13, and 700 m at 14. At 14 a
+ * start in Toul was a handful of streets with nothing to place them by; at 13
+ * the same square holds the old town, the ring road round it and the name. That
+ * is what this map is for: not navigating by, which is what the link is for,
+ * but knowing which side of town, in a village or out in the fields.
  */
-const DEFAULT_ZOOM = 14
+const DEFAULT_ZOOM = 13
 
 /** The latitudes Web Mercator can draw. Beyond them the projection runs to infinity. */
 const MERCATOR_LIMIT = 85.05112878

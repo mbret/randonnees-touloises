@@ -11,11 +11,15 @@ import { mapUrl } from '@/utilities/mapLink'
  * A little map of where the walk starts, down the right-hand edge of the card.
  *
  * The name of a place answers « where » only for someone who already knows the
- * place. « Villey-le-Sec, parking de la mairie » tells a member of ten years
- * everything and a newcomer nothing, and the link beside it — the one that
- * settles it — costs a tab, a map app and the loss of the page they were
- * reading. A hundred and sixty pixels of map answers the part a newcomer
- * actually asks: which side of Toul, near what, how far out.
+ * place: « Villey-le-Sec, parking de la mairie » tells a member of ten years
+ * everything and a newcomer nothing.
+ *
+ * A hundred and twelve pixels do not settle it either — the link on the name is
+ * still the thing a walker opens the evening before, and this square is far too
+ * small to work out a route from. What it does is put the place *somewhere*
+ * before the reader has clicked anything: which side of Toul, in a village or
+ * out in the fields, by the river or up on the plateau. The rest of what it is
+ * doing is being pleasant to look at, and it is sized accordingly — see below.
  *
  * Four raster tiles and a pin, computed in `mapTiles` and served straight from
  * OpenStreetMap: no map library, no key, no client-side JavaScript, and nothing
@@ -49,29 +53,35 @@ export function StartLocationMap({ location }: { location: AgendaLocation }) {
       className={cn(
         'bg-muted relative hidden shrink-0 self-start overflow-hidden rounded-md border',
         /**
-         * A square with a side of its own, and the card grows to it — not a
-         * square derived from the card's height.
+         * A square with a side of its own, held at the top — not a square
+         * derived from the card, and not one that stretches to it.
          *
-         * `aspect-square` cannot express the second thing anyway: it sizes a
-         * flex item from its *height*, and the card's height comes from the
-         * card's contents, so the browser resolves the circle by giving the map
-         * its content width, which here is zero. Stretching the height instead
-         * and capping it made the common card square but gave a long one the
-         * worst of both — a portrait strip, neither square nor, once the
-         * mosaic's reach ran out at 256 px, full height either.
+         * `aspect-square` cannot express a square derived from the card anyway:
+         * it sizes a flex item from its *height*, and the card's height comes
+         * from the card's contents, so the browser resolves the circle by
+         * giving the map its content width, which here is zero. Stretching the
+         * height instead was tried and dropped: past 256 px the mosaic has no
+         * more map to show, so a long card got a portrait strip that was
+         * neither square nor flush with it.
          *
-         * A fixed side gives the intended thing on the cards that have room for
-         * it, which is most of them: nothing else on a card is 160 px tall, so
-         * the map is what sets the height and the square fills it exactly. A
-         * long card keeps the same square, held at the top where it is level
-         * with the title and the name it illustrates, and the space beside the
-         * rest of the details reads as the card's own margin rather than as a
-         * map that failed to stretch.
+         * The side is 112 px because a map that decides how tall the cards are
+         * is charging the whole agenda for a decoration. At 160 px it was the
+         * tallest thing on a card and every mapped card came out 194 px, where
+         * the details alone wanted 108 — and being 48 px wider, it also
+         * narrowed the details enough to wrap a long card onto an extra line.
+         * At 112 px the arithmetic goes quiet: a card with two paragraphs is the
+         * height it was before this existed, and only the emptiest card is
+         * stretched at all, from 108 px to 146.
          *
-         * 160 px also sits well inside the 128 px of map the mosaic guarantees
+         * `self-start` for the cards where the details are the taller half: the
+         * square sits level with the title and the name it illustrates, and the
+         * space beside the paragraphs below reads as the card's own margin
+         * rather than as a map that failed to fill.
+         *
+         * 112 px also sits well inside the 128 px of map the mosaic guarantees
          * in every direction around the pin, so the window is always covered.
          */
-        'size-40',
+        'size-28',
         'md:block',
       )}
       href={href}
@@ -140,7 +150,7 @@ export function StartLocationMap({ location }: { location: AgendaLocation }) {
        * pin stands on the location instead of covering it.
        */}
       <MapPinIcon
-        className="fill-brand-orange absolute top-1/2 left-1/2 size-6 -translate-x-1/2 -translate-y-full stroke-white drop-shadow-[0_1px_1px_rgb(0_0_0/0.45)]"
+        className="fill-brand-orange absolute top-1/2 left-1/2 size-5 -translate-x-1/2 -translate-y-full stroke-white drop-shadow-[0_1px_1px_rgb(0_0_0/0.45)]"
         strokeWidth={1.5}
       />
 
@@ -150,9 +160,14 @@ export function StartLocationMap({ location }: { location: AgendaLocation }) {
        * so the credit cannot be left behind by whatever else shows a card
        * later; small and on a wash of the card's own background, so it stays
        * legible over a dark road without becoming the loudest thing here.
+       *
+       * Abbreviated, which OpenStreetMap's own guidance allows where a map is
+       * too small to carry the full credit: spelled out it ran 81 px wide
+       * across a 112 px square and became the thing the eye landed on. The
+       * whole of it is in the frame's `title`, a hover away.
        */}
       <span className="bg-background/75 text-muted-foreground absolute right-0 bottom-0 rounded-tl-sm px-1 text-[9px] leading-4">
-        © OpenStreetMap
+        © OSM
       </span>
     </a>
   )
