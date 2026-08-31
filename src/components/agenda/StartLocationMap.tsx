@@ -47,23 +47,31 @@ export function StartLocationMap({ location }: { location: AgendaLocation }) {
     <a
       aria-hidden="true"
       className={cn(
-        'bg-muted relative hidden shrink-0 self-stretch overflow-hidden rounded-md border',
+        'bg-muted relative hidden shrink-0 self-start overflow-hidden rounded-md border',
         /**
-         * A fixed width and a stretched height, rather than a square asked for
-         * as an aspect ratio. `aspect-square` reads the *height* to size a
-         * flex item, and the card's height is settled after its children's
-         * widths are — so a square sized off a card whose height comes from its
-         * own contents is circular, and the browser resolves the circle by
-         * giving the map its content width, which here is zero.
+         * A square with a side of its own, and the card grows to it — not a
+         * square derived from the card's height.
          *
-         * So the side is the number that is known, and the minimum height makes
-         * the card at least that tall: a card whose details are shorter than the
-         * map — most of them — comes out an exact square, and a long one keeps a
-         * map flush with its full height that is taller than it is wide. The
-         * cap is not taste but arithmetic: the mosaic guarantees 128 px of map
-         * around the pin, so past 256 px a corner of the square would be bare.
+         * `aspect-square` cannot express the second thing anyway: it sizes a
+         * flex item from its *height*, and the card's height comes from the
+         * card's contents, so the browser resolves the circle by giving the map
+         * its content width, which here is zero. Stretching the height instead
+         * and capping it made the common card square but gave a long one the
+         * worst of both — a portrait strip, neither square nor, once the
+         * mosaic's reach ran out at 256 px, full height either.
+         *
+         * A fixed side gives the intended thing on the cards that have room for
+         * it, which is most of them: nothing else on a card is 160 px tall, so
+         * the map is what sets the height and the square fills it exactly. A
+         * long card keeps the same square, held at the top where it is level
+         * with the title and the name it illustrates, and the space beside the
+         * rest of the details reads as the card's own margin rather than as a
+         * map that failed to stretch.
+         *
+         * 160 px also sits well inside the 128 px of map the mosaic guarantees
+         * in every direction around the pin, so the window is always covered.
          */
-        'max-h-64 min-h-40 w-40',
+        'size-40',
         'md:block',
       )}
       href={href}
@@ -85,9 +93,9 @@ export function StartLocationMap({ location }: { location: AgendaLocation }) {
        *
        * The mosaic's top-left corner is put at the centre of the square and then
        * pulled back by where the pin falls inside it, which lands the pin in the
-       * centre whatever size the square ends up. Inline styles because these are
-       * the coordinates of one place: they change with every card, which is
-       * exactly what a stylesheet cannot express.
+       * middle. Inline styles because these are the coordinates of one place:
+       * they change with every card, which is exactly what a stylesheet cannot
+       * express.
        */}
       <div
         className="absolute top-1/2 left-1/2 grid grid-cols-2 dark:brightness-75 dark:saturate-75"
