@@ -29,14 +29,13 @@ export function HomeKeyFigures() {
   return (
     <section aria-label="Le club en chiffres" className="border-border border-b">
       <div className="container py-3.5 text-sm leading-relaxed sm:grid sm:grid-cols-4 sm:divide-x sm:divide-border sm:py-0 sm:text-base">
-        {HOME_FIGURES.map(({ label, short, suffix, value }) => (
+        {HOME_FIGURES.map(({ label, short, value }) => (
           <p
             className="after:text-border inline after:mx-1.5 after:content-['·'] last:after:content-none sm:m-0 sm:block sm:px-6 sm:py-10 sm:after:content-none sm:first:pl-0 sm:last:pr-0"
             key={label}
           >
             <span className="font-display text-brand-orange font-bold whitespace-nowrap sm:block sm:text-3xl sm:leading-none lg:text-4xl">
               {value}
-              {suffix && <sup className="align-super text-[0.5em]">{suffix}</sup>}
             </span>{' '}
             <span className="text-muted-foreground sm:mt-3 sm:block sm:text-sm sm:leading-snug sm:text-balance">
               <span className="sm:hidden">{short ?? label}</span>
