@@ -22,11 +22,12 @@ describe('how a month cuts into weeks', () => {
     expect(groupDaysByWeek([day('2026-09-06')])[0].start).toBe('2026-08-31')
   })
 
+  /** Abbreviated (« sept. »), so the line fits a phone beside its count. */
   it('names a week with one month name when one is enough', () => {
-    expect(groupDaysByWeek([day('2026-09-22')])[0].label).toBe('Semaine du 21 au 27 septembre')
+    expect(groupDaysByWeek([day('2026-09-22')])[0].label).toBe('Semaine du 21 au 27 sept.')
   })
 
   it('spells out both months when the week straddles the turn of one', () => {
-    expect(groupDaysByWeek([day('2026-08-31')])[0].label).toBe('Semaine du 31 août au 6 septembre')
+    expect(groupDaysByWeek([day('2026-08-31')])[0].label).toBe('Semaine du 31 août au 6 sept.')
   })
 })

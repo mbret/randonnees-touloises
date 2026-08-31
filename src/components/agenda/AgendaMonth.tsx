@@ -77,7 +77,7 @@ export function AgendaMonth({ days, label, month }: AgendaMonthType) {
                   <span className="font-display text-primary text-xs font-semibold tracking-widest uppercase">
                     {week.label}
                   </span>
-                  <span className="text-muted-foreground font-mono text-xs tabular-nums">
+                  <span className="text-muted-foreground font-mono text-xs whitespace-nowrap tabular-nums">
                     {outings} {outings > 1 ? 'sorties' : 'sortie'}
                   </span>
                   <ChevronDownIcon className="text-muted-foreground ml-auto size-4 self-center transition-transform group-open:rotate-180" />

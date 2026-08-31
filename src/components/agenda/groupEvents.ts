@@ -122,14 +122,19 @@ const formatDay = (date: string, options: Intl.DateTimeFormatOptions) =>
 export { dayInFrance, todayInFrance } from '@/utilities/parisDay'
 
 /**
- * 'Semaine du 22 au 28 septembre' — the opening month is spelled out only when
- * the week straddles two: 'Semaine du 31 août au 6 septembre'.
+ * 'Semaine du 22 au 28 sept.' — the opening month is spelled out only when the
+ * week straddles two: 'Semaine du 31 août au 6 sept.'.
+ *
+ * The abbreviated month, because this is a line that has to fit a phone with
+ * a count and a chevron beside it — « septembre » alone wrapped it onto two
+ * lines. `Intl` knows the French forms: those that shorten take a point
+ * (sept., janv.), those that don't stay themselves (mai, août).
  */
 const weekLabel = (start: string) => {
   const end = addDays(start, 6)
   const day = (date: string) => new Date(`${date}T12:00:00Z`).getUTCDate()
   const month = (date: string) =>
-    new Intl.DateTimeFormat('fr-FR', { month: 'long', timeZone: 'UTC' }).format(
+    new Intl.DateTimeFormat('fr-FR', { month: 'short', timeZone: 'UTC' }).format(
       new Date(`${date}T12:00:00Z`),
     )
 
