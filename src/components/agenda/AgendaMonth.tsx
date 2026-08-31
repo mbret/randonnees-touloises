@@ -72,7 +72,7 @@ export function AgendaMonth({ days, label, month }: AgendaMonthType) {
             const outings = week.days.reduce((total, day) => total + day.events.length, 0)
 
             return (
-              <details className="group" key={week.start} open={index === 0}>
+              <details className="group details-slide" key={week.start} open={index === 0}>
                 <summary className="flex cursor-pointer list-none items-baseline gap-3 border-b pb-2 [&::-webkit-details-marker]:hidden">
                   <span className="font-display text-primary text-xs font-semibold tracking-widest uppercase">
                     {week.label}
