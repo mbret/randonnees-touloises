@@ -115,3 +115,35 @@ describe('what names an outing on the agenda', () => {
     expect(find).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('the category’s figures on the card', () => {
+  /*
+   * The category's « en deux mots » — '11 à 15 km' — follows its name onto the
+   * card, and only its name: an event that titles itself is the very walk
+   * those figures may not describe, so it keeps its title unadorned.
+   */
+  it('passes the summary through when the category names the outing', async () => {
+    database([event({ outingCategory: 3 })], [{ id: 3, title: 'Grande', summary: '11 à 15 km' }])
+
+    expect(await getAgendaEvents()).toMatchObject([{ title: 'Grande', summary: '11 à 15 km' }])
+  })
+
+  /** The same reading `outingName` gives a cleared intitulé: '' is no title. */
+  it('treats a cleared intitulé as no intitulé at all', async () => {
+    database([event({ outingCategory: 3, title: '' })], [{ id: 3, title: 'Grande', summary: '11 à 15 km' }])
+
+    expect(await getAgendaEvents()).toMatchObject([{ title: 'Grande', summary: '11 à 15 km' }])
+  })
+
+  it('withholds the figures from an event that titles itself', async () => {
+    database(
+      [event({ outingCategory: 3, title: 'Journée interclubs santé' })],
+      [{ id: 3, title: 'Santé', summary: '5 à 6 km' }],
+    )
+
+    const [agendaEvent] = await getAgendaEvents()
+
+    expect(agendaEvent.title).toBe('Journée interclubs santé')
+    expect(agendaEvent.summary).toBeUndefined()
+  })
+})

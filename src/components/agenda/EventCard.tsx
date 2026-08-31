@@ -65,6 +65,7 @@ export function EventCard({
   logo,
   startLocation,
   startTime,
+  summary,
   title,
 }: AgendaEvent) {
   return (
@@ -87,7 +88,17 @@ export function EventCard({
         </ItemMedia>
       )}
       <ItemContent>
-        {title && <ItemTitle className="text-base">{title}</ItemTitle>}
+        {title && (
+          <ItemTitle className="text-base">
+            {title}
+            {/* The category's figures, set as data next to a name — the same
+             * treatment the times get. `ItemTitle` is already a flex row, so
+             * the pair wraps as a unit on a narrow card. */}
+            {summary && (
+              <span className="text-muted-foreground font-mono text-xs font-normal">{summary}</span>
+            )}
+          </ItemTitle>
+        )}
         {startLocation && <StartLocation className="mt-0.5" location={startLocation} />}
         {content && (
           <RichText

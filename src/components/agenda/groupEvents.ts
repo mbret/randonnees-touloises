@@ -30,6 +30,12 @@ export type AgendaEvent = {
   /** Whatever the entry needs to say, laid out however the editor wants. */
   content?: Event['content']
   /**
+   * The category's « en deux mots » — '11 à 15 km' — printed beside the name.
+   * Only present when the category *is* the name: an event titled in its own
+   * words is precisely the walk those figures may not describe.
+   */
+  summary?: string
+  /**
    * Where the walk starts, once it is a document rather than a line of prose.
    * Absent on an event nobody has linked yet, which the card simply omits.
    */
