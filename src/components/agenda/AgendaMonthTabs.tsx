@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 
-import { buttonVariants } from '@/components/ui/button'
+import { Chip } from '@/components/ui/chip'
 import { cn } from '@/components/ui'
 
 export type AgendaTabMonth = {
@@ -121,17 +121,10 @@ export function AgendaMonthTabs({
             role="tablist"
           >
             {months.map((entry, index) => (
-              <button
+              <Chip
                 aria-controls={`agenda-panel-${entry.month}`}
                 aria-label={describe(entry)}
                 aria-selected={index === selected}
-                className={cn(
-                  buttonVariants({
-                    size: 'sm',
-                    variant: index === selected ? 'default' : 'outline',
-                  }),
-                  'rounded-full',
-                )}
                 id={`agenda-tab-${entry.month}`}
                 key={entry.month}
                 onClick={() => select(index)}
@@ -139,8 +132,8 @@ export function AgendaMonthTabs({
                   tabs.current[index] = node
                 }}
                 role="tab"
+                selected={index === selected}
                 tabIndex={index === selected ? 0 : -1}
-                type="button"
               >
                 {/* The year would repeat on every tab; the panel's own heading
                  * keeps the full label for anyone who needs it spelled out. */}
@@ -148,7 +141,7 @@ export function AgendaMonthTabs({
                 <span className="font-mono text-xs font-normal tabular-nums opacity-75">
                   {entry.count}
                 </span>
-              </button>
+              </Chip>
             ))}
           </div>
         </div>
