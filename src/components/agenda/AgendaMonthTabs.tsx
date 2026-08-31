@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Chip } from '@/components/ui/chip'
 import { cn } from '@/components/ui'
@@ -49,6 +49,7 @@ export function AgendaMonthTabs({
 }) {
   const [selected, setSelected] = useState(0)
   const tabs = useRef<(HTMLButtonElement | null)[]>([])
+  const panelRefs = useRef<(HTMLDivElement | null)[]>([])
   /** A scroll owed to the fragment, held until its month's panel is on show. */
   const owed = useRef<{ id: string; index: number } | null>(null)
   const panels = React.Children.toArray(children)
@@ -94,12 +95,51 @@ export function AgendaMonthTabs({
     owed.current = null
   }, [selected])
 
+  const show = useCallback(
+    (index: number) => {
+      setSelected(index)
+      window.history.replaceState(null, '', `#agenda-${months[index].month}`)
+    },
+    [months],
+  )
+
   const select = (index: number) => {
-    setSelected(index)
-    window.history.replaceState(null, '', `#agenda-${months[index].month}`)
+    show(index)
     // On a phone the row scrolls; the picked tab is kept in reach.
     tabs.current[index]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' })
   }
+
+  /*
+   * A boolean `hidden` would defeat the browser's find-in-page: it does not
+   * search such content, so October would be findable by a crawler yet not
+   * by a reader pressing Ctrl+F. `until-found` keeps the folded months
+   * searchable — and since React writes `hidden` back as a boolean on every
+   * commit, the value is restored here after each one. A browser without
+   * `until-found` reads it as the plain `hidden` it already had.
+   */
+  useEffect(() => {
+    panelRefs.current.forEach((panel) => {
+      if (panel?.hasAttribute('hidden')) panel.setAttribute('hidden', 'until-found')
+    })
+  })
+
+  /*
+   * Finding a match in a folded month reveals it: the browser strips the
+   * attribute and says `beforematch`, and the selection follows — or React's
+   * next commit would fold the found text straight back. No tab scroll here:
+   * the browser is about to scroll to the match itself.
+   */
+  useEffect(() => {
+    const cleanups = panelRefs.current.map((panel, index) => {
+      if (!panel) return undefined
+
+      const follow = () => show(index)
+      panel.addEventListener('beforematch', follow)
+      return () => panel.removeEventListener('beforematch', follow)
+    })
+
+    return () => cleanups.forEach((cleanup) => cleanup?.())
+  }, [show])
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
@@ -139,8 +179,6 @@ export function AgendaMonthTabs({
                 selected={index === selected}
                 tabIndex={index === selected ? 0 : -1}
               >
-                {/* The year would repeat on every tab; the panel's own heading
-                 * keeps the full label for anyone who needs it spelled out. */}
                 {entry.label.replace(/\s+\d+$/, '')}
                 <span className="font-mono text-xs font-normal tabular-nums opacity-75">
                   {entry.count}
@@ -161,6 +199,9 @@ export function AgendaMonthTabs({
               hidden={index !== selected}
               id={`agenda-panel-${entry.month}`}
               key={entry.month}
+              ref={(node) => {
+                panelRefs.current[index] = node
+              }}
               role={tabbed ? 'tabpanel' : undefined}
             >
               {panel}

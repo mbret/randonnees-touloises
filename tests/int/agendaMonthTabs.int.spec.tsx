@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 import { AgendaMonthTabs } from '@/components/agenda/AgendaMonthTabs'
 
@@ -78,6 +78,34 @@ describe('AgendaMonthTabs', () => {
     fireEvent.keyDown(tab(/Août/), { key: 'ArrowRight' })
 
     expect(onShow('les sorties de septembre')).toBe(true)
+  })
+
+  it('keeps the folded months searchable, not merely present', () => {
+    renderTabs()
+
+    // A boolean `hidden` is invisible to find-in-page; `until-found` is not.
+    expect(document.getElementById('agenda-panel-2026-09')?.getAttribute('hidden')).toBe(
+      'until-found',
+    )
+    expect(document.getElementById('agenda-panel-2026-08')?.getAttribute('hidden')).toBeNull()
+
+    fireEvent.click(tab(/Septembre/))
+
+    expect(document.getElementById('agenda-panel-2026-08')?.getAttribute('hidden')).toBe(
+      'until-found',
+    )
+  })
+
+  it('follows the browser to a match found behind another tab', () => {
+    renderTabs()
+
+    // Dispatched raw — `beforematch` is the browser's own event, not React's.
+    act(() => {
+      document.getElementById('agenda-panel-2026-09')?.dispatchEvent(new Event('beforematch'))
+    })
+
+    expect(onShow('les sorties de septembre')).toBe(true)
+    expect(window.location.hash).toBe('#agenda-2026-09')
   })
 
   it('offers no tabs when there is only one month to choose from', () => {
