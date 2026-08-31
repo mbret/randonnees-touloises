@@ -9,30 +9,22 @@
  */
 export type KeyFigure = {
   value: string
-  /** Set on an ordinal, so `1` can be drawn as `1ᵉʳ` without the label carrying it. */
-  suffix?: string
   label: string
   /**
    * The same fact in as few words as it takes, for the phone, where the four
    * figures are read as one sentence rather than a table. Not an abbreviation
    * of the label so much as the way you would say it out loud.
    */
-  short?: string
 }
 
 export const KEY_FIGURES = {
   founded: { value: '1987', label: 'Année de création' },
-  members: { value: '260', label: 'Adhérents', short: 'adhérents' },
-  leaders: { value: '20', label: 'Animateurs et animatrices diplômés', short: 'animateurs' },
+  members: { value: '260', label: 'Adhérents' },
+  leaders: { value: '20', label: 'Animateurs et animatrices diplômés' },
   /* U+202F, the narrow no-break space French sets thousands with. It is also
      what stops `59 000` breaking across two lines in a narrow column. */
-  kilometres: { value: '59\u202f000', label: 'Kilomètres parcourus en 2025', short: 'km en 2025' },
-  ranking: {
-    value: '1',
-    suffix: 'er',
-    label: 'Club de Meurthe-et-Moselle',
-    short: 'de Meurthe-et-Moselle',
-  },
+  kilometres: { value: '59\u202f000', label: 'Kilomètres parcourus en 2025' },
+  outings: { value: '342', label: 'Randonnées en 2025' },
 } as const satisfies Record<string, KeyFigure>
 
 /**
@@ -47,12 +39,17 @@ export const ABOUT_FIGURES: KeyFigure[] = [
 
 /**
  * What the home page opens with. The founding year is left out here because the
- * hero says « depuis 1987 » a few lines above; its place goes to the ranking,
- * which is the one figure a visitor cannot infer from the others.
+ * hero says « depuis 1987 » a few lines above; its place goes to the number of
+ * outings, which is the figure that says what the club actually does week to
+ * week rather than how big it is.
+ *
+ * The outings and the kilometres sit last and next to each other because they
+ * are the same season's walking counted two ways, and reading them together is
+ * what stops them looking like unrelated facts.
  */
 export const HOME_FIGURES: KeyFigure[] = [
   KEY_FIGURES.members,
-  KEY_FIGURES.kilometres,
   KEY_FIGURES.leaders,
-  KEY_FIGURES.ranking,
+  KEY_FIGURES.outings,
+  KEY_FIGURES.kilometres,
 ]
