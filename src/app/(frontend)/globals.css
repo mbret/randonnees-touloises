@@ -55,7 +55,20 @@
   }
 
   @media (prefers-reduced-motion: no-preference) {
+    /*
+     * A transition belongs to the state being entered, so the closed state's
+     * times the closing and the open state's the opening. Closing runs at
+     * half the time: opening reveals content the eye wants to settle on,
+     * closing dismisses content already read — a dismissal that lingers
+     * feels like the page dragging its feet.
+     */
     &::details-content {
+      transition:
+        block-size 0.15s ease-in,
+        content-visibility 0.15s allow-discrete;
+    }
+
+    &[open]::details-content {
       transition:
         block-size 0.3s ease,
         content-visibility 0.3s allow-discrete;
