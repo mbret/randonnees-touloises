@@ -156,9 +156,23 @@
    */
   --brand-green: oklch(0.55 0.13 119);
   --brand-green-foreground: oklch(0.985 0.006 75);
-  --brand-orange: oklch(0.672 0.155 54); /* #DD7723 */
-  /* Ink rather than cream: white on this orange is 3.0:1 and fails AA. */
-  --brand-orange-foreground: oklch(0.265 0.017 45);
+  /**
+   * Deeper than the logo prints it, for the same reason the green is: #DD7723
+   * is a light colour and lands at exactly 3.00:1 on the cream — the large-text
+   * bar, with no margin, and under the bar for anything smaller. It was usable
+   * as a ring and unusable as a mark.
+   *
+   * At L 0.58 it reads 4.34:1 on the page and 4.51:1 on a card, so the club's
+   * numbers can be set in it; cream on it is 4.34:1 too, so it can be a fill
+   * carrying a label, which is why the foreground here is the cream rather than
+   * the ink the lighter orange needed. Chroma is the most the hue holds at this
+   * lightness — 0.155 is outside sRGB here.
+   *
+   * The focus ring gets the same lift, off 3.00:1 and onto 4.34:1, which is the
+   * one thing on the page that has to be seen.
+   */
+  --brand-orange: oklch(0.58 0.146 54);
+  --brand-orange-foreground: oklch(0.985 0.006 75);
 
   --background: oklch(0.985 0.006 75);
   --foreground: oklch(0.265 0.017 45);

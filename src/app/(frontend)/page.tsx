@@ -2,6 +2,7 @@ import type { Metadata } from 'next/types'
 
 import { HomeAgenda } from '@/components/agenda/HomeAgenda'
 import { HomeHero } from '@/components/home/HomeHero'
+import { HomeKeyFigures } from '@/components/home/HomeKeyFigures'
 import { HomePrograms } from '@/components/programs/HomePrograms'
 import { servedAt } from '@/seo/servedAt'
 import { SEO_DESCRIPTION } from '@/seo/constants'
@@ -17,6 +18,7 @@ export default function Page() {
   return (
     <>
       <HomeHero />
+      <HomeKeyFigures />
       <HomeAgenda />
       <HomePrograms />
     </>
