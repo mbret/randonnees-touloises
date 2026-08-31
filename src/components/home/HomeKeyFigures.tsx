@@ -5,30 +5,44 @@ import { HOME_FIGURES } from '@/data/keyFigures'
 /**
  * The club stated in four numbers, directly under the hero.
  *
- * A band rather than cards: the figures are one claim made four ways — how many
- * of us, how far, how many of us take the others out, where that puts the club —
- * and boxing each one separately would break a single sentence into four.
+ * Two shapes, one for each thing the band has to be.
  *
- * The numbers take the display face and the club's orange, which until now had
- * no job on the page beyond the focus ring.
+ * From `sm` up it is a band: four cells divided by rules that run its full
+ * height, from the hero's edge down to the bottom rule. The figures are one
+ * claim made four ways — how many of us, how far, how many take the others out,
+ * where that puts the club — and boxing each separately would break a single
+ * sentence into four.
+ *
+ * On a phone it becomes exactly that sentence. Stacked as a band it cost 232px
+ * of the first screen, which is 232px of scrolling before the agenda — the
+ * thing most visitors came for. Set as one run of text it costs 74px, and the
+ * figures still read as figures because the numbers keep the display face and
+ * the club's orange. The labels shorten to the way you would say them aloud,
+ * since « 260 Kilomètres parcourus en 2025 » is a table cell and « 59 000 km en
+ * 2025 » is speech.
+ *
+ * Both shapes are the same markup restyled, not two blocks with one hidden:
+ * only the label text exists twice, and the browser reads whichever the
+ * breakpoint asks for.
  */
 export function HomeKeyFigures() {
   return (
     <section aria-label="Le club en chiffres" className="border-border border-b">
-      {/* The dividers are borders on the cells, and the cells carry the band's
-          vertical padding rather than the grid does — so each rule runs the
-          full height of the band, from the hero's edge down to the bottom rule,
-          instead of stopping at the text. Below `sm` the grid folds to 2×2 and
-          the rules go: a divider that only spans half a row reads as an error. */}
-      <div className="container grid grid-cols-2 gap-y-8 py-10 sm:grid-cols-4 sm:gap-y-0 sm:divide-x sm:divide-border sm:py-0">
-        {HOME_FIGURES.map(({ label, suffix, value }) => (
-          <div className="sm:px-6 sm:py-10 sm:first:pl-0 sm:last:pr-0" key={label}>
-            <p className="font-display text-brand-orange text-3xl leading-none font-bold sm:text-4xl">
+      <div className="container py-3.5 text-sm leading-relaxed sm:grid sm:grid-cols-4 sm:divide-x sm:divide-border sm:py-0 sm:text-base">
+        {HOME_FIGURES.map(({ label, short, suffix, value }) => (
+          <p
+            className="after:text-border inline after:mx-1.5 after:content-['·'] last:after:content-none sm:m-0 sm:block sm:px-6 sm:py-10 sm:after:content-none sm:first:pl-0 sm:last:pr-0"
+            key={label}
+          >
+            <span className="font-display text-brand-orange font-bold whitespace-nowrap sm:block sm:text-3xl sm:leading-none lg:text-4xl">
               {value}
               {suffix && <sup className="align-super text-[0.5em]">{suffix}</sup>}
-            </p>
-            <p className="text-muted-foreground mt-3 text-sm leading-snug text-balance">{label}</p>
-          </div>
+            </span>{' '}
+            <span className="text-muted-foreground sm:mt-3 sm:block sm:text-sm sm:leading-snug sm:text-balance">
+              <span className="sm:hidden">{short ?? label}</span>
+              <span className="hidden sm:inline">{label}</span>
+            </span>
+          </p>
         ))}
       </div>
     </section>

@@ -12,14 +12,27 @@ export type KeyFigure = {
   /** Set on an ordinal, so `1` can be drawn as `1ᵉʳ` without the label carrying it. */
   suffix?: string
   label: string
+  /**
+   * The same fact in as few words as it takes, for the phone, where the four
+   * figures are read as one sentence rather than a table. Not an abbreviation
+   * of the label so much as the way you would say it out loud.
+   */
+  short?: string
 }
 
 export const KEY_FIGURES = {
   founded: { value: '1987', label: 'Année de création' },
-  members: { value: '260', label: 'Adhérents' },
-  leaders: { value: '20', label: 'Animateurs et animatrices diplômés' },
-  kilometres: { value: '59 000', label: 'Kilomètres parcourus en 2025' },
-  ranking: { value: '1', suffix: 'er', label: 'Club de Meurthe-et-Moselle' },
+  members: { value: '260', label: 'Adhérents', short: 'adhérents' },
+  leaders: { value: '20', label: 'Animateurs et animatrices diplômés', short: 'animateurs' },
+  /* U+202F, the narrow no-break space French sets thousands with. It is also
+     what stops `59 000` breaking across two lines in a narrow column. */
+  kilometres: { value: '59\u202f000', label: 'Kilomètres parcourus en 2025', short: 'km en 2025' },
+  ranking: {
+    value: '1',
+    suffix: 'er',
+    label: 'Club de Meurthe-et-Moselle',
+    short: 'de Meurthe-et-Moselle',
+  },
 } as const satisfies Record<string, KeyFigure>
 
 /**
