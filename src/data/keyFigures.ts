@@ -15,17 +15,16 @@ export type KeyFigure = {
    * figures are read as one sentence rather than a table. Not an abbreviation
    * of the label so much as the way you would say it out loud.
    */
-  short?: string
 }
 
 export const KEY_FIGURES = {
   founded: { value: '1987', label: 'Année de création' },
-  members: { value: '260', label: 'Adhérents', short: 'adhérents' },
-  leaders: { value: '20', label: 'Animateurs et animatrices diplômés', short: 'animateurs' },
+  members: { value: '260', label: 'Adhérents' },
+  leaders: { value: '20', label: 'Animateurs et animatrices diplômés' },
   /* U+202F, the narrow no-break space French sets thousands with. It is also
      what stops `59 000` breaking across two lines in a narrow column. */
-  kilometres: { value: '59\u202f000', label: 'Kilomètres parcourus en 2025', short: 'km en 2025' },
-  outings: { value: '342', label: 'Randonnées en 2025', short: 'randonnées' },
+  kilometres: { value: '59\u202f000', label: 'Kilomètres parcourus en 2025' },
+  outings: { value: '342', label: 'Randonnées en 2025' },
 } as const satisfies Record<string, KeyFigure>
 
 /**
@@ -44,12 +43,13 @@ export const ABOUT_FIGURES: KeyFigure[] = [
  * outings, which is the figure that says what the club actually does week to
  * week rather than how big it is.
  *
- * Its short form drops the year: « 59 000 km en 2025 » already sets it two
- * figures earlier, and the sentence should not say 2025 twice.
+ * The outings and the kilometres sit last and next to each other because they
+ * are the same season's walking counted two ways, and reading them together is
+ * what stops them looking like unrelated facts.
  */
 export const HOME_FIGURES: KeyFigure[] = [
   KEY_FIGURES.members,
-  KEY_FIGURES.kilometres,
   KEY_FIGURES.leaders,
   KEY_FIGURES.outings,
+  KEY_FIGURES.kilometres,
 ]
