@@ -86,7 +86,11 @@ export function AgendaMonthTabs({
   useEffect(() => {
     if (owed.current === null || owed.current.index !== selected) return
 
-    document.getElementById(owed.current.id)?.scrollIntoView()
+    const target = document.getElementById(owed.current.id)
+    // A day past the month's preview sits inside a closed <details>, where it
+    // has no box to scroll to — a link someone shared should still land.
+    target?.closest('details')?.setAttribute('open', '')
+    target?.scrollIntoView()
     owed.current = null
   }, [selected])
 
