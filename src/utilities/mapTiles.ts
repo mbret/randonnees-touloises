@@ -9,12 +9,12 @@ import type { Pin } from './mapLink'
  * the same arithmetic — this is that arithmetic and nothing else, because a
  * minimap has nothing to pan or zoom.
  *
- * Tiles come from `tile.openstreetmap.org`, which asks in return for
- * attribution and for no bulk use. Both are met: the credit is printed on every
- * map, the images are lazy so only the cards a reader actually scrolls to fetch
- * anything, and the club leaves from the same three dozen places all year — so
- * a page of a month's walks resolves to a handful of distinct tiles, and the
- * second card leaving from Villey-le-Sec paints from the browser's cache.
+ * The addresses are our own — `/map-tiles/…`, served by the route of that name,
+ * which is the only thing here that knows OpenStreetMap exists. That is a
+ * privacy decision rather than a tidiness one: tiles addressed to
+ * `tile.openstreetmap.org` would have every visitor's browser announce its IP
+ * address to a third party on page load, which is not what the site's privacy
+ * notice says happens. See the route for the rest of it.
  */
 
 /** OpenStreetMap serves 256 px tiles, and every offset below is in those pixels. */
@@ -24,13 +24,24 @@ const TILE_SIZE = 256
  * How close in.
  *
  * A zoom is only meaningful against the size of the window showing it, and the
- * window here is 112 px — about 1.4 km across at 13, and 700 m at 14. At 14 a
+ * window here is 100 px — about 1.2 km across at 13, and 600 m at 14. At 14 a
  * start in Toul was a handful of streets with nothing to place them by; at 13
  * the same square holds the old town, the ring road round it and the name. That
  * is what this map is for: not navigating by, which is what the link is for,
  * but knowing which side of town, in a village or out in the fields.
+ *
+ * Exported because the route serving the tiles refuses every other zoom: a path
+ * that answered for all twenty would be a general-purpose OpenStreetMap mirror
+ * with the club's name on it, which is the one thing their usage policy asks
+ * people not to build.
  */
-const DEFAULT_ZOOM = 13
+export const TILE_ZOOM = 13
+
+/**
+ * Where a tile is asked for. One function, so the route that answers these and
+ * the cards that ask for them cannot drift apart on the shape of the path.
+ */
+export const tilePath = (zoom: number, x: number, y: number) => `/map-tiles/${zoom}/${x}/${y}`
 
 /** The latitudes Web Mercator can draw. Beyond them the projection runs to infinity. */
 const MERCATOR_LIMIT = 85.05112878
@@ -91,7 +102,7 @@ const project = (latitude: number, longitude: number, zoom: number) => {
  */
 export const mapMosaic = (
   { latitude, longitude }: Pin,
-  zoom: number = DEFAULT_ZOOM,
+  zoom: number = TILE_ZOOM,
 ): MapMosaic | undefined => {
   if (typeof latitude !== 'number' || typeof longitude !== 'number') return undefined
 
@@ -105,12 +116,7 @@ export const mapMosaic = (
       const tileX = (((firstColumn + column) % columns) + columns) % columns
       const tileY = firstRow + row
 
-      return {
-        url: `https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png`,
-        x: tileX,
-        y: tileY,
-        z: zoom,
-      }
+      return { url: tilePath(zoom, tileX, tileY), x: tileX, y: tileY, z: zoom }
     }),
   )
 

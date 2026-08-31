@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { mapMosaic } from '@/utilities/mapTiles'
+import { mapMosaic, TILE_ZOOM } from '@/utilities/mapTiles'
 
 /** Where the club's office is, near enough: rue de la Comédie, Toul. */
 const TOUL = { latitude: 48.6752, longitude: 5.8919 }
@@ -12,15 +12,24 @@ describe('the tiles a minimap is drawn from', () => {
     expect(mapMosaic({})).toBeUndefined()
   })
 
-  it('asks OpenStreetMap for four neighbouring tiles at the requested zoom', () => {
+  /*
+   * Our own addresses, not OpenStreetMap's — see the route of that name for why
+   * the reader's browser is kept out of it. This is the test that fails if a
+   * tile ever goes back to being fetched from a third party by the card itself.
+   */
+  it('asks this site for four neighbouring tiles at the requested zoom', () => {
     const mosaic = mapMosaic(TOUL, 14)!
 
     expect(mosaic.tiles.map((tile) => tile.url)).toEqual([
-      'https://tile.openstreetmap.org/14/8459/5648.png',
-      'https://tile.openstreetmap.org/14/8460/5648.png',
-      'https://tile.openstreetmap.org/14/8459/5649.png',
-      'https://tile.openstreetmap.org/14/8460/5649.png',
+      '/map-tiles/14/8459/5648',
+      '/map-tiles/14/8460/5648',
+      '/map-tiles/14/8459/5649',
+      '/map-tiles/14/8460/5649',
     ])
+  })
+
+  it('draws at a zoom the tile route will actually answer for', () => {
+    expect(mapMosaic(TOUL)!.tiles[0].z).toBe(TILE_ZOOM)
   })
 
   /*

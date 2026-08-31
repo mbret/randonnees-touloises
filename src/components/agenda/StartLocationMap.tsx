@@ -14,24 +14,30 @@ import { mapUrl } from '@/utilities/mapLink'
  * place: « Villey-le-Sec, parking de la mairie » tells a member of ten years
  * everything and a newcomer nothing.
  *
- * A hundred and twelve pixels do not settle it either — the link on the name is
- * still the thing a walker opens the evening before, and this square is far too
- * small to work out a route from. What it does is put the place *somewhere*
+ * A hundred pixels do not settle it either — the link on the name is still the
+ * thing a walker opens the evening before, and this square is far too small to
+ * work out a route from. What it does is put the place *somewhere*
  * before the reader has clicked anything: which side of Toul, in a village or
  * out in the fields, by the river or up on the plateau. The rest of what it is
  * doing is being pleasant to look at, and it is sized accordingly — see below.
  *
- * Four raster tiles and a pin, computed in `mapTiles` and served straight from
- * OpenStreetMap: no map library, no key, no client-side JavaScript, and nothing
- * that runs on hydration. The square is `overflow-hidden` and the tiles are
- * shifted under it — see the note on the layer below — which is the whole of the
- * mechanism.
+ * Four raster tiles and a pin: no map library, no key, no client-side
+ * JavaScript, and nothing that runs on hydration. `mapTiles` works out which
+ * four and where the point falls in them, the `/map-tiles` route fetches them
+ * from OpenStreetMap so that the reader's browser never has to, and the square
+ * here is `overflow-hidden` with the tiles shifted under it — see the note on
+ * the layer below. That is the whole of the mechanism.
  *
- * It is a *second* way of saying what `StartLocation` already says, so it is
- * `aria-hidden` and out of the tab order: a screen reader announces the name
- * and its link once, and the map is the picture beside them. Clicking it opens
- * the same map the name links to, because a map that ignores a click reads as
- * broken.
+ * It is a *second* way of saying what `StartLocation` already says, so the whole
+ * square is `aria-hidden` and out of the tab order: a screen reader announces
+ * the name and its link once, and the map is the picture beside them.
+ *
+ * Two things in it are still clickable, and neither may contain the other. The
+ * square opens the same map the name links to, because a map that ignores a
+ * click reads as broken; the credit goes to OpenStreetMap's copyright page,
+ * because their attribution guidance asks that it does. An `<a>` cannot be
+ * nested in an `<a>`, so the frame is a plain box, the map's link is a
+ * transparent sheet laid over the tiles, and the credit sits on top of it.
  *
  * Hidden below `md`, where the card gives its whole width to the details and
  * every block in it takes a line of its own. A square this size would be a
@@ -48,7 +54,7 @@ export function StartLocationMap({ location }: { location: AgendaLocation }) {
   if (!mosaic || !href) return null
 
   return (
-    <a
+    <div
       aria-hidden="true"
       className={cn(
         'bg-muted relative hidden shrink-0 self-start overflow-hidden rounded-md border',
@@ -64,30 +70,26 @@ export function StartLocationMap({ location }: { location: AgendaLocation }) {
          * more map to show, so a long card got a portrait strip that was
          * neither square nor flush with it.
          *
-         * The side is 112 px because a map that decides how tall the cards are
+         * The side is 100 px because a map that decides how tall the cards are
          * is charging the whole agenda for a decoration. At 160 px it was the
          * tallest thing on a card and every mapped card came out 194 px, where
-         * the details alone wanted 108 — and being 48 px wider, it also
+         * the details alone wanted 108 — and being 60 px wider, it also
          * narrowed the details enough to wrap a long card onto an extra line.
-         * At 112 px the arithmetic goes quiet: a card with two paragraphs is the
+         * At 100 px the arithmetic goes quiet: a card with two paragraphs is the
          * height it was before this existed, and only the emptiest card is
-         * stretched at all, from 108 px to 146.
+         * stretched at all, from 108 px to 134.
          *
          * `self-start` for the cards where the details are the taller half: the
          * square sits level with the title and the name it illustrates, and the
          * space beside the paragraphs below reads as the card's own margin
          * rather than as a map that failed to fill.
          *
-         * 112 px also sits well inside the 128 px of map the mosaic guarantees
+         * 100 px also sits well inside the 128 px of map the mosaic guarantees
          * in every direction around the pin, so the window is always covered.
          */
-        'size-28',
+        'size-25',
         'md:block',
       )}
-      href={href}
-      rel="noopener noreferrer"
-      tabIndex={-1}
-      target="_blank"
       title="Fond de carte © OpenStreetMap"
     >
       {/*
@@ -117,13 +119,18 @@ export function StartLocationMap({ location }: { location: AgendaLocation }) {
       >
         {mosaic.tiles.map((tile) => (
           /*
-           * A plain `img`, not `next/image`. These are already the finished
-           * article — 256 px PNGs, cut and cached by a tile server whose whole
-           * job is serving them — so the optimiser would re-encode them for
-           * nothing, on a paid budget, and listing a tile host in
-           * `remotePatterns` would point `/_next/image` at a URL space with
-           * millions of addresses in it. `loading="lazy"` is the part that
-           * matters here, and it needs no help.
+           * A plain `img`, not `next/image`, which has nothing to do here.
+           *
+           * Its work is resizing, re-encoding and picking a candidate per
+           * viewport. A tile arrives 256 px square and is drawn 256 px square —
+           * the window over the mosaic is what makes the map small, not any
+           * scaling of these images — so there is one size, no `srcset` to
+           * choose from, and nothing to resize. What is left is a re-encode of a
+           * PNG that a tile server already cut for this purpose, at a
+           * per-transformation price, into a second cache in front of the CDN
+           * cache the `/map-tiles` route already gets. And `loading="lazy"`,
+           * which is the part that actually matters on a page holding a month of
+           * walks, is a plain attribute that needs no help.
            */
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -155,20 +162,40 @@ export function StartLocationMap({ location }: { location: AgendaLocation }) {
       />
 
       {/*
-       * Attribution, which is what the tile server asks for in return. It
+       * The map's own link, as a sheet over the tiles rather than a box round
+       * them, so that the credit can be a link of its own. It covers the pin as
+       * well: the pin is the place, and opening the place is the one thing this
+       * square can usefully do with a click.
+       */}
+      <a
+        className="absolute inset-0"
+        href={href}
+        rel="noopener noreferrer"
+        tabIndex={-1}
+        target="_blank"
+      />
+
+      {/*
+       * Attribution, which is what the tile server asks for in return — and it
+       * asks specifically that the credit link to its copyright page, so this is
+       * a link, sitting on top of the sheet above rather than inside it. It
        * travels with the map rather than sitting once at the foot of the page,
-       * so the credit cannot be left behind by whatever else shows a card
-       * later; small and on a wash of the card's own background, so it stays
-       * legible over a dark road without becoming the loudest thing here.
+       * so the credit cannot be left behind by whatever else shows a card later.
        *
        * Abbreviated, which OpenStreetMap's own guidance allows where a map is
-       * too small to carry the full credit: spelled out it ran 81 px wide
-       * across a 112 px square and became the thing the eye landed on. The
-       * whole of it is in the frame's `title`, a hover away.
+       * too small to carry the full credit: spelled out it ran 81 px wide across
+       * a 100 px square and became the thing the eye landed on. The whole of it
+       * is in the frame's `title`, a hover away.
        */}
-      <span className="bg-background/75 text-muted-foreground absolute right-0 bottom-0 rounded-tl-sm px-1 text-[9px] leading-4">
+      <a
+        className="bg-background/75 text-muted-foreground hover:text-foreground absolute right-0 bottom-0 rounded-tl-sm px-1 text-[9px] leading-4"
+        href="https://www.openstreetmap.org/copyright"
+        rel="noopener noreferrer"
+        tabIndex={-1}
+        target="_blank"
+      >
         © OSM
-      </span>
-    </a>
+      </a>
+    </div>
   )
 }
