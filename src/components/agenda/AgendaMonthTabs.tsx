@@ -54,6 +54,14 @@ export function AgendaMonthTabs({
   const owed = useRef<{ id: string; index: number } | null>(null)
   const panels = React.Children.toArray(children)
 
+  /*
+   * One year across every tab would be the same four digits repeated, so it
+   * is left to the panels — but a programme spanning New Year has two, and
+   * « Décembre · Janvier » with no year in sight leaves the reader to guess
+   * which January. The year stays on the tabs exactly when it could differ.
+   */
+  const oneYear = new Set(months.map(({ label }) => label.match(/\d{4}$/)?.[0])).size <= 1
+
   /* A lone month needs no chrome for choosing between one thing — and with no
    * tablist rendered, panel roles would point at tabs that don't exist. */
   const tabbed = months.length > 1
@@ -179,7 +187,7 @@ export function AgendaMonthTabs({
                 selected={index === selected}
                 tabIndex={index === selected ? 0 : -1}
               >
-                {entry.label.replace(/\s+\d+$/, '')}
+                {oneYear ? entry.label.replace(/\s+\d+$/, '') : entry.label}
                 <span className="font-mono text-xs font-normal tabular-nums opacity-75">
                   {entry.count}
                 </span>

@@ -108,6 +108,28 @@ describe('AgendaMonthTabs', () => {
     expect(window.location.hash).toBe('#agenda-2026-09')
   })
 
+  it('says the year on the tabs only when two are on them', () => {
+    renderTabs()
+
+    expect(tab(/Août/).textContent).not.toContain('2026')
+
+    cleanup()
+    render(
+      <AgendaMonthTabs
+        months={[
+          { month: '2026-12', label: 'Décembre 2026', count: 4 },
+          { month: '2027-01', label: 'Janvier 2027', count: 9 },
+        ]}
+      >
+        <p>décembre</p>
+        <p>janvier</p>
+      </AgendaMonthTabs>,
+    )
+
+    expect(tab(/Décembre/).textContent).toContain('2026')
+    expect(tab(/Janvier/).textContent).toContain('2027')
+  })
+
   it('offers no tabs when there is only one month to choose from', () => {
     render(
       <AgendaMonthTabs months={[MONTHS[1]]}>
