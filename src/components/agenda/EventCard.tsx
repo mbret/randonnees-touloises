@@ -7,6 +7,7 @@ import RichText from '@/components/RichText'
 import { Item, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { cn } from '@/components/ui'
 import { StartLocation } from './StartLocation'
+import { StartLocationMap } from './StartLocationMap'
 
 /**
  * A single event: the club's pictogram and the departure and return times down
@@ -47,6 +48,11 @@ import { StartLocation } from './StartLocation'
  * width of a phone. `justify-start` comes with the full width: `ItemMedia`
  * centres its contents, which shrink-wrapped was invisible and across a whole
  * line would float the tile into the middle of the card.
+ *
+ * Down the other edge, from `md` up, is a little map of the start — see
+ * `StartLocationMap` for why it is there and why a phone does not get one. It is
+ * the only part of the card that is not text, and the only part that is not
+ * something an editor typed.
  *
  * The details deliberately opt out of `prose`: it caps its width at 65ch and
  * centres what is left, which indents the text away from the title, and it sizes
@@ -97,6 +103,11 @@ export function EventCard({
           />
         )}
       </ItemContent>
+      {/* Last in the source and last in the row: the map is the one block on
+          the card that a reader can also do without, and on a phone it is not
+          drawn at all. Putting it here means the order the card is read in and
+          the order it is laid out in are the same one. */}
+      {startLocation && <StartLocationMap location={startLocation} />}
     </Item>
   )
 }
