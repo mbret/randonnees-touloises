@@ -27,6 +27,55 @@
   }
 }
 
+/**
+ * A `<details>` whose content slides open instead of appearing.
+ *
+ * The platform animates the native element now: `::details-content` is the
+ * box the browser toggles, and `interpolate-size` lets its height transition
+ * to `auto`. Kept as CSS on the real `<details>` rather than an accordion
+ * component, because everything the agenda's folds rely on — no client
+ * state, content in the HTML, find-in-page opening a closed fold by itself —
+ * is the element's own behaviour. A browser that knows none of this simply
+ * snaps open, which is what every browser did yesterday.
+ *
+ * `content-visibility` rides along `allow-discrete` so closing content stays
+ * visible while its height leaves; without it the text vanishes on the first
+ * frame and the fold closes empty.
+ */
+@utility details-slide {
+  interpolate-size: allow-keywords;
+
+  &::details-content {
+    block-size: 0;
+    overflow-y: clip;
+  }
+
+  &[open]::details-content {
+    block-size: auto;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /*
+     * A transition belongs to the state being entered, so the closed state's
+     * times the closing and the open state's the opening. Closing runs at
+     * half the time: opening reveals content the eye wants to settle on,
+     * closing dismisses content already read — a dismissal that lingers
+     * feels like the page dragging its feet.
+     */
+    &::details-content {
+      transition:
+        block-size 0.15s ease-in,
+        content-visibility 0.15s allow-discrete;
+    }
+
+    &[open]::details-content {
+      transition:
+        block-size 0.3s ease,
+        content-visibility 0.3s allow-discrete;
+    }
+  }
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

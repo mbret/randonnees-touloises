@@ -30,6 +30,12 @@ export type AgendaEvent = {
   /** Whatever the entry needs to say, laid out however the editor wants. */
   content?: Event['content']
   /**
+   * The category's « en deux mots » — '11 à 15 km' — printed beside the name.
+   * Only present when the category *is* the name: an event titled in its own
+   * words is precisely the walk those figures may not describe.
+   */
+  summary?: string
+  /**
    * Where the walk starts, once it is a document rather than a line of prose.
    * Absent on an event nobody has linked yet, which the card simply omits.
    */
@@ -72,7 +78,30 @@ export type AgendaMonth = {
   days: AgendaDay[]
 }
 
+export type AgendaWeek = {
+  /** The week's Monday as 'YYYY-MM-DD', for keys — even when no day falls on it. */
+  start: string
+  /** 'Semaine du 22 au 28 septembre' */
+  label: string
+  days: AgendaDay[]
+}
+
 const capitalise = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
+
+/**
+ * Day arithmetic on `YYYY-MM-DD` strings, at noon UTC for the same reason
+ * `formatDay` reads there: noon is the same calendar day in every timezone the
+ * runtime could be set to, so adding days can never slip across midnight.
+ */
+const addDays = (date: string, days: number) => {
+  const noon = new Date(`${date}T12:00:00Z`)
+  noon.setUTCDate(noon.getUTCDate() + days)
+  return noon.toISOString().slice(0, 10)
+}
+
+/** The Monday opening the week a day falls in. `getUTCDay` counts from Sunday. */
+const mondayOf = (date: string) =>
+  addDays(date, -((new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7))
 
 /**
  * Formats a `YYYY-MM-DD` day in French without handing the runtime any say in
@@ -91,6 +120,52 @@ const formatDay = (date: string, options: Intl.DateTimeFormatOptions) =>
  * programme reads the same stored-timestamp-to-Paris-day rule.
  */
 export { dayInFrance, todayInFrance } from '@/utilities/parisDay'
+
+/**
+ * 'Semaine du 22 au 28 sept.' — the opening month is spelled out only when the
+ * week straddles two: 'Semaine du 31 août au 6 sept.'.
+ *
+ * The abbreviated month, because this is a line that has to fit a phone with
+ * a count and a chevron beside it — « septembre » alone wrapped it onto two
+ * lines. `Intl` knows the French forms: those that shorten take a point
+ * (sept., janv.), those that don't stay themselves (mai, août).
+ */
+const weekLabel = (start: string) => {
+  const end = addDays(start, 6)
+  const day = (date: string) => new Date(`${date}T12:00:00Z`).getUTCDate()
+  const month = (date: string) =>
+    new Intl.DateTimeFormat('fr-FR', { month: 'short', timeZone: 'UTC' }).format(
+      new Date(`${date}T12:00:00Z`),
+    )
+
+  const opening = month(start) === month(end) ? '' : ` ${month(start)}`
+
+  return `Semaine du ${day(start)}${opening} au ${day(end)} ${month(end)}`
+}
+
+/**
+ * Cuts one month's days into calendar weeks, Monday to Sunday, so a month
+ * shown in full has a landmark every few day headings. Weeks nobody walks in
+ * simply don't appear, and a week straddling two months turns up in both —
+ * each month keeping only its own days of it.
+ */
+export const groupDaysByWeek = (days: AgendaDay[]): AgendaWeek[] => {
+  const weeks: AgendaWeek[] = []
+
+  for (const day of days) {
+    const start = mondayOf(day.date)
+    let week = weeks.at(-1)
+
+    if (week?.start !== start) {
+      week = { start, label: weekLabel(start), days: [] }
+      weeks.push(week)
+    }
+
+    week.days.push(day)
+  }
+
+  return weeks
+}
 
 /**
  * Turns a flat list of events into the month → day → events shape the agenda

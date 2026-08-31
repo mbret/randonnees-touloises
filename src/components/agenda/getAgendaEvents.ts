@@ -15,8 +15,8 @@ import { dayInFrance, outingName, todayInFrance } from './groupEvents'
  */
 const QUERY_MARGIN_MS = 24 * 60 * 60 * 1000
 
-/** What the card takes from a category: the name it prints, the tile it shows. */
-type CategoryCard = { logo?: Media; title: string }
+/** What the card takes from a category: name, tile, and the « en deux mots ». */
+type CategoryCard = { logo?: Media; summary?: string; title: string }
 
 /**
  * Every outing category the given events point at, in one query.
@@ -51,7 +51,7 @@ const readCategories = async (
     depth: 1,
     overrideAccess: false,
     pagination: false,
-    select: { logo: true, title: true },
+    select: { logo: true, summary: true, title: true },
     where: {
       id: {
         in: ids,
@@ -64,6 +64,7 @@ const readCategories = async (
       category.id,
       {
         title: category.title,
+        ...(category.summary ? { summary: category.summary } : {}),
         // A category whose logo has not been picked yet comes back as null;
         // one read at `depth: 0` would come back as a bare id. Neither is
         // something the card can draw, so only the populated record passes.
@@ -151,6 +152,11 @@ export const getAgendaEvents = async (): Promise<AgendaEvent[]> => {
         // category is the rule. Publishing an event with neither is refused, so
         // one of the two is always here.
         title: outingName(doc.title, category?.title),
+        // The category's figures follow its name onto the card, and only its
+        // name: an event that titles itself is the very walk « 11 à 15 km »
+        // may not describe. Whether it did is read the way `outingName` reads
+        // it — a cleared or whitespace intitulé is no intitulé.
+        ...(!outingName(doc.title) && category?.summary ? { summary: category.summary } : {}),
         logo: category?.logo,
         date: dayInFrance(doc.date),
         startTime: doc.startTime ?? undefined,
