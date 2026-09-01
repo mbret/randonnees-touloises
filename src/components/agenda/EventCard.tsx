@@ -112,17 +112,25 @@ export function EventCard({
              * large enough to carry that wordmark would be taller than the
              * line and would push the two apart on every santé card.
              *
-             * Its alt text comes from the media record, and unlike the
-             * pictogram's it must not be empty: the tile repeats a name printed
-             * beside it, where this says something written nowhere else on the
-             * card. */}
+             * Unlike the pictogram it must not go unnamed: the tile repeats a
+             * name printed beside it, where this says something written nowhere
+             * else on the card. Its name is the media record's alt text, which
+             * `ImageMedia` reads for us — but a record nobody has captioned
+             * becomes `alt=""` there, decorative and silent, and an editor
+             * cannot be relied on to have filled a field the card does not
+             * show. So the blank case gets a generic name of its own instead:
+             * announced as « Label officiel » rather than skipped. Only the
+             * blank case, so a captioned record is never read out twice. */}
             {credential && (
-              <Media
-                htmlElement={null}
-                imgClassName="h-[22px] w-auto shrink-0"
-                resource={credential}
-                size="39px"
-              />
+              <>
+                <Media
+                  htmlElement={null}
+                  imgClassName="h-[22px] w-auto shrink-0"
+                  resource={credential}
+                  size="39px"
+                />
+                {!credential.alt?.trim() && <span className="sr-only">Label officiel</span>}
+              </>
             )}
           </ItemTitle>
         )}

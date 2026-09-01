@@ -89,6 +89,11 @@ export const OutingCategories: CollectionConfig<'outingCategories'> = {
       type: 'upload',
       label: 'Label officiel',
       relationTo: 'media',
+      /* Images only. The media collection accepts any file, and `Media`
+       * dispatches on the mime type: a video picked here would reach
+       * `VideoMedia`, which ignores the size the card asks for and plays it
+       * muted on a loop in the middle of the title. */
+      filterOptions: { mimeType: { contains: 'image' } },
       admin: {
         description:
           'Le label que la réglementation impose d’afficher avec ces sorties, par exemple ' +
