@@ -24,6 +24,14 @@ export type AgendaEvent = {
    * transparency, so it is rendered as it comes rather than framed or masked.
    */
   logo?: Media
+  /**
+   * The official label the category's walks have to be announced with — the
+   * FFRandonnée « label Santé » on a rando santé. A credential rather than
+   * decoration: it is printed because a regulation says it must appear beside
+   * the walk, which is why it survives at a size where its own small print
+   * does not.
+   */
+  credential?: Media
   date: string
   startTime?: string
   endTime?: string

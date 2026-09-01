@@ -61,6 +61,7 @@ import { StartLocationMap } from './StartLocationMap'
  */
 export function EventCard({
   content,
+  credential,
   endTime,
   logo,
   startLocation,
@@ -88,14 +89,40 @@ export function EventCard({
         </ItemMedia>
       )}
       <ItemContent>
+        {/* `flex-wrap` because `ItemTitle` has none of its own and is `w-fit`:
+         * a long intitulé plus the label would not wrap, it would overflow the
+         * card, and the part pushed out would be the label — the one part a
+         * regulation requires. An editor types the intitulé, so its length is
+         * not ours to bound. Wrapping costs a second line on the few cards
+         * that need it, and makes true what the note below already claimed. */}
         {title && (
-          <ItemTitle className="text-base">
+          <ItemTitle className="flex-wrap text-base">
             {title}
             {/* The category's figures, set as data next to a name — the same
              * treatment the times get. `ItemTitle` is already a flex row, so
              * the pair wraps as a unit on a narrow card. */}
             {summary && (
               <span className="text-muted-foreground font-mono text-xs font-normal">{summary}</span>
+            )}
+            {/* The label the walk is obliged to be announced with, beside the
+             * name it qualifies. Sized to the title's line rather than to its
+             * own small print: at 22 px « label Santé » reads and the
+             * FFRandonnée wordmark under it does not, which the requirement
+             * allows — the label has to be there, not to be readable. Anything
+             * large enough to carry that wordmark would be taller than the
+             * line and would push the two apart on every santé card.
+             *
+             * Its alt text comes from the media record, and unlike the
+             * pictogram's it must not be empty: the tile repeats a name printed
+             * beside it, where this says something written nowhere else on the
+             * card. */}
+            {credential && (
+              <Media
+                htmlElement={null}
+                imgClassName="h-[22px] w-auto shrink-0"
+                resource={credential}
+                size="39px"
+              />
             )}
           </ItemTitle>
         )}

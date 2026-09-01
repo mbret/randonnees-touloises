@@ -13,6 +13,7 @@ import * as migration_20260828_150007_program_registration_status from './202608
 import * as migration_20260829_program_availability_and_audience from './20260829_program_availability_and_audience';
 import * as migration_20260830_092729_event_start_location from './20260830_092729_event_start_location';
 import * as migration_20260830_110506_outing_categories from './20260830_110506_outing_categories';
+import * as migration_20260901_143542_outing_category_credential from './20260901_143542_outing_category_credential';
 
 export const migrations = [
   {
@@ -88,6 +89,11 @@ export const migrations = [
   {
     up: migration_20260830_110506_outing_categories.up,
     down: migration_20260830_110506_outing_categories.down,
-    name: '20260830_110506_outing_categories'
+    name: '20260830_110506_outing_categories',
+  },
+  {
+    up: migration_20260901_143542_outing_category_credential.up,
+    down: migration_20260901_143542_outing_category_credential.down,
+    name: '20260901_143542_outing_category_credential'
   },
 ];

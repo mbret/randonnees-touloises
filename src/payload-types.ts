@@ -1367,6 +1367,10 @@ export interface OutingCategory {
    */
   logo?: (number | null) | Media;
   /**
+   * Le label que la réglementation impose d’afficher avec ces sorties, par exemple « label Santé » de la FFRandonnée. Renseignez le texte alternatif du média : contrairement au pictogramme, ce label dit quelque chose qui n’est écrit nulle part ailleurs.
+   */
+  credential?: (number | null) | Media;
+  /**
    * La distance ou le rythme, tels qu’ils sont annoncés : « 11 à 15 km ».
    */
   summary?: string | null;
@@ -2089,6 +2093,7 @@ export interface EventsSelect<T extends boolean = true> {
 export interface OutingCategoriesSelect<T extends boolean = true> {
   title?: T;
   logo?: T;
+  credential?: T;
   summary?: T;
   sortOrder?: T;
   generateSlug?: T;
