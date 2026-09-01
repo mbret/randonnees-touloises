@@ -15,8 +15,11 @@ import { dayInFrance, outingName, todayInFrance } from './groupEvents'
  */
 const QUERY_MARGIN_MS = 24 * 60 * 60 * 1000
 
-/** What the card takes from a category: name, tile, and the « en deux mots ». */
-type CategoryCard = { logo?: Media; summary?: string; title: string }
+/**
+ * What the card takes from a category: name, tile, the « en deux mots », and
+ * the official label the walk has to be announced with.
+ */
+type CategoryCard = { credential?: Media; logo?: Media; summary?: string; title: string }
 
 /**
  * Every outing category the given events point at, in one query.
@@ -28,9 +31,9 @@ type CategoryCard = { logo?: Media; summary?: string; title: string }
  *
  * Fetched separately rather than by raising the events query to `depth: 1`:
  * that would populate every upload the rich text references too, which this
- * page never reads. `select` keeps this one narrow in the same spirit — the
- * name and the logo, not the summary, the slug or the ordering — and
- * `depth: 1` reaches through to the logo's own record, which is where its URL
+ * page never reads. `select` keeps this one narrow in the same spirit — what
+ * the card prints, not the slug or the ordering — and `depth: 1` reaches
+ * through to the logo's and the label's own records, which is where their URLs
  * and dimensions live. One extra query against five rows is the cheaper half
  * of that trade.
  */
@@ -51,7 +54,7 @@ const readCategories = async (
     depth: 1,
     overrideAccess: false,
     pagination: false,
-    select: { logo: true, summary: true, title: true },
+    select: { credential: true, logo: true, summary: true, title: true },
     where: {
       id: {
         in: ids,
@@ -69,6 +72,11 @@ const readCategories = async (
         // one read at `depth: 0` would come back as a bare id. Neither is
         // something the card can draw, so only the populated record passes.
         ...(category.logo && typeof category.logo === 'object' ? { logo: category.logo } : {}),
+        // Same guard, same reason: a label nobody has picked, or one read
+        // shallow, is not something the card can draw.
+        ...(category.credential && typeof category.credential === 'object'
+          ? { credential: category.credential }
+          : {}),
       },
     ]),
   )
@@ -158,6 +166,11 @@ export const getAgendaEvents = async (): Promise<AgendaEvent[]> => {
         // it — a cleared or whitespace intitulé is no intitulé.
         ...(!outingName(doc.title) && category?.summary ? { summary: category.summary } : {}),
         logo: category?.logo,
+        // The label is deliberately *not* conditional the way the summary
+        // above is: « Journée interclubs santé » titles itself and is still a
+        // rando santé, and the obligation to show the label follows the kind
+        // of walk rather than the wording of its intitulé.
+        credential: category?.credential,
         date: dayInFrance(doc.date),
         startTime: doc.startTime ?? undefined,
         endTime: doc.endTime ?? undefined,

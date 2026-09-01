@@ -30,6 +30,13 @@ import {
  * The logo hangs here rather than on each event, so redrawing a pictogram
  * reaches every outing of that kind at once — the ones already published
  * included — instead of none of them.
+ *
+ * The `credential` hangs here for a second reason on top of that one: it is a
+ * property of the kind of walk, not of the day it happens on. « Rando santé »
+ * is labelled by the FFRandonnée and the label has to appear wherever those
+ * walks are announced, so an editor who picks the category has already
+ * satisfied the requirement and cannot forget the badge on the one event that
+ * matters.
  */
 export const OutingCategories: CollectionConfig<'outingCategories'> = {
   slug: 'outingCategories',
@@ -75,6 +82,23 @@ export const OutingCategories: CollectionConfig<'outingCategories'> = {
       relationTo: 'media',
       admin: {
         description: 'Le pictogramme qui accompagne les sorties de cette catégorie.',
+      },
+    },
+    {
+      name: 'credential',
+      type: 'upload',
+      label: 'Label officiel',
+      relationTo: 'media',
+      /* Images only. The media collection accepts any file, and `Media`
+       * dispatches on the mime type: a video picked here would reach
+       * `VideoMedia`, which ignores the size the card asks for and plays it
+       * muted on a loop in the middle of the title. */
+      filterOptions: { mimeType: { contains: 'image' } },
+      admin: {
+        description:
+          'Le label que la réglementation impose d’afficher avec ces sorties, par exemple ' +
+          '« label Santé » de la FFRandonnée. Renseignez le texte alternatif du média : ' +
+          'contrairement au pictogramme, ce label dit quelque chose qui n’est écrit nulle part ailleurs.',
       },
     },
     {
