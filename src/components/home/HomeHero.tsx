@@ -74,18 +74,23 @@ const SCRIM = [
  * header holds lives in the first 80px, so that band is covered and the cover
  * is gone again by 230px, well before the mountains.
  *
- * Shaped by the same rule as the bottom: nothing steeper than 0.36%/px, and no
- * two adjacent segments differing by more than 0.25. A gradient shows as an
- * edge where its slope changes abruptly, not where its value does.
+ * Shaped by the same rule as the bottom, and it took the same correction: held
+ * nearly flat to 55px and then dropped straight to full speed, which is a change
+ * of slope of 0.29%/px in one step and drew exactly the band that stop was meant
+ * to hide. Easing into the fall rather than starting it at once brings the worst
+ * change to 0.11, for one point of coverage across the labels. Nothing here is
+ * steeper than 0.39%/px.
  */
 const TOP_SCRIM = [
   'linear-gradient(to bottom,',
   'oklch(0.2 0 0 / 70%) 0,',
-  'oklch(0.2 0 0 / 64%) 55px,',
-  'oklch(0.2 0 0 / 46%) 100px,',
-  'oklch(0.2 0 0 / 28%) 145px,',
-  'oklch(0.2 0 0 / 13%) 185px,',
-  'oklch(0.2 0 0 / 0%) 230px)',
+  'oklch(0.2 0 0 / 66%) 35px,',
+  'oklch(0.2 0 0 / 58%) 70px,',
+  'oklch(0.2 0 0 / 46%) 105px,',
+  'oklch(0.2 0 0 / 33%) 140px,',
+  'oklch(0.2 0 0 / 21%) 172px,',
+  'oklch(0.2 0 0 / 10%) 200px,',
+  'oklch(0.2 0 0 / 0%) 235px)',
 ].join(' ')
 
 /**
