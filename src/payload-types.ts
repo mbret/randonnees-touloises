@@ -546,6 +546,9 @@ export interface Adherent {
    * Peut être partagé avec un conjoint : 28 adresses couvrent 60 adhérents.
    */
   email?: string | null;
+  /**
+   * Reformaté automatiquement : 06 12 34 56 78, ou +33 6 12 34 56 78.
+   */
   phone?: string | null;
   streetNumber?: string | null;
   address?: string | null;
@@ -570,13 +573,12 @@ export interface Adherent {
    */
   medicalCertificateDate?: string | null;
   /**
-   * Renseigner cette fonction place l’adhérent au conseil.
+   * La fonction, si l’adhérent siège au conseil. Pas encore publiée : la page du conseil lit toujours la liste inscrite dans le code.
    */
   boardRole?: string | null;
   /**
-   * Ordre d’affichage sur la page du conseil.
+   * Pas encore publié : la page de l’équipe d’animation lit toujours la liste inscrite dans le code.
    */
-  boardRank?: number | null;
   isAnimateur?: boolean | null;
   adhesions?:
     | {
@@ -2348,7 +2350,6 @@ export interface AdherentsSelect<T extends boolean = true> {
   licenceClub?: T;
   medicalCertificateDate?: T;
   boardRole?: T;
-  boardRank?: T;
   isAnimateur?: T;
   adhesions?:
     | T

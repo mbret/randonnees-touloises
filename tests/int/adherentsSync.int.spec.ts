@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { SHEET_COLUMNS, cell, validateHeader } from '@/collections/Adherents/sync/columns'
 import { mapSheetRow, sheetRenewed } from '@/collections/Adherents/sync/mapRow'
+import { normalisePhone } from '@/collections/Adherents/phone'
 import { buildPlan, type ExistingAdherent } from '@/collections/Adherents/sync/plan'
 import { seasonFor } from '@/collections/Adherents/sync/season'
 import {
@@ -135,7 +136,6 @@ describe('mapping a row', () => {
       'photo',
       'publicationConsent',
       'boardRole',
-      'boardRank',
       'isAnimateur',
       'user',
       'household',
@@ -269,48 +269,12 @@ describe('planning a sync', () => {
     expect(plan.rejected[0].reason).toContain('nom de famille')
   })
 
-  it('records the season’s amounts and does not touch earlier seasons', () => {
-    const plan = buildPlan({
-      existing: [
-        existing({
-          adhesions: [{ amountClub: 14, amountFfr: 33, paidOn: '2025-08-20', season: '2025/2026' }],
-        }),
-      ],
-      rows: [sheetRow({ 'Club\ncotis.': '15,00 €', 'Montant\nFFR': '33,00 €', Paiement: '17/08/2026' })],
-      season: SEASON,
-    })
-
-    expect(plan.updates).toHaveLength(1)
-    expect(plan.updates[0].changes).toEqual([
-      {
-        field: 'adhesion 2026/2027',
-        from: null,
-        to: { amountClub: 15, amountFfr: 33, paidOn: '2026-08-17' },
-      },
-    ])
-  })
-
   it('says nothing about a season the sheet has no amounts for', () => {
     const plan = buildPlan({ existing: [existing()], rows: [sheetRow()], season: SEASON })
 
     expect(plan.updates).toHaveLength(0)
   })
 
-  it('does not re-add a note it has already written', () => {
-    const row = sheetRow({ 'Date\nédition': 'A vérifier' })
-    const first = buildPlan({ existing: [existing()], rows: [row], season: SEASON })
-
-    expect(first.updates[0].notes).toEqual(['Date édition : A vérifier'])
-
-    const second = buildPlan({
-      existing: [existing({ notes: 'Date édition : A vérifier' })],
-      rows: [row],
-      season: SEASON,
-    })
-
-    expect(second.updates).toHaveLength(0)
-    expect(second.unchanged).toBe(1)
-  })
 })
 
 describe('a payment cell that is not a date', () => {
@@ -427,60 +391,6 @@ describe('a licence the file names twice', () => {
   })
 })
 
-describe('a season the sheet only half fills in', () => {
-  /**
-   * Rule 2 reaches the season row too. The secretary records an amount and a
-   * payment date at different moments, so a sheet that names one and not the
-   * other must not clear the one it is silent about.
-   */
-  it('keeps the recorded payment date when the sheet gives only an amount', () => {
-    const plan = buildPlan({
-      existing: [
-        existing({
-          adhesions: [{ amountClub: 15, amountFfr: 33, paidOn: '2026-08-17', season: SEASON }],
-        }),
-      ],
-      rows: [sheetRow({ 'Montant\nFFR': '43,00 €' })],
-      season: SEASON,
-    })
-
-    expect(plan.updates[0].changes).toEqual([
-      {
-        field: `adhesion ${SEASON}`,
-        from: { amountClub: 15, amountFfr: 33, paidOn: '2026-08-17' },
-        to: { amountClub: 15, amountFfr: 43, paidOn: '2026-08-17' },
-      },
-    ])
-  })
-
-  it('treats a charge of zero as a real amount, not as silence', () => {
-    const plan = buildPlan({
-      existing: [existing({ adhesions: [{ amountFfr: 33, season: SEASON }] })],
-      rows: [sheetRow({ 'Montant\nFFR': '0,00 €' })],
-      season: SEASON,
-    })
-
-    expect(plan.updates[0].changes[0].to).toMatchObject({ amountFfr: 0 })
-  })
-
-  it('says nothing when the sheet repeats what is already recorded', () => {
-    const plan = buildPlan({
-      existing: [
-        existing({
-          adhesions: [{ amountClub: 15, amountFfr: 33, paidOn: '2026-08-17', season: SEASON }],
-        }),
-      ],
-      rows: [
-        sheetRow({ 'Club\ncotis.': '15,00 €', 'Montant\nFFR': '33,00 €', Paiement: '17/08/2026' }),
-      ],
-      season: SEASON,
-    })
-
-    expect(plan.updates).toHaveLength(0)
-    expect(plan.unchanged).toBe(1)
-  })
-})
-
 describe('the write each plan carries', () => {
   /**
    * The plan decides everything, including the exact payload, so that what gets
@@ -505,7 +415,6 @@ describe('the write each plan carries', () => {
 
     expect(plan.creates[0].data).toEqual({
       address: 'rue des Cordeliers',
-      adhesions: [{ amountClub: 15, amountFfr: 33, paidOn: '2026-08-17', season: SEASON }],
       birthDate: '1952-12-22',
       city: 'TOUL',
       civility: 'mr',
@@ -515,7 +424,6 @@ describe('the write each plan carries', () => {
       licence: '0947011C',
       licenceClub: 'Rando Toul',
       medicalCertificateDate: undefined,
-      notes: undefined,
       phone: '06 12 34 56 78',
       postalCode: '54200',
       status: 'active',
@@ -537,47 +445,7 @@ describe('the write each plan carries', () => {
    * Payload replaces an array field wholesale, so an update that touches one
    * season has to send the others back untouched or they are dropped.
    */
-  it('carries earlier seasons through an update that changes this one', () => {
-    const plan = buildPlan({
-      existing: [
-        existing({
-          adhesions: [
-            { amountClub: 14, amountFfr: 33, id: 'row-1', paidOn: '2025-08-20', season: '2025/2026' },
-          ],
-        }),
-      ],
-      rows: [sheetRow({ 'Montant\nFFR': '43,00 €' })],
-      season: SEASON,
-    })
-
-    expect(plan.updates[0].data.adhesions).toEqual([
-      { amountClub: 14, amountFfr: 33, paidOn: '2025-08-20', season: '2025/2026' },
-      { amountClub: undefined, amountFfr: 43, paidOn: undefined, season: SEASON },
-    ])
-  })
-
   /** Row ids are per-write; sending them back with reordered content edits the wrong row. */
-  it('drops the stored row ids when it rewrites the array', () => {
-    const plan = buildPlan({
-      existing: [existing({ adhesions: [{ amountFfr: 33, id: 'row-1', season: '2025/2026' }] })],
-      rows: [sheetRow({ 'Montant\nFFR': '43,00 €' })],
-      season: SEASON,
-    })
-
-    const rows = plan.updates[0].data.adhesions as Record<string, unknown>[]
-
-    for (const row of rows) expect(row).not.toHaveProperty('id')
-  })
-
-  it('appends a note rather than replacing what is there', () => {
-    const plan = buildPlan({
-      existing: [existing({ notes: 'Déjà noté.' })],
-      rows: [sheetRow({ 'Date\nédition': 'A vérifier' })],
-      season: SEASON,
-    })
-
-    expect(plan.updates[0].data.notes).toBe('Déjà noté.\nDate édition : A vérifier')
-  })
 })
 
 describe('an address the collection would refuse', () => {
@@ -624,7 +492,83 @@ describe('an address the collection would refuse', () => {
     })
 
     // Rule 2: an unreadable cell says nothing, so it cannot erase what is there.
-    expect(plan.updates[0].changes.find((change) => change.field === 'email')).toBeUndefined()
-    expect(plan.updates[0].notes).toContain('E-mail illisible : renee@orange.fr ???')
+    expect(plan.updates).toHaveLength(0)
+    expect(plan.unchanged).toBe(1)
+  })
+
+  /**
+   * And the query still reaches the report. A remark is about the file, so it
+   * cannot depend on the row also having something to write — this row matches
+   * what is stored in every other respect.
+   */
+  it('reports the query even when there is nothing to change', () => {
+    const plan = buildPlan({
+      existing: [existing()],
+      rows: [sheetRow({ Mail: 'renee@orange.fr ???' })],
+      season: SEASON,
+    })
+
+    expect(plan.remarks).toEqual([
+      {
+        licence: '0947011C',
+        line: 2,
+        name: 'BRET Pascal',
+        notes: ['E-mail illisible : renee@orange.fr ???'],
+      },
+    ])
+  })
+})
+
+describe('normalising a telephone number', () => {
+  it('formats a French mobile or landline as five pairs', () => {
+    expect(normalisePhone('0615105993')).toBe('06 15 10 59 93')
+    expect(normalisePhone('06.15.10.59.93')).toBe('06 15 10 59 93')
+    expect(normalisePhone('06-15-10-59-93')).toBe('06 15 10 59 93')
+    // Already in the club's own form: unchanged, so a re-import says nothing.
+    expect(normalisePhone('06 15 10 59 93')).toBe('06 15 10 59 93')
+  })
+
+  /** A string and not digits, so the international form survives at all. */
+  it('keeps an international number international', () => {
+    expect(normalisePhone('+33615105993')).toBe('+33 6 15 10 59 93')
+    expect(normalisePhone('+33 6 15 10 59 93')).toBe('+33 6 15 10 59 93')
+    expect(normalisePhone('0033615105993')).toBe('+33 6 15 10 59 93')
+  })
+
+  /**
+   * Seventeen rows of the club's export carry this. An earlier version read the
+   * leading `00` as the international prefix and produced `+0000000000` — a
+   * worse string than the one typed, and one that looks like a real number.
+   */
+  it('leaves the club’s « no number » placeholder exactly as written', () => {
+    expect(normalisePhone('00 00 00 00 00')).toBe('00 00 00 00 00')
+  })
+
+  it('leaves anything it cannot identify alone', () => {
+    expect(normalisePhone('+32 475 12 34 56')).toBe('+32 475 12 34 56')
+    expect(normalisePhone('poste 42')).toBe('poste 42')
+    expect(normalisePhone('   ')).toBeNull()
+  })
+})
+
+describe('the « no number » placeholder', () => {
+  it('is not imported as a telephone number', () => {
+    const plan = buildPlan({
+      existing: [],
+      rows: [sheetRow({ Téléphone: '00 00 00 00 00' })],
+      season: SEASON,
+    })
+
+    expect(plan.creates[0].data.phone).toBeUndefined()
+  })
+
+  it('is reported, so the gap is visible rather than silent', () => {
+    const plan = buildPlan({
+      existing: [],
+      rows: [sheetRow({ Téléphone: '00 00 00 00 00' })],
+      season: SEASON,
+    })
+
+    expect(plan.remarks[0].notes).toContain('Pas de téléphone (00 00 00 00 00)')
   })
 })

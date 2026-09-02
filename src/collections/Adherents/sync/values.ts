@@ -1,3 +1,5 @@
+import { normalisePhone } from '../phone'
+
 /**
  * Reading the club's spreadsheet conventions: French dates, French decimals,
  * money with its symbol attached.
@@ -81,11 +83,25 @@ export const sheetEmail = (value: string): string | undefined => {
   return EMAIL_PATTERN.test(closed) ? closed : undefined
 }
 
-/** The export is uniform — `06 12 34 56 78` — so this only tidies the margins. */
-export const sheetPhone = (value: string): string | undefined => {
-  const cleaned = value.replace(/\s+/g, ' ').trim()
+/**
+ * `00 00 00 00 00`, which seventeen rows of the club's export carry, is not a
+ * telephone number — it is how the sheet writes "none". Storing it would give
+ * seventeen adhérents a number that looks dialable, on a field whose whole
+ * purpose is to be published once its owner agrees to it.
+ *
+ * So it reads as absent, and `mapSheetRow` reports it. Everything else is
+ * normalised by the same function the field itself uses, so a re-import has
+ * nothing to say about a number that has not changed.
+ */
+export const NO_PHONE = /^0+$/
 
-  return cleaned === '' ? undefined : cleaned
+export const sheetPhone = (value: string): string | undefined => {
+  const normalised = normalisePhone(value)
+
+  if (normalised === null) return undefined
+  if (NO_PHONE.test(normalised.replace(/\D/g, ''))) return undefined
+
+  return normalised
 }
 
 /**

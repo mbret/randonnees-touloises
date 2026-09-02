@@ -136,6 +136,7 @@ export const mapSheetRow = (
    * the report rather than being quietly resolved either way.
    */
   const notes: string[] = []
+  const tel = cell(row, 'Téléphone')
   const mail = cell(row, 'Mail')
   const edition = cell(row, 'Date\nédition')
   const cost = cell(row, 'Club\ncoût')
@@ -146,6 +147,7 @@ export const mapSheetRow = (
   if (certificate !== '' && !sheetDate(certificate)) notes.push(`Certificat médical : ${certificate}`)
   if (payment !== '' && !sheetDate(payment)) notes.push(`Paiement illisible : ${payment}`)
   if (mail !== '' && fields.email === undefined) notes.push(`E-mail illisible : ${mail}`)
+  if (tel !== '' && fields.phone === undefined) notes.push(`Pas de téléphone (${tel})`)
 
   const costAmount = sheetMoney(cost)
 

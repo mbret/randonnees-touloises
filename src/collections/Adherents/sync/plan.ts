@@ -33,7 +33,6 @@ export type PlannedCreate = {
   licence: string
   line: number
   name: string
-  notes: string[]
   status: string
 }
 
@@ -44,13 +43,25 @@ export type PlannedUpdate = {
   licence: string
   line: number
   name: string
-  notes: string[]
 }
+
+/**
+ * Something worth a person's attention about a row, whatever the import does
+ * with it.
+ *
+ * Its own section rather than a column on the writes, because a remark is about
+ * the *file* and not about the change: the row whose address reads
+ * « …@orange.fr ??? » may otherwise match what is stored exactly, and reporting
+ * the query only when something else happens to differ would hide it on every
+ * import after the first.
+ */
+export type Remark = { licence: string; line: number; name: string; notes: string[] }
 
 export type SyncPlan = {
   absent: { id: number; licence: null | string; name: string }[]
   creates: PlannedCreate[]
   rejected: { line: number; reason: string }[]
+  remarks: Remark[]
   season: string
   skipped: { line: number; reason: string }[]
   unchanged: number
@@ -129,6 +140,7 @@ export const buildPlan = ({
     absent: [],
     creates: [],
     rejected: [],
+    remarks: [],
     season,
     skipped: [],
     unchanged: 0,
@@ -187,25 +199,31 @@ export const buildPlan = ({
       return
     }
 
+    if (mapped.notes.length > 0) {
+      plan.remarks.push({ licence: mapped.licence, line, name, notes: mapped.notes })
+    }
+
     const current = byLicence.get(mapped.licence)
 
     if (!current) {
       const status = sheetRenewed(row) ? 'active' : 'pending'
-      const season = saysAnything(mapped.adhesion) ? [mapped.adhesion] : []
 
       plan.creates.push({
+        /**
+         * The person, and nothing else. `adhesions` and `notes` are hidden and
+         * unwritten while what they are for is undecided — see the note on those
+         * fields. `status` still comes from the same payment columns the season
+         * row would have held, because that one is read.
+         */
         data: {
           ...mapped.fields,
-          adhesions: season,
           licence: mapped.licence,
-          notes: mapped.notes.join('\n') || undefined,
           status,
         },
         fields: mapped.fields,
         licence: mapped.licence,
         line,
         name,
-        notes: mapped.notes,
         status,
       })
       return
@@ -226,22 +244,9 @@ export const buildPlan = ({
       }
     }
 
-    const seasonPlan = planSeason(current, mapped.adhesion)
-
-    if (seasonPlan.change) {
-      changes.push(seasonPlan.change)
-      data.adhesions = seasonPlan.adhesions
-    }
-
-    const newNotes = mapped.notes.filter((note) => !(current.notes ?? '').includes(note))
-
-    if (changes.length === 0 && newNotes.length === 0) {
+    if (changes.length === 0) {
       plan.unchanged += 1
       return
-    }
-
-    if (newNotes.length > 0) {
-      data.notes = [current.notes, ...newNotes].filter(Boolean).join('\n')
     }
 
     plan.updates.push({
@@ -251,7 +256,6 @@ export const buildPlan = ({
       licence: mapped.licence,
       line,
       name: name || adherentName({ firstName: current.firstName, lastName: current.lastName }),
-      notes: newNotes,
     })
   })
 
@@ -278,74 +282,3 @@ export const buildPlan = ({
  * about it, and left alone otherwise. Earlier seasons are never touched: this
  * import only ever speaks about the one season its file covers.
  */
-/** Whether the sheet has an opinion about the season at all. */
-const saysAnything = (adhesion: SheetAdhesion): boolean =>
-  adhesion.amountClub !== undefined ||
-  adhesion.amountFfr !== undefined ||
-  adhesion.paidOn !== undefined
-
-const planSeason = (
-  current: ExistingAdherent,
-  incoming: SheetAdhesion,
-): { adhesions: SheetAdhesion[]; change: FieldChange | null } => {
-  const recorded = (current.adhesions ?? []).find((row) => row.season === incoming.season)
-
-  const day = (value: unknown) => (typeof value === 'string' ? value.slice(0, 10) : null)
-
-  const shape = (row?: null | SheetAdhesion) =>
-    row
-      ? {
-          amountClub: row.amountClub ?? null,
-          amountFfr: row.amountFfr ?? null,
-          paidOn: day(row.paidOn),
-        }
-      : null
-
-  const untouched = (current.adhesions ?? []).map(({ id: _id, ...row }) => row)
-
-  // Nothing to say about the season at all — no amounts, no payment date.
-  if (!saysAnything(incoming)) return { adhesions: untouched, change: null }
-
-  const before = shape(recorded)
-
-  /**
-   * Rule 2 reaches the season row as well. The sheet can leave the payment date
-   * blank while changing an amount — the secretary records the two at different
-   * moments — so each part of the row is taken from the sheet only where the
-   * sheet has something to say, and kept otherwise. Replacing the row wholesale
-   * would let a half-filled export clear a payment date that is not in doubt.
-   *
-   * `??` and not `||`, because `0,00 €` is a real amount: the club charged
-   * nothing, which is not the same as saying nothing.
-   */
-  const after = {
-    amountClub: incoming.amountClub ?? before?.amountClub ?? null,
-    amountFfr: incoming.amountFfr ?? before?.amountFfr ?? null,
-    paidOn: day(incoming.paidOn) ?? before?.paidOn ?? null,
-  }
-
-  if (JSON.stringify(before) === JSON.stringify(after)) {
-    return { adhesions: untouched, change: null }
-  }
-
-  /**
-   * Payload replaces an array field wholesale, so the write has to carry every
-   * season — this one rewritten, the earlier ones exactly as they were. Their
-   * row ids are dropped: they are per-write identifiers, and sending them back
-   * with reordered content is how an array update starts editing the wrong row.
-   */
-  const merged: SheetAdhesion = {
-    amountClub: after.amountClub ?? undefined,
-    amountFfr: after.amountFfr ?? undefined,
-    paidOn: after.paidOn ?? undefined,
-    season: incoming.season,
-  }
-
-  return {
-    adhesions: [
-      ...untouched.filter((row) => row.season !== incoming.season),
-      merged,
-    ].sort((a, b) => a.season.localeCompare(b.season)),
-    change: { field: `adhesion ${incoming.season}`, from: before, to: after },
-  }
-}

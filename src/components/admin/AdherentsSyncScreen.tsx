@@ -282,6 +282,7 @@ export const AdherentsSyncScreen: React.FC = () => {
                   ['Ignorés (sans licence)', plan.skipped.length],
                   ['Refusés', plan.rejected.length],
                   ['Absents du fichier', plan.absent.length],
+                  ['Remarques sur le fichier', plan.remarks.length],
                 ] as [string, number][]
               ).map(([text, count]) => (
                 <tr key={text}>
@@ -371,7 +372,6 @@ export const AdherentsSyncScreen: React.FC = () => {
                       {label(field)}
                     </th>
                   ))}
-                  <th style={th}>Notes</th>
                 </tr>
               </thead>
               <tbody>
@@ -390,9 +390,31 @@ export const AdherentsSyncScreen: React.FC = () => {
                         {show(create.fields[field as keyof typeof create.fields])}
                       </td>
                     ))}
-                    <td style={{ ...td, whiteSpace: 'normal' }}>
-                      {create.notes.length > 0 ? create.notes.join(' · ') : ''}
-                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Scroller>
+          </Fold>
+
+          <Fold count={plan.remarks.length} open title="Remarques sur le fichier">
+            <p style={{ color: 'var(--theme-elevation-600)' }}>
+              Des cellules que l’import n’a pas su lire, ou des annotations laissées dans le
+              fichier. Rien n’est enregistré à partir d’elles : elles sont là pour être vues.
+            </p>
+            <Scroller>
+              <thead>
+                <tr>
+                  <th style={th}>Ligne</th>
+                  <th style={th}>Adhérent</th>
+                  <th style={th}>Remarque</th>
+                </tr>
+              </thead>
+              <tbody>
+                {plan.remarks.map((remark) => (
+                  <tr key={remark.licence}>
+                    <td style={td}>{remark.line}</td>
+                    <td style={{ ...td, fontWeight: 600 }}>{remark.name}</td>
+                    <td style={{ ...td, whiteSpace: 'normal' }}>{remark.notes.join(' · ')}</td>
                   </tr>
                 ))}
               </tbody>
