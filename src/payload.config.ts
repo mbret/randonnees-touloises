@@ -14,6 +14,7 @@ import { Posts } from './collections/Posts'
 import { Locations } from './collections/Locations'
 import { OutingCategories } from './collections/OutingCategories'
 import { Users } from './collections/Users'
+import { Adherents } from './collections/Adherents'
 import { Footer } from './Footer/config'
 import { Header } from './cms/globals/header/config'
 import { plugins } from './plugins'
@@ -154,6 +155,7 @@ export default buildConfig({
     Media,
     Categories,
     Users,
+    Adherents,
     GlobalPages,
     GalleriesConfig,
     ContactSubmissions,
