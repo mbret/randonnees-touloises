@@ -12,11 +12,33 @@ import { THUMBNAIL_REMOTE_PATTERNS } from './src/blocks/MediaLinks/thumbnailHost
  * `robots.txt` cannot help here: it is a single static file that cannot vary
  * per host, and `Disallow` still permits URL-only indexing.
  *
- * CUTOVER: drop this rule once the site is live on its production host. The
+ * CUTOVER: drop this host once the site is live on its production host. The
  * match is host-scoped, so it never touches production as things stand — but
  * pointing `abonnes.` at the live site later would silently deindex it.
  */
 const TEMPORARY_HOST = 'abonnes\\.randonnees-touloises\\.net' // `has.value` is an anchored regex
+
+/**
+ * The addresses Vercel gives a deployment of its own accord: the project's
+ * production alias, `randonnees-touloises.vercel.app`, and the per-branch and
+ * per-deployment preview URLs beside it.
+ *
+ * The alias is less a copy of the site than a second name for it — the same
+ * deployment the host above answers from, and before this rule it answered 200
+ * with no `X-Robots-Tag` at all. The pages it serves do carry a canonical
+ * naming that other host, but a canonical is a hint a crawler may set aside,
+ * and the host it names is the one marked above, so there is nothing there for
+ * a crawler to prefer these URLs to.
+ *
+ * The whole `.vercel.app` space rather than the one alias, because the platform
+ * mints these names and there is no list of them to keep in step: a new branch
+ * is a new host. Nothing the club publishes will ever be served under one.
+ *
+ * CUTOVER: keep this rule. Unlike the host above it describes no temporary
+ * arrangement — the alias goes on pointing at the live deployment once the
+ * club's own domain is in front of it, so the duplicate outlives the move.
+ */
+const DEPLOYMENT_HOSTS = '.*\\.vercel\\.app'
 
 /**
  * Files in `public/` are served under the name they were committed with, and
@@ -50,11 +72,11 @@ const PUBLIC_ASSETS = ['/favicon.ico', '/favicon.svg', '/og-image.jpg']
  * files in `public/` are served by Next rather than by a handler.
  */
 const headers = async () => [
-  {
-    has: [{ type: 'host', value: TEMPORARY_HOST }],
+  ...[TEMPORARY_HOST, DEPLOYMENT_HOSTS].map((host) => ({
+    has: [{ type: 'host', value: host }],
     headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
     source: '/:path*',
-  },
+  })),
   ...PUBLIC_ASSETS.map((source) => ({
     headers: [{ key: 'Cache-Control', value: PUBLIC_ASSET_CACHE_CONTROL }],
     source,
