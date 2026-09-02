@@ -20,12 +20,19 @@ import { buttonVariants } from '@/components/ui/button'
  * read. This darkens where the words are and leaves the top of the picture
  * alone.
  *
+ * It holds its depth to just past the top of the headline, then leaves quickly:
+ * clear of the photograph by 405px where it used to still be a sixth opaque at
+ * 460px, so some 55px more of the picture comes back. Leaving quickly is what
+ * the stop at 350px is for. Falling straight from 76% to nothing drew a visible
+ * horizontal edge across the mountains — the eye finds the kink in the ramp, not
+ * the ramp — and a midpoint bends it into a curve.
+ *
  * The stops are distances from the bottom rather than percentages, because what
  * has to stay covered is the text and the text is a fixed number of pixels
  * tall. Measured as percentages the same gradient tracks the hero instead: on a
  * phone the copy fills nearly all of it, so the headline rose into the part
  * that had faded to a third and sat on a barely dimmed photograph — 2.4:1,
- * against the 7.4:1 these stops give it. In pixels the covered band is the same
+ * against the 6.0:1 these stops give it. In pixels the covered band is the same
  * band on every screen and only the clear picture above it grows.
  *
  * The colour is neutral, and deliberately not the club's brown. Brown is right
@@ -40,11 +47,12 @@ import { buttonVariants } from '@/components/ui/button'
  */
 const SCRIM = [
   'linear-gradient(to top,',
-  'oklch(0.2 0 0 / 92%) 0,',
-  'oklch(0.2 0 0 / 86%) 220px,',
-  'oklch(0.2 0 0 / 70%) 340px,',
-  'oklch(0.2 0 0 / 16%) 460px,',
-  'oklch(0.2 0 0 / 3%) 100%)',
+  'oklch(0.2 0 0 / 88%) 0,',
+  'oklch(0.2 0 0 / 84%) 210px,',
+  'oklch(0.2 0 0 / 76%) 300px,',
+  'oklch(0.2 0 0 / 52%) 350px,',
+  'oklch(0.2 0 0 / 18%) 405px,',
+  'oklch(0.2 0 0 / 0%) 100%)',
 ].join(' ')
 
 /**
