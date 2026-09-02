@@ -222,13 +222,6 @@ export const seed = async ({
         navItems: [
           {
             link: {
-              type: 'custom',
-              label: 'Posts',
-              url: '/news',
-            },
-          },
-          {
-            link: {
               type: 'reference',
               label: 'Contact',
               reference: {

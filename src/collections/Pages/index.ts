@@ -37,7 +37,7 @@ const navOrderDescription =
   staticNavItems.map(({ link, navOrder }) => `${navOrder} ${link.label}`).join(', ') +
   `. Sans valeur, la page se place en ${DEFAULT_NAV_ORDER}, donc après elles. ` +
   'Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact ' +
-  'et Actualités — et à nombre égal la page passe devant l’entrée fixe.'
+  'et À propos — et à nombre égal la page passe devant l’entrée fixe.'
 
 export const Pages: CollectionConfig<'pages'> = {
   slug: 'pages',

@@ -351,7 +351,7 @@ const main = async () => {
     },
     layout,
     navLabel: 'Adhésions',
-    /* Between Contact (10) and Actualités (20): `navOrder` positions an entry
+    /* Between Contact (10) and À propos (30): `navOrder` positions an entry
      * against the whole menu, static entries included, so a number in the gap
      * between two of them is what puts the page there. */
     navOrder: 15,

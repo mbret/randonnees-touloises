@@ -47,7 +47,6 @@ export const staticNavItems: StaticNavItem[] = [
     navOrder: 10,
     link: { label: 'Contact', type: 'custom', url: '/contact' },
   },
-  { id: 'static-news', navOrder: 20, link: { label: 'Actualités', type: 'custom', url: '/news' } },
   { id: 'static-about', navOrder: 30, link: { label: 'À propos', type: 'custom', url: '/about' } },
   {
     id: 'static-programs',
@@ -90,7 +89,7 @@ const isUnconditional = ({ link }: OrderedNavItem) =>
  *
  * Position is `navOrder` and nothing else. Where a page could once only follow
  * the static entries — whatever number it named — one an editor puts at 15 now
- * lands between Contact (10) and Actualités (20).
+ * lands between Contact (10) and À propos (30).
  *
  * An address appears once. A page a static entry already points at keeps the
  * static entry, and an editor naming that address by hand wins over the page's
