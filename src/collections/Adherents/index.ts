@@ -5,7 +5,6 @@ import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
 import { adminOrLinkedUser } from '@/access/adminOrLinkedUser'
 
 import { normaliseLicence, validateLicence } from './licence'
-import { normalisePhone } from './phone'
 import { fillFullName } from './hooks/fillFullName'
 import { syncEndpoint } from './sync/endpoint'
 
@@ -246,23 +245,11 @@ export const Adherents: CollectionConfig<'adherents'> = {
                     width: '50%',
                   },
                 },
-                /**
-                 * Normalised on the way in, whoever is writing: the import, an
-                 * admin, or the member from their own account. Storing one
-                 * format is what keeps a re-import from offering to correct a
-                 * number to itself because it was typed with dots.
-                 */
                 {
                   name: 'phone',
                   type: 'text',
                   label: 'Téléphone',
-                  admin: {
-                    description: 'Reformaté automatiquement : 06 12 34 56 78, ou +33 6 12 34 56 78.',
-                    width: '50%',
-                  },
-                  hooks: {
-                    beforeValidate: [({ value }) => (typeof value === 'string' ? normalisePhone(value) : value)],
-                  },
+                  admin: { width: '50%' },
                 },
               ],
             },
@@ -418,24 +405,9 @@ export const Adherents: CollectionConfig<'adherents'> = {
               },
             },
             /**
-             * Recorded here, and read by nothing yet.
-             *
-             * The intention is that /board becomes a query — a `boardRole` that
-             * is set is what will make someone a member of the conseil, with no
-             * separate tick — but that page still reads the list in
-             * `src/data/teams.ts`, and it cannot move until the fifteen people on
-             * it have agreed to their portraits appearing. So this field is
-             * written by hand and published by nothing, and its description says
-             * as much: an admin who fills in fifteen functions and sees /board
-             * unchanged should not have to guess why.
-             *
-             * There is deliberately no rank beside it. The conseil is read in the
-             * club's own order — président, vice-présidente, secrétaire,
-             * trésorier, the référents, then the members — and that order is a
-             * property of the functions, not of the people holding them. It
-             * belongs to the page that renders it, written once, rather than as a
-             * number on each of fifteen documents for someone to keep in step
-             * every time the conseil changes.
+             * Nothing reads this yet. There is deliberately no rank beside it:
+             * the order the conseil is read in belongs to the page that renders
+             * it, not to a number on each of fifteen documents.
              */
             {
               name: 'boardRole',
@@ -446,13 +418,11 @@ export const Adherents: CollectionConfig<'adherents'> = {
                 update: adminOnlyFieldAccess,
               },
               admin: {
-                description:
-                  'La fonction, si l’adhérent siège au conseil. Pas encore publiée : la page du ' +
-                  'conseil lit toujours la liste inscrite dans le code.',
+                description: 'La fonction, si l’adhérent siège au conseil.',
                 placeholder: 'Trésorier',
               },
             },
-            /** Recorded here, and read by nothing yet — as `boardRole` above. */
+            /** Nothing reads this yet either. */
             {
               name: 'isAnimateur',
               type: 'checkbox',
@@ -461,11 +431,6 @@ export const Adherents: CollectionConfig<'adherents'> = {
               access: {
                 create: adminOnlyFieldAccess,
                 update: adminOnlyFieldAccess,
-              },
-              admin: {
-                description:
-                  'Pas encore publié : la page de l’équipe d’animation lit toujours la liste ' +
-                  'inscrite dans le code.',
               },
               defaultValue: false,
             },

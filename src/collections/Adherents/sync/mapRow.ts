@@ -45,7 +45,7 @@ export type SheetAdhesion = {
  * `rejected` is a row it refuses to guess at.
  */
 export type MappedRow = { line: number } & (
-  | { adhesion: SheetAdhesion; fields: SheetFields; licence: string; notes: string[]; outcome: 'mapped' }
+  | { fields: SheetFields; licence: string; notes: string[]; outcome: 'mapped' }
   | { outcome: 'rejected'; reason: string }
   | { outcome: 'skipped'; reason: string }
 )
@@ -59,11 +59,7 @@ export type MappedRow = { line: number } & (
  * `Age` is not read either: it is a formula over the date of birth, and a stored
  * copy would be wrong by the next birthday.
  */
-export const mapSheetRow = (
-  row: Record<string, string>,
-  line: number,
-  season: string,
-): MappedRow => {
+export const mapSheetRow = (row: Record<string, string>, line: number): MappedRow => {
   const raw = cell(row, 'Licence')
   const licence = sheetLicence(raw)
   const named = [sheetText(cell(row, 'Nom')), sheetText(cell(row, 'Prénom'))]
@@ -111,55 +107,55 @@ export const mapSheetRow = (
   }
 
   /**
-   * What the dropped columns leave behind rather than lose.
+   * Cells the import wanted and could not read.
    *
-   * `Date édition` is a batch print date and carries nothing — except on the
-   * nine rows where the secretary wrote « A vérifier » or « A SUIVRE » over it,
-   * all of them people who have paid. `Club coût` is used two different ways and
-   * reconciles with neither of the other money columns; seven of its values
-   * appear nowhere else in the sheet. Both are her handwriting about real
-   * people, so they are kept as text until someone can say what they meant.
+   * Only that. An earlier version also reported the secretary's own annotations
+   * from the columns this deliberately does not model — « A vérifier » in `Date
+   * édition`, the amounts in `Club coût` — and the seventeen rows whose
+   * telephone reads `00 00 00 00 00`. Fifty-two entries, of which forty-six told
+   * her nothing: they were her own handwriting, in her own sheet, about columns
+   * already decided against, or the placeholder being understood exactly as she
+   * meant it. Why those columns are not stored belongs in the comments on the
+   * fields, not in a report she reads every time she imports.
    *
-   * `Certificat médical` holds three values that are not dates — a typo and two
-   * cells where text has bled across — and those are worth seeing too.
+   * What is left is worth her attention because it says the import lost
+   * something it meant to keep:
    *
-   * So is an address that is not one. One row reads « …@orange.fr ??? », the
-   * secretary querying it rather than mistyping it, and no repair turns that
-   * into a mailbox. It is reported and the field left empty — sending it would
-   * have failed the collection's own validator and taken the whole import with
-   * it, which is what happened the first time this ran.
+   *   an address that no repair turns into a mailbox — one row reads
+   *   « …@orange.fr ??? », her querying it rather than mistyping it, and sending
+   *   it would fail the collection's own validator and take the whole import
+   *   down, which is what happened the first time this ran;
    *
-   * So is a `Paiement` that is not a date. One row holds the bare value `1`,
-   * with no tick and no amount beside it, so it reads as `pending` here. That
-   * may well be wrong — if the `1` meant "paid", the person is up to date — and
-   * it is precisely the kind of thing nobody would go looking for, so it goes in
-   * the report rather than being quietly resolved either way.
+   *   a certificate date that is not a date — two cells where text has bled
+   *   across, « PASS D. » and « à demander », so those certificates do not
+   *   arrive. A third reads `20/09/2121`, which this cannot catch and does not
+   *   try to: it is a well-formed date, and deciding that a year is too far away
+   *   to be meant is a judgement for whoever keeps the certificates;
+   *
+   *   a `Paiement` that is not a date. One row holds the bare value `1`, with no
+   *   tick and no amount beside it, so that person reads as awaiting renewal and
+   *   may well be up to date. The payment itself is not imported, but whether
+   *   somebody has renewed is, so this one changes what gets stored.
    */
+
   const notes: string[] = []
-  const tel = cell(row, 'Téléphone')
   const mail = cell(row, 'Mail')
-  const edition = cell(row, 'Date\nédition')
-  const cost = cell(row, 'Club\ncoût')
   const certificate = cell(row, 'Certificat\nmédical')
   const payment = cell(row, 'Paiement')
 
-  if (edition !== '' && !sheetDate(edition)) notes.push(`Date édition : ${edition}`)
-  if (certificate !== '' && !sheetDate(certificate)) notes.push(`Certificat médical : ${certificate}`)
-  if (payment !== '' && !sheetDate(payment)) notes.push(`Paiement illisible : ${payment}`)
-  if (mail !== '' && fields.email === undefined) notes.push(`E-mail illisible : ${mail}`)
-  if (tel !== '' && fields.phone === undefined) notes.push(`Pas de téléphone (${tel})`)
+  if (mail !== '' && fields.email === undefined) {
+    notes.push(`E-mail non importé, illisible : ${mail}`)
+  }
 
-  const costAmount = sheetMoney(cost)
+  if (certificate !== '' && !sheetDate(certificate)) {
+    notes.push(`Certificat médical non importé, ce n’est pas une date : ${certificate}`)
+  }
 
-  if (costAmount !== undefined && costAmount !== 0) notes.push(`Club coût : ${cost.trim()}`)
+  if (payment !== '' && !sheetDate(payment)) {
+    notes.push(`Paiement illisible (${payment}) : lu comme « renouvellement attendu »`)
+  }
 
   return {
-    adhesion: {
-      amountClub: sheetMoney(cell(row, 'Club\ncotis.')),
-      amountFfr: sheetMoney(cell(row, 'Montant\nFFR')),
-      paidOn: sheetDate(cell(row, 'Paiement')),
-      season,
-    },
     fields,
     licence,
     line,

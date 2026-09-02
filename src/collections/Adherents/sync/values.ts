@@ -1,5 +1,3 @@
-import { normalisePhone } from '../phone'
-
 /**
  * Reading the club's spreadsheet conventions: French dates, French decimals,
  * money with its symbol attached.
@@ -84,30 +82,32 @@ export const sheetEmail = (value: string): string | undefined => {
 }
 
 /**
- * `00 00 00 00 00`, which seventeen rows of the club's export carry, is not a
- * telephone number — it is how the sheet writes "none". Storing it would give
- * seventeen adhérents a number that looks dialable, on a field whose whole
- * purpose is to be published once its owner agrees to it.
- *
- * So it reads as absent, and `mapSheetRow` reports it. Everything else is
- * normalised by the same function the field itself uses, so a re-import has
- * nothing to say about a number that has not changed.
+ * Everything a person might put between the digits: ordinary spaces, the
+ * non-breaking and narrow kinds a spreadsheet inserts, dots, the several dashes,
+ * slashes, brackets. Not `+`, which is part of the number.
  */
-export const NO_PHONE = /^0+$/
-
-export const sheetPhone = (value: string): string | undefined => {
-  const normalised = normalisePhone(value)
-
-  if (normalised === null) return undefined
-  if (NO_PHONE.test(normalised.replace(/\D/g, ''))) return undefined
-
-  return normalised
-}
+const PHONE_SEPARATORS = /[\s  .•·()[\]/\\_-]/g
 
 /**
- * `rando Toul` and `Rando Toul` are one club typed twice. Collapsing case here
- * stops the difference showing up as a change to review on every import.
+ * A telephone number with its separators taken out, and nothing else done to it.
+ *
+ * A string rather than digits, because `+33 6 15 10 59 93` is the same number as
+ * `06 15 10 59 93` and only one of them survives being reduced to digits — the
+ * leading `+` carries meaning a numeric column cannot.
+ *
+ * `00 00 00 00 00`, which seventeen rows of the export carry, is not a number:
+ * it is how the sheet writes "none". Storing it would give seventeen adhérents
+ * something that looks dialable on a field whose purpose is to be published once
+ * its owner agrees to it, so it reads as absent and `mapSheetRow` reports it.
  */
+export const sheetPhone = (value: string): string | undefined => {
+  const cleaned = value.trim().replace(PHONE_SEPARATORS, '')
+
+  if (cleaned === '' || /^\+?0+$/.test(cleaned)) return undefined
+
+  return cleaned
+}
+
 export const sheetClub = (value: string): string | undefined => {
   const cleaned = value.replace(/\s+/g, ' ').trim()
 

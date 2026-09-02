@@ -282,7 +282,7 @@ export const AdherentsSyncScreen: React.FC = () => {
                   ['Ignorés (sans licence)', plan.skipped.length],
                   ['Refusés', plan.rejected.length],
                   ['Absents du fichier', plan.absent.length],
-                  ['Remarques sur le fichier', plan.remarks.length],
+                  ['Cellules non importées', plan.remarks.length],
                 ] as [string, number][]
               ).map(([text, count]) => (
                 <tr key={text}>
@@ -396,17 +396,17 @@ export const AdherentsSyncScreen: React.FC = () => {
             </Scroller>
           </Fold>
 
-          <Fold count={plan.remarks.length} open title="Remarques sur le fichier">
+          <Fold count={plan.remarks.length} open title="Cellules non importées">
             <p style={{ color: 'var(--theme-elevation-600)' }}>
-              Des cellules que l’import n’a pas su lire, ou des annotations laissées dans le
-              fichier. Rien n’est enregistré à partir d’elles : elles sont là pour être vues.
+              L’import n’a pas su lire ces cellules et a laissé le champ vide. Le reste de la ligne
+              est importé normalement.
             </p>
             <Scroller>
               <thead>
                 <tr>
                   <th style={th}>Ligne</th>
                   <th style={th}>Adhérent</th>
-                  <th style={th}>Remarque</th>
+                  <th style={th}>Ce qui n’a pas été lu</th>
                 </tr>
               </thead>
               <tbody>

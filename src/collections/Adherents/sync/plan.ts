@@ -166,7 +166,7 @@ export const buildPlan = ({
   rows.forEach((row, index) => {
     // +2: the header is line 1, and the first row of data is line 2.
     const line = index + 2
-    const mapped = mapSheetRow(row, line, season)
+    const mapped = mapSheetRow(row, line)
 
     if (mapped.outcome === 'skipped') {
       plan.skipped.push({ line, reason: mapped.reason })

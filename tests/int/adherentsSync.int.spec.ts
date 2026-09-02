@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import { SHEET_COLUMNS, cell, validateHeader } from '@/collections/Adherents/sync/columns'
 import { mapSheetRow, sheetRenewed } from '@/collections/Adherents/sync/mapRow'
-import { normalisePhone } from '@/collections/Adherents/phone'
 import { buildPlan, type ExistingAdherent } from '@/collections/Adherents/sync/plan'
 import { seasonFor } from '@/collections/Adherents/sync/season'
 import {
@@ -12,6 +11,7 @@ import {
   sheetEmail,
   sheetLicence,
   sheetMoney,
+  sheetPhone,
 } from '@/collections/Adherents/sync/values'
 
 const SEASON = '2026/2027'
@@ -128,7 +128,7 @@ describe('what the sheet says about a renewal', () => {
 
 describe('mapping a row', () => {
   it('never carries a field the site owns', () => {
-    const mapped = mapSheetRow(sheetRow(), 2, SEASON)
+    const mapped = mapSheetRow(sheetRow(), 2)
 
     if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
@@ -147,27 +147,31 @@ describe('mapping a row', () => {
   })
 
   it('skips a row with no licence rather than guessing who it is', () => {
-    const mapped = mapSheetRow(sheetRow({ Licence: '' }), 5, SEASON)
+    const mapped = mapSheetRow(sheetRow({ Licence: '' }), 5)
 
     expect(mapped.outcome).toBe('skipped')
     expect(mapped.outcome === 'skipped' && mapped.reason).toContain('Aucun numéro de licence')
   })
 
-  it('keeps the secretary’s marginalia from the dropped columns', () => {
+  /**
+   * The dropped columns are dropped, annotations and all. Why they are not
+   * stored is in the comments on the fields; repeating it in a report the
+   * secretary reads on every import told her nothing she had not written
+   * herself.
+   */
+  it('says nothing about the columns it does not model', () => {
     const mapped = mapSheetRow(
       sheetRow({ 'Club\ncoût': '30,75 €', 'Date\nédition': 'A vérifier' }),
       2,
-      SEASON,
     )
 
     if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
-    expect(mapped.notes).toContain('Date édition : A vérifier')
-    expect(mapped.notes).toContain('Club coût : 30,75 €')
+    expect(mapped.notes).toEqual([])
   })
 
   it('does not note a Club coût of zero, which is what most rows hold', () => {
-    const mapped = mapSheetRow(sheetRow({ 'Club\ncoût': '0,00 €' }), 2, SEASON)
+    const mapped = mapSheetRow(sheetRow({ 'Club\ncoût': '0,00 €' }), 2)
 
     if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
@@ -175,12 +179,12 @@ describe('mapping a row', () => {
   })
 
   it('keeps a certificate date that is not a date', () => {
-    const mapped = mapSheetRow(sheetRow({ 'Certificat\nmédical': '2121' }), 2, SEASON)
+    const mapped = mapSheetRow(sheetRow({ 'Certificat\nmédical': '2121' }), 2)
 
     if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
     expect(mapped.fields.medicalCertificateDate).toBeUndefined()
-    expect(mapped.notes).toContain('Certificat médical : 2121')
+    expect(mapped.notes[0]).toContain('Certificat médical non importé')
   })
 })
 
@@ -193,7 +197,7 @@ const existing = (overrides: Partial<ExistingAdherent> = {}): ExistingAdherent =
   lastName: 'BRET',
   licenceClub: 'Rando Toul',
   licence: '0947011C',
-  phone: '06 12 34 56 78',
+  phone: '0612345678',
   ...overrides,
 })
 
@@ -233,7 +237,7 @@ describe('planning a sync', () => {
 
     expect(plan.updates).toHaveLength(1)
     expect(plan.updates[0].changes).toEqual([
-      { field: 'phone', from: '06 12 34 56 78', to: '07 99 88 77 66' },
+      { field: 'phone', from: '0612345678', to: '0799887766' },
     ])
   })
 
@@ -289,21 +293,23 @@ describe('a payment cell that is not a date', () => {
 
     expect(sheetRenewed(row)).toBe(false)
 
-    const mapped = mapSheetRow(row, 86, SEASON)
+    const mapped = mapSheetRow(row, 86)
 
     if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
-    expect(mapped.notes).toContain('Paiement illisible : 1')
-    expect(mapped.adhesion.paidOn).toBeUndefined()
+    // The payment itself is not imported, but whether somebody renewed is —
+    // which is what this cell being unreadable actually costs.
+    expect(mapped.notes[0]).toContain('Paiement illisible (1)')
+    expect(mapped.notes[0]).toContain('renouvellement attendu')
   })
 
   it('leaves a well-formed payment date unremarked', () => {
-    const mapped = mapSheetRow(sheetRow({ Paiement: '17/08/2026' }), 2, SEASON)
+    const mapped = mapSheetRow(sheetRow({ Paiement: '17/08/2026' }), 2)
 
     if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
     expect(mapped.notes).toEqual([])
-    expect(mapped.adhesion.paidOn).toBe('2026-08-17')
+    expect(sheetRenewed(sheetRow({ Paiement: '17/08/2026' }))).toBe(true)
   })
 })
 
@@ -316,7 +322,6 @@ describe('the street address', () => {
     const mapped = mapSheetRow(
       sheetRow({ Adresse: 'rue des Cordeliers', CP: '54200', 'N°': '12', Ville: 'TOUL' }),
       2,
-      SEASON,
     )
 
     if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
@@ -424,7 +429,7 @@ describe('the write each plan carries', () => {
       licence: '0947011C',
       licenceClub: 'Rando Toul',
       medicalCertificateDate: undefined,
-      phone: '06 12 34 56 78',
+      phone: '0612345678',
       postalCode: '54200',
       status: 'active',
       streetNumber: '12',
@@ -438,7 +443,7 @@ describe('the write each plan carries', () => {
       season: SEASON,
     })
 
-    expect(plan.updates[0].data).toEqual({ phone: '07 99 88 77 66' })
+    expect(plan.updates[0].data).toEqual({ phone: '0799887766' })
   })
 
   /**
@@ -455,17 +460,17 @@ describe('an address the collection would refuse', () => {
    * Payload's `email` field rejected, and the whole import failed on it.
    */
   it('is left empty and reported rather than repaired into nonsense', () => {
-    const mapped = mapSheetRow(sheetRow({ Mail: 'renee@orange.fr    ???' }), 77, SEASON)
+    const mapped = mapSheetRow(sheetRow({ Mail: 'renee@orange.fr    ???' }), 77)
 
     if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
     expect(mapped.fields.email).toBeUndefined()
-    expect(mapped.notes).toContain('E-mail illisible : renee@orange.fr    ???')
+    expect(mapped.notes).toContain('E-mail non importé, illisible : renee@orange.fr    ???')
   })
 
   /** The genuine typo — a space inside the address — is still closed up. */
   it('still repairs an address typed with a space in the middle', () => {
-    const mapped = mapSheetRow(sheetRow({ Mail: 'nom prenom@example.net' }), 2, SEASON)
+    const mapped = mapSheetRow(sheetRow({ Mail: 'nom prenom@example.net' }), 2)
 
     if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
@@ -513,41 +518,29 @@ describe('an address the collection would refuse', () => {
         licence: '0947011C',
         line: 2,
         name: 'BRET Pascal',
-        notes: ['E-mail illisible : renee@orange.fr ???'],
+        notes: ['E-mail non importé, illisible : renee@orange.fr ???'],
       },
     ])
   })
 })
 
-describe('normalising a telephone number', () => {
-  it('formats a French mobile or landline as five pairs', () => {
-    expect(normalisePhone('0615105993')).toBe('06 15 10 59 93')
-    expect(normalisePhone('06.15.10.59.93')).toBe('06 15 10 59 93')
-    expect(normalisePhone('06-15-10-59-93')).toBe('06 15 10 59 93')
-    // Already in the club's own form: unchanged, so a re-import says nothing.
-    expect(normalisePhone('06 15 10 59 93')).toBe('06 15 10 59 93')
+describe('reading a telephone number', () => {
+  /** Stored as a string with its separators taken out, and nothing else done. */
+  it('takes the separators out and leaves the digits', () => {
+    expect(sheetPhone('06 15 10 59 93')).toBe('0615105993')
+    expect(sheetPhone('06.15.10.59.93')).toBe('0615105993')
+    expect(sheetPhone('06-15-10-59-93')).toBe('0615105993')
   })
 
-  /** A string and not digits, so the international form survives at all. */
-  it('keeps an international number international', () => {
-    expect(normalisePhone('+33615105993')).toBe('+33 6 15 10 59 93')
-    expect(normalisePhone('+33 6 15 10 59 93')).toBe('+33 6 15 10 59 93')
-    expect(normalisePhone('0033615105993')).toBe('+33 6 15 10 59 93')
+  /** A string and not digits, so that the international form survives at all. */
+  it('keeps the plus of an international number', () => {
+    expect(sheetPhone('+33 6 15 10 59 93')).toBe('+33615105993')
+    expect(sheetPhone('+32 475 12 34 56')).toBe('+32475123456')
   })
 
-  /**
-   * Seventeen rows of the club's export carry this. An earlier version read the
-   * leading `00` as the international prefix and produced `+0000000000` — a
-   * worse string than the one typed, and one that looks like a real number.
-   */
-  it('leaves the club’s « no number » placeholder exactly as written', () => {
-    expect(normalisePhone('00 00 00 00 00')).toBe('00 00 00 00 00')
-  })
-
-  it('leaves anything it cannot identify alone', () => {
-    expect(normalisePhone('+32 475 12 34 56')).toBe('+32 475 12 34 56')
-    expect(normalisePhone('poste 42')).toBe('poste 42')
-    expect(normalisePhone('   ')).toBeNull()
+  it('reads an empty cell as nothing', () => {
+    expect(sheetPhone('')).toBeUndefined()
+    expect(sheetPhone('   ')).toBeUndefined()
   })
 })
 
@@ -562,13 +555,18 @@ describe('the « no number » placeholder', () => {
     expect(plan.creates[0].data.phone).toBeUndefined()
   })
 
-  it('is reported, so the gap is visible rather than silent', () => {
+  /**
+   * And is not remarked on. It is the sheet's own way of writing "none", read
+   * exactly as meant — not a cell the import failed on, which is what the
+   * remarks are for.
+   */
+  it('is not reported as a problem, because it is not one', () => {
     const plan = buildPlan({
       existing: [],
       rows: [sheetRow({ Téléphone: '00 00 00 00 00' })],
       season: SEASON,
     })
 
-    expect(plan.remarks[0].notes).toContain('Pas de téléphone (00 00 00 00 00)')
+    expect(plan.remarks).toHaveLength(0)
   })
 })

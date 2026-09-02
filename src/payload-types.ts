@@ -546,9 +546,6 @@ export interface Adherent {
    * Peut être partagé avec un conjoint : 28 adresses couvrent 60 adhérents.
    */
   email?: string | null;
-  /**
-   * Reformaté automatiquement : 06 12 34 56 78, ou +33 6 12 34 56 78.
-   */
   phone?: string | null;
   streetNumber?: string | null;
   address?: string | null;
@@ -573,12 +570,9 @@ export interface Adherent {
    */
   medicalCertificateDate?: string | null;
   /**
-   * La fonction, si l’adhérent siège au conseil. Pas encore publiée : la page du conseil lit toujours la liste inscrite dans le code.
+   * La fonction, si l’adhérent siège au conseil.
    */
   boardRole?: string | null;
-  /**
-   * Pas encore publié : la page de l’équipe d’animation lit toujours la liste inscrite dans le code.
-   */
   isAnimateur?: boolean | null;
   adhesions?:
     | {
