@@ -6,6 +6,7 @@ import { adminOrLinkedUser } from '@/access/adminOrLinkedUser'
 
 import { normaliseLicence, validateLicence } from './licence'
 import { fillFullName } from './hooks/fillFullName'
+import { syncEndpoint } from './sync/endpoint'
 
 /**
  * Everyone the club knows: the adhérents, which includes the conseil
@@ -54,6 +55,10 @@ export const Adherents: CollectionConfig<'adherents'> = {
     update: adminOrLinkedUser,
   },
   admin: {
+    components: {
+      // The button that opens the CSV comparison, above the list it concerns.
+      beforeListTable: ['@/components/admin/AdherentsSyncLink#AdherentsSyncLink'],
+    },
     defaultColumns: ['fullName', 'status', 'licence', 'updatedAt'],
     group: 'Utilisateurs',
     // The derived name holds both halves, but the secretary looking for a
@@ -62,6 +67,7 @@ export const Adherents: CollectionConfig<'adherents'> = {
     useAsTitle: 'fullName',
   },
   defaultSort: 'fullName',
+  endpoints: [syncEndpoint],
   fields: [
     /**
      * Where the roster stands for this person, said outright rather than
@@ -191,8 +197,20 @@ export const Adherents: CollectionConfig<'adherents'> = {
               },
             },
             /**
-             * Family membership, as the sheet's `Rattaché(e)` column records it:
-             * one adhérent pointing at the one whose adhesion covers them.
+             * ON HOLD. Family membership, as the sheet's `Rattaché(e)` column
+             * records it: one adhérent pointing at the one whose adhesion covers
+             * them. Hidden and unfilled until it is worth having.
+             *
+             * The sync cannot fill it as things stand. The column names the other
+             * person in prose — « ANDERLINI Isabelle » — and turning that into a
+             * relationship means matching on names, which is the one thing the
+             * import deliberately does not do: matching on the licence is what
+             * makes it safe, and 69 rows of household would buy back all the
+             * ambiguity that was designed out. Sixty-one of them resolve cleanly
+             * and eight do not, so it would need a human pass either way.
+             *
+             * Nothing reads it, so there is nothing to weigh that against yet.
+             * Left in the schema, out of the way, for the day something does.
              */
             {
               name: 'household',
@@ -202,6 +220,9 @@ export const Adherents: CollectionConfig<'adherents'> = {
               access: {
                 create: adminOnlyFieldAccess,
                 update: adminOnlyFieldAccess,
+              },
+              admin: {
+                hidden: true,
               },
             },
           ],
@@ -384,43 +405,24 @@ export const Adherents: CollectionConfig<'adherents'> = {
               },
             },
             /**
-             * What puts a person on /board and /animation-team. A `boardRole`
-             * that is set is what makes someone a member of the conseil — there
-             * is no separate tick — and `boardRank` is the order the club reads
-             * itself in, which is neither alphabetical nor by seniority.
+             * Nothing reads this yet. There is deliberately no rank beside it:
+             * the order the conseil is read in belongs to the page that renders
+             * it, not to a number on each of fifteen documents.
              */
             {
-              type: 'row',
-              fields: [
-                {
-                  name: 'boardRole',
-                  type: 'text',
-                  label: 'Fonction au conseil',
-                  access: {
-                    create: adminOnlyFieldAccess,
-                    update: adminOnlyFieldAccess,
-                  },
-                  admin: {
-                    description: 'Renseigner cette fonction place l’adhérent au conseil.',
-                    placeholder: 'Trésorier',
-                    width: '60%',
-                  },
-                },
-                {
-                  name: 'boardRank',
-                  type: 'number',
-                  label: 'Rang',
-                  access: {
-                    create: adminOnlyFieldAccess,
-                    update: adminOnlyFieldAccess,
-                  },
-                  admin: {
-                    description: 'Ordre d’affichage sur la page du conseil.',
-                    width: '40%',
-                  },
-                },
-              ],
+              name: 'boardRole',
+              type: 'text',
+              label: 'Fonction au conseil',
+              access: {
+                create: adminOnlyFieldAccess,
+                update: adminOnlyFieldAccess,
+              },
+              admin: {
+                description: 'La fonction, si l’adhérent siège au conseil.',
+                placeholder: 'Trésorier',
+              },
             },
+            /** Nothing reads this yet either. */
             {
               name: 'isAnimateur',
               type: 'checkbox',
@@ -435,91 +437,112 @@ export const Adherents: CollectionConfig<'adherents'> = {
           ],
           label: 'Club',
         },
+      ],
+    },
+    /**
+     * NOT IN USE, AND NOT YET DECIDED. Acknowledged, not forgotten — needs a
+     * conversation before anything starts filling either of these.
+     *
+     * `adhesions` and `notes` are kept in the schema, hidden from the admin, and
+     * written by nothing. The shapes look right for what the club will
+     * eventually want: a row per season rather than the columns its spreadsheet
+     * overwrites every September, and somewhere for the secretary's marginalia
+     * to land. What has *not* been settled is whether the site should hold that
+     * at all, who maintains it, and what it is for — the money in particular
+     * belongs to whoever does the club's accounts, and that has not been asked.
+     *
+     * So the columns stay, because dropping and re-adding an array table is a
+     * migration each way for no gain, and the fields stay hidden so the
+     * committee is not shown a tab nobody can explain. The sync still computes
+     * the notes and puts them in its report — a queried address or an unreadable
+     * date is worth seeing — and writes neither.
+     *
+     * Unhiding them is a one-line change on the day there is an answer.
+     */
+    /**
+     * One row per season, rather than a set of columns overwritten each
+     * September. The sheet carries a single season and loses the last
+     * one every time it is renewed; this keeps the history the club
+     * currently throws away, and answers "was this person a member in
+     * 2024?" without an archive of spreadsheets.
+     */
+    {
+      name: 'adhesions',
+      type: 'array',
+      label: 'Adhésions',
+      labels: {
+        singular: 'Saison',
+        plural: 'Saisons',
+      },
+      admin: {
+        hidden: true,
+      },
+      access: {
+        create: adminOnlyFieldAccess,
+        read: adminOnlyFieldAccess,
+        update: adminOnlyFieldAccess,
+      },
+      fields: [
         {
+          type: 'row',
           fields: [
-            /**
-             * One row per season, rather than a set of columns overwritten each
-             * September. The sheet carries a single season and loses the last
-             * one every time it is renewed; this keeps the history the club
-             * currently throws away, and answers "was this person a member in
-             * 2024?" without an archive of spreadsheets.
-             */
             {
-              name: 'adhesions',
-              type: 'array',
-              label: 'Adhésions',
-              labels: {
-                singular: 'Saison',
-                plural: 'Saisons',
-              },
-              access: {
-                create: adminOnlyFieldAccess,
-                read: adminOnlyFieldAccess,
-                update: adminOnlyFieldAccess,
-              },
-              fields: [
-                {
-                  type: 'row',
-                  fields: [
-                    {
-                      name: 'season',
-                      type: 'text',
-                      label: 'Saison',
-                      admin: { placeholder: '2026/2027', width: '25%' },
-                      required: true,
-                    },
-                    {
-                      name: 'paidOn',
-                      type: 'date',
-                      label: 'Payé le',
-                      admin: {
-                        date: { displayFormat: 'dd/MM/yyyy', pickerAppearance: 'dayOnly' },
-                        width: '25%',
-                      },
-                    },
-                    {
-                      name: 'amountFfr',
-                      type: 'number',
-                      label: 'Part FFR (€)',
-                      admin: { width: '25%' },
-                    },
-                    {
-                      name: 'amountClub',
-                      type: 'number',
-                      label: 'Part club (€)',
-                      admin: { width: '25%' },
-                    },
-                  ],
-                },
-                {
-                  name: 'note',
-                  type: 'text',
-                  label: 'Note',
-                },
-              ],
+              name: 'season',
+              type: 'text',
+              label: 'Saison',
+              admin: { placeholder: '2026/2027', width: '25%' },
+              required: true,
             },
-            /**
-             * Where the sheet's marginalia lands. Its `Date édition` and `Club
-             * coût` columns are dropped, but nine rows carry « A vérifier » or
-             * « A SUIVRE » in the first and twenty-one carry amounts in the
-             * second that reconcile with nothing else — all of it written by
-             * hand about people who have paid, so it is preserved as text here
-             * rather than discarded with the columns.
-             */
             {
-              name: 'notes',
-              type: 'textarea',
-              label: 'Notes internes',
-              access: {
-                create: adminOnlyFieldAccess,
-                read: adminOnlyFieldAccess,
-                update: adminOnlyFieldAccess,
+              name: 'paidOn',
+              type: 'date',
+              label: 'Payé le',
+              admin: {
+                date: { displayFormat: 'dd/MM/yyyy', pickerAppearance: 'dayOnly' },
+                width: '25%',
               },
+            },
+            {
+              name: 'amountFfr',
+              type: 'number',
+              label: 'Part FFR (€)',
+              admin: { width: '25%' },
+            },
+            {
+              name: 'amountClub',
+              type: 'number',
+              label: 'Part club (€)',
+              admin: { width: '25%' },
             },
           ],
-          label: 'Suivi',
+        },
+        {
+          name: 'note',
+          type: 'text',
+          label: 'Note',
         },
       ],
+    },
+    /**
+     * Where the sheet's marginalia lands. Its `Date édition` and `Club
+     * coût` columns are dropped, but nine rows carry « A vérifier » or
+     * « A SUIVRE » in the first and twenty-one carry amounts in the
+     * second that reconcile with nothing else — all of it written by
+     * hand about people who have paid, so it is preserved as text here
+     * rather than discarded with the columns.
+     */
+    {
+      name: 'notes',
+      type: 'textarea',
+      label: 'Notes internes',
+      admin: {
+        hidden: true,
+      },
+      access: {
+        create: adminOnlyFieldAccess,
+        read: adminOnlyFieldAccess,
+        update: adminOnlyFieldAccess,
+      },
     },
   ],
   hooks: {

@@ -570,13 +570,9 @@ export interface Adherent {
    */
   medicalCertificateDate?: string | null;
   /**
-   * Renseigner cette fonction place l’adhérent au conseil.
+   * La fonction, si l’adhérent siège au conseil.
    */
   boardRole?: string | null;
-  /**
-   * Ordre d’affichage sur la page du conseil.
-   */
-  boardRank?: number | null;
   isAnimateur?: boolean | null;
   adhesions?:
     | {
@@ -2348,7 +2344,6 @@ export interface AdherentsSelect<T extends boolean = true> {
   licenceClub?: T;
   medicalCertificateDate?: T;
   boardRole?: T;
-  boardRank?: T;
   isAnimateur?: T;
   adhesions?:
     | T
