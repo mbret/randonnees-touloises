@@ -414,12 +414,12 @@ html:not(.dark) .plaque {
  *
  * `--border` is gone with it: the bar's own rule is set transparent by hand
  * three lines down, and the only other border in here is the dropdown's, which
- * should be the page's.
+ * should be the page's. `--primary` went the same way when the menu button
+ * stopped being a filled one — nothing in the bar is filled now, so there is no
+ * fill to invert.
  */
 body:has([data-hero-top]) header:not([data-scrolled]) {
   --foreground: oklch(0.985 0.006 75);
-  --primary: oklch(0.985 0.006 75);
-  --primary-foreground: oklch(0.265 0.017 45);
 }
 
 /**
@@ -436,7 +436,7 @@ body:has([data-hero-top]) header:not([data-scrolled]) {
  * the colour it replaces. The club's green is kept, since the wash is the site's
  * hover language everywhere else; it is only made relative.
  */
-header [data-slot='navigation-menu-list'] > * > :is(a, button) {
+header :is([data-slot='navigation-menu-list'] > * > :is(a, button), [data-slot='sheet-trigger']) {
   --accent: oklch(0.55 0.13 119 / 10%);
 }
 
@@ -445,9 +445,7 @@ header [data-slot='navigation-menu-list'] > * > :is(a, button) {
  * above, so a bar on the photograph keeps its white lift. */
 body:has([data-hero-top])
   header:not([data-scrolled])
-  [data-slot='navigation-menu-list']
-  > *
-  > :is(a, button) {
+  :is([data-slot='navigation-menu-list'] > * > :is(a, button), [data-slot='sheet-trigger']) {
   --accent: oklch(1 0 0 / 18%);
   --accent-foreground: oklch(0.985 0.006 75);
 }
