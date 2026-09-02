@@ -67,6 +67,28 @@ const SCRIM = [
 ].join(' ')
 
 /**
+ * The other half of the scrim, and it exists for the navigation.
+ *
+ * The bar sits on the photograph rather than above it, and the top of this
+ * picture is sky: cream nav labels on it measure around 1.2:1. Everything the
+ * header holds lives in the first 80px, so that band is covered and the cover
+ * is gone again by 230px, well before the mountains.
+ *
+ * Shaped by the same rule as the bottom: nothing steeper than 0.36%/px, and no
+ * two adjacent segments differing by more than 0.25. A gradient shows as an
+ * edge where its slope changes abruptly, not where its value does.
+ */
+const TOP_SCRIM = [
+  'linear-gradient(to bottom,',
+  'oklch(0.2 0 0 / 70%) 0,',
+  'oklch(0.2 0 0 / 64%) 55px,',
+  'oklch(0.2 0 0 / 46%) 100px,',
+  'oklch(0.2 0 0 / 28%) 145px,',
+  'oklch(0.2 0 0 / 13%) 185px,',
+  'oklch(0.2 0 0 / 0%) 230px)',
+].join(' ')
+
+/**
  * The opening of the home page: what the club does, and the two ways into the
  * page below it.
  *
@@ -83,19 +105,17 @@ const SCRIM = [
  */
 export function HomeHero() {
   return (
-    <section className="on-media text-foreground relative isolate flex min-h-[26rem] flex-col justify-end overflow-hidden md:min-h-[32rem]">
-      <Image
-        alt=""
-        aria-hidden
-        className="-z-10 object-cover"
-        fill
-        priority
-        sizes="100vw"
-        src={aboutHero}
-      />
-      {/* Same layer as the photograph and written after it, so it covers the
-          image without coming between the image and the text. */}
-      <div aria-hidden className="absolute inset-0 -z-10" style={{ backgroundImage: SCRIM }} />
+    <section className="on-media text-foreground relative isolate flex min-h-[26rem] flex-col justify-end md:min-h-[32rem]">
+      {/* The picture and its scrims, reaching `-top-20` above the section so the
+          photograph runs up behind the header rather than starting under it.
+          That 80px is the header's own `h-20`; the section's box is unchanged,
+          so nothing below moves. The bottom scrim's stops are distances from
+          the bottom, which this does not disturb. */}
+      <div aria-hidden className="absolute -top-20 right-0 bottom-0 left-0 -z-10 overflow-hidden">
+        <Image alt="" className="object-cover" fill priority sizes="100vw" src={aboutHero} />
+        <div className="absolute inset-0" style={{ backgroundImage: TOP_SCRIM }} />
+        <div className="absolute inset-0" style={{ backgroundImage: SCRIM }} />
+      </div>
 
       <div className="container py-10 md:py-14">
         <h1 className="font-display max-w-[24ch] text-3xl leading-[1.08] font-bold tracking-tight text-balance sm:text-4xl lg:text-5xl">
@@ -140,6 +160,13 @@ export function HomeHero() {
           </a>
         </div>
       </div>
+
+      {/* What tells the header there is a photograph here, and where it ends.
+          Its presence is the whole of « this page opens with a hero » — the CSS
+          keys off it, so the bar is transparent in the first paint rather than
+          after a hydration — and the header watches it cross to know when to
+          stop being transparent. */}
+      <div aria-hidden className="absolute bottom-0 h-px w-full" data-hero-end />
     </section>
   )
 }
