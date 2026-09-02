@@ -386,12 +386,12 @@ html:not(.dark) .plaque {
  */
 .on-media,
 /* The header while it sits on a photograph: a page opens with one when it
- * renders `[data-hero-end]`, and `[data-scrolled]` is put on the header once
+ * renders `[data-hero-top]`, and `[data-scrolled]` is put on the header once
  * the page has scrolled past it. Written as a selector rather than a class so
  * the state is right in the HTML the server sends — a class toggled after
  * hydration would render the bar solid and then blink away on every visit to
  * the home page. */
-body:has([data-hero-end]) header:not([data-scrolled]) {
+body:has([data-hero-top]) header:not([data-scrolled]) {
   --foreground: oklch(0.985 0.006 75);
   --brand-orange: oklch(0.74 0.14 55);
   --primary: oklch(0.985 0.006 75);
@@ -401,7 +401,7 @@ body:has([data-hero-end]) header:not([data-scrolled]) {
   --border: oklch(1 0 0 / 45%);
 }
 
-body:has([data-hero-end]) header:not([data-scrolled]) {
+body:has([data-hero-top]) header:not([data-scrolled]) {
   color: var(--foreground);
   background-color: transparent;
   border-bottom-color: transparent;

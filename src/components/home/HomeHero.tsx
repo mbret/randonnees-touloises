@@ -113,6 +113,13 @@ export function HomeHero() {
           the bottom, which this does not disturb. */}
       <div aria-hidden className="absolute -top-20 right-0 bottom-0 left-0 -z-10 overflow-hidden">
         <Image alt="" className="object-cover" fill priority sizes="100vw" src={aboutHero} />
+        {/* What tells the header there is a photograph here, and whether the
+            page is still at rest on it. Its presence is the whole of « this page
+            opens with a hero » — the CSS keys off it, so the bar is transparent
+            in the first paint rather than after a hydration — and it leaves the
+            viewport the moment the page moves. Eight pixels rather than one so a
+            stray pixel of scroll does not toggle the bar. */}
+        <div className="absolute top-0 h-2 w-full" data-hero-top />
         <div className="absolute inset-0" style={{ backgroundImage: TOP_SCRIM }} />
         <div className="absolute inset-0" style={{ backgroundImage: SCRIM }} />
       </div>
@@ -160,13 +167,6 @@ export function HomeHero() {
           </a>
         </div>
       </div>
-
-      {/* What tells the header there is a photograph here, and where it ends.
-          Its presence is the whole of « this page opens with a hero » — the CSS
-          keys off it, so the bar is transparent in the first paint rather than
-          after a hydration — and the header watches it cross to know when to
-          stop being transparent. */}
-      <div aria-hidden className="absolute bottom-0 h-px w-full" data-hero-end />
     </section>
   )
 }
