@@ -102,13 +102,22 @@ export function HeaderClient({ navItems }: HeaderClientProps) {
        * the border counts within it — box-sizing is border-box. With `h-20` on
        * the row the bar measured 81px against the hero's 80, and the page
        * showed through as a hairline above the photograph. */
-      className="bg-background/92 sticky top-[var(--admin-bar-height)] z-12 mx-auto h-20 w-full flex-shrink-0 items-center justify-center border-b border-solid backdrop-blur-[20px] backdrop-saturate-125 transition-[color,background-color,border-color,backdrop-filter]"
-      /* No duration of its own: the entries inside carry
-       * `transition-[color,box-shadow]` from `navigationMenuTriggerStyle` and
-       * the menu button `transition-all`, both on the default 150ms, so a bar
-       * set to 200ms finished after its own labels had. `backdrop-filter` is
-       * named explicitly because `transition-colors` does not cover it, and the
-       * frosting was appearing in one step under a fading background. */
+      className="bg-background/92 sticky top-[var(--admin-bar-height)] z-12 mx-auto h-20 w-full flex-shrink-0 items-center justify-center border-b border-solid backdrop-blur-[20px] backdrop-saturate-125 transition-[background-color,border-color,backdrop-filter]"
+      /* `color` is deliberately not in that list, and this is the part that is
+       * easy to get backwards. The entries inside set no colour of their own —
+       * they inherit this one — and they carry `transition-[color,box-shadow]`
+       * from `navigationMenuTriggerStyle`. Transition the colour here and each
+       * label spends the whole of the bar's fade chasing a value that is itself
+       * still moving, then takes its own 150ms to catch the value it lands on:
+       * measured, the bar finished at 195ms and the labels at about 395.
+       * Changing it in one step gives every child a fixed target at once, so
+       * their 150ms and the bar's run together.
+       *
+       * No duration of its own either: the entries are on the default 150ms and
+       * the menu button's `transition-all` likewise, so a bar set to 200ms
+       * finished after its own labels had. `backdrop-filter` is named because
+       * `transition-colors` does not cover it, and the frosting was arriving in
+       * one step under a background that was still fading. */
       {...(theme ? { 'data-theme': theme } : {})}
       {...(scrolled ? { 'data-scrolled': '' } : {})}
     >
