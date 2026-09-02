@@ -196,7 +196,7 @@ export const AdherentsSyncScreen: React.FC = () => {
 
   return (
     <div className="gutter--left gutter--right" style={{ paddingBottom: '4rem' }}>
-      <h1 style={{ marginBottom: '.5rem' }}>Synchroniser avec l’export VSC</h1>
+      <h1 style={{ marginBottom: '.5rem' }}>Synchroniser avec l’export CSV</h1>
       <p style={{ color: 'var(--theme-elevation-600)', marginTop: 0 }}>
         Déposez l’export des adhérents. Rien n’est enregistré avant que vous ayez lu le rapport et
         confirmé.

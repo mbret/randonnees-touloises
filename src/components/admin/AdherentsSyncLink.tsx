@@ -12,7 +12,7 @@ import React from 'react'
 export const AdherentsSyncLink: React.FC = () => (
   <div style={{ display: 'flex', gap: '.5rem', marginBottom: '1rem' }}>
     <Button buttonStyle="secondary" el="link" size="small" to="/admin/adherents/sync">
-      Synchroniser avec l’export VSC…
+      Synchroniser avec l’export CSV…
     </Button>
   </div>
 )

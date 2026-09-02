@@ -97,14 +97,14 @@ export default buildConfig({
       beforeDashboard: ['@/components/BeforeDashboard'],
       views: {
         /**
-         * Importing the club's VSC export into the roster. Its own screen
+         * Importing the club's CSV export into the roster. Its own screen
          * rather than a dialog on the list: the report is long enough to need
          * reading, and the file it reads carries every adhérent's address.
          */
         adherentsSync: {
           Component: '@/components/admin/AdherentsSyncView#AdherentsSyncView',
           exact: true,
-          meta: { title: 'Synchroniser avec l’export VSC' },
+          meta: { title: 'Synchroniser avec l’export CSV' },
           path: '/adherents/sync',
         },
       },
