@@ -359,6 +359,41 @@ html:not(.dark) .plaque {
   --muted-foreground: oklch(0.8 0.016 60);
 }
 
+/**
+ * Type set over a photograph.
+ *
+ * A picture is not a colour, so nothing here can be measured against the ground
+ * the way the rest of the palette is. What makes it measurable is the scrim the
+ * hero lays over the lower half of the image: where text sits, the photograph
+ * is covered by at least 80% of `oklch(0.2 0.02 42)`, and the numbers below are
+ * that composite over the brightest thing the club's photographs put behind
+ * type — a hazy sky at #C9D4DE. Anything darker only reads better.
+ *
+ *   - `--foreground` is the page cream, 10.7:1 at its worst.
+ *   - `--brand-orange` is the value `.dark` already carries. The printed orange
+ *     is a light colour held back for the cream page; here the ground is dark
+ *     again, so the club's colour returns to the value that suits it: 4.67:1 at
+ *     worst, which carries the accent in the headline.
+ *   - `--primary` inverts: on a photograph the filled button is the pale one,
+ *     so a solid cream chip carries brown text at 12.9:1.
+ *   - `--accent` and `--border` are translucent white rather than opaque
+ *     colours, so the ghost button's edge and hover wash sit *on* the image
+ *     instead of punching a flat rectangle through it.
+ *
+ * Unscoped, unlike `.plaque` above: that one exists to give a light page a base
+ * and has nothing to say on a dark one, whereas a photograph is a photograph in
+ * either theme and needs the same treatment on top of it.
+ */
+.on-media {
+  --foreground: oklch(0.985 0.006 75);
+  --brand-orange: oklch(0.74 0.14 55);
+  --primary: oklch(0.985 0.006 75);
+  --primary-foreground: oklch(0.265 0.017 45);
+  --accent: oklch(1 0 0 / 18%);
+  --accent-foreground: oklch(0.985 0.006 75);
+  --border: oklch(1 0 0 / 45%);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
