@@ -394,6 +394,71 @@ html:not(.dark) .plaque {
   --border: oklch(1 0 0 / 45%);
 }
 
+/**
+ * The header while it sits on a photograph.
+ *
+ * A page opens with one when it renders `[data-hero-top]`, and `[data-scrolled]`
+ * is put on the header as soon as the page moves. Written as a selector rather
+ * than a class so the state is right in the HTML the server sends — a class
+ * toggled after hydration would render the bar solid and then blink it away on
+ * every visit to the home page.
+ *
+ * It takes a shorter list than `.on-media` above, and deliberately so, having
+ * once shared it. The bar contains the « Plus » dropdown, which is a white panel
+ * floating on the *page*: it is not on the photograph and must not be dressed as
+ * if it were. Sharing the block put the photograph's `--accent` — an 18% white
+ * wash — and its cream `--accent-foreground` inside that panel, so the entry
+ * under the pointer turned cream on white and disappeared. Only what the bar
+ * itself wears belongs here; the hover wash is set below, on the entries in the
+ * bar and nothing deeper.
+ *
+ * `--border` is gone with it: the bar's own rule is set transparent by hand
+ * three lines down, and the only other border in here is the dropdown's, which
+ * should be the page's. `--primary` went the same way when the menu button
+ * stopped being a filled one — nothing in the bar is filled now, so there is no
+ * fill to invert.
+ */
+body:has([data-hero-top]) header:not([data-scrolled]) {
+  --foreground: oklch(0.985 0.006 75);
+}
+
+/**
+ * The hover wash on the bar's own entries, on every page.
+ *
+ * `--accent` is an opaque colour chosen against the page's cream, and the bar is
+ * translucent: over the hero its ground is a dimmer cream, and there the same
+ * chip stopped being a wash at all. Measured, it went from 0.11 darker than its
+ * surround on the page to 0.03 *lighter* over the photograph — the wash
+ * inverting, which is why it read as a green patch rather than as a hover.
+ *
+ * Translucent, it darkens whatever it happens to be on by the same amount: 0.09
+ * over the photograph against 0.12 on the page, where it lands within 0.007 of
+ * the colour it replaces. The club's green is kept, since the wash is the site's
+ * hover language everywhere else; it is only made relative.
+ */
+header :is([data-slot='navigation-menu-list'] > * > :is(a, button), [data-slot='sheet-trigger']) {
+  --accent: oklch(0.55 0.13 119 / 10%);
+}
+
+/* The entries in the bar itself — a list item's own link or trigger, never
+ * anything inside the panel one of them opens. Higher specificity than the rule
+ * above, so a bar on the photograph keeps its white lift. */
+body:has([data-hero-top])
+  header:not([data-scrolled])
+  :is([data-slot='navigation-menu-list'] > * > :is(a, button), [data-slot='sheet-trigger']) {
+  --accent: oklch(1 0 0 / 18%);
+  --accent-foreground: oklch(0.985 0.006 75);
+}
+
+body:has([data-hero-top]) header:not([data-scrolled]) {
+  color: var(--foreground);
+  background-color: transparent;
+  border-bottom-color: transparent;
+  /* No blur here, or the photograph the bar is meant to show would be smeared
+   * exactly where it is most visible. */
+  backdrop-filter: none;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

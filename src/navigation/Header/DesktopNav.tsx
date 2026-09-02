@@ -35,6 +35,19 @@ const shortcutLadder = [
   { shortcut: 'max-xl:hidden', menu: 'xl:hidden' },
 ]
 
+/**
+ * `text-current` is not decoration. `NavigationMenuLink` pins every icon inside
+ * it to `--muted-foreground` with `[&_svg:not([class*='text-'])]`, so these two
+ * kept a fixed grey while the label beside them changed — over the hero
+ * photograph the magnifier sat at a washed 0.43 lightness and never moved. A
+ * class containing `text-` is what the selector excludes, and `text-current` is
+ * the one that also says the right thing: follow the label.
+ *
+ * `transition-transform` rather than `transition` for the same reason the header
+ * does not transition its own colour: with a duration of their own these icons
+ * chase a value that is still moving and land after the word they belong to.
+ * With none, the inherited colour tracks the label exactly.
+ */
 function ListItem({ url, isExternal, className, ...rest }: ComponentProps<typeof CMSLink>) {
   return (
     <CMSLink
@@ -47,12 +60,12 @@ function ListItem({ url, isExternal, className, ...rest }: ComponentProps<typeof
       {/* TODO: Add a search icon to the search link */}
       {url === '/search' ? (
         <SearchIcon
-          className="relative top-px ml-1 h-4 w-4 transition duration-200 group-data-[state=open]:rotate-180"
+          className="relative top-px ml-1 h-4 w-4 text-current transition-transform duration-200"
           aria-hidden="true"
         />
       ) : isExternal ? (
         <ExternalLinkIcon
-          className="relative top-px ml-1 h-4 w-4 transition duration-200 group-data-[state=open]:rotate-180"
+          className="relative top-px ml-1 h-4 w-4 text-current transition-transform duration-200"
           aria-hidden="true"
         />
       ) : null}
