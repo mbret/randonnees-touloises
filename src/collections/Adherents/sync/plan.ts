@@ -1,0 +1,260 @@
+import { adherentName } from '../adherentName'
+import { mapSheetRow, sheetRenewed, type SheetAdhesion, type SheetFields } from './mapRow'
+
+/**
+ * An adhérent as the plan needs to see one: the fields the sheet owns, plus the
+ * season rows already recorded. Deliberately a plain shape rather than the
+ * generated `Adherent` type, so the whole of this file is pure and testable
+ * without a database or a Payload instance.
+ */
+export type ExistingAdherent = {
+  adhesions?: ({ id?: null | string } & SheetAdhesion)[] | null
+  id: number
+  licence?: null | string
+  notes?: null | string
+  status?: null | string
+} & SheetFields
+
+export type FieldChange = { field: string; from: unknown; to: unknown }
+
+export type PlannedCreate = {
+  adhesion: SheetAdhesion
+  fields: SheetFields
+  licence: string
+  line: number
+  name: string
+  notes: string[]
+  status: string
+}
+
+export type PlannedUpdate = {
+  adhesion: SheetAdhesion
+  changes: FieldChange[]
+  id: number
+  licence: string
+  line: number
+  name: string
+  notes: string[]
+}
+
+export type SyncPlan = {
+  absent: { id: number; licence: null | string; name: string }[]
+  creates: PlannedCreate[]
+  rejected: { line: number; reason: string }[]
+  season: string
+  skipped: { line: number; reason: string }[]
+  unchanged: number
+  updates: PlannedUpdate[]
+}
+
+/** The fields an import may write, in the order the report reads best. */
+const SHEET_OWNED: (keyof SheetFields)[] = [
+  'civility',
+  'lastName',
+  'firstName',
+  'birthDate',
+  'email',
+  'phone',
+  'streetNumber',
+  'postalCode',
+  'city',
+  'licenceClub',
+  'medicalCertificateDate',
+]
+
+/** Dates are stored as timestamps, so compare the day rather than the string. */
+const sameValue = (field: keyof SheetFields, before: unknown, after: unknown): boolean => {
+  if (field === 'birthDate' || field === 'medicalCertificateDate') {
+    const day = (value: unknown) =>
+      typeof value === 'string' && value !== '' ? value.slice(0, 10) : null
+
+    return day(before) === day(after)
+  }
+
+  return (before ?? null) === (after ?? null)
+}
+
+/**
+ * What a re-import would do, without doing any of it.
+ *
+ * Three rules carry the safety, and each is a decision rather than an
+ * implementation detail:
+ *
+ *   1. The licence is the only key. A row whose licence is already here updates
+ *      that adhérent; a row whose licence is new creates one; a row with no
+ *      licence does nothing at all. No name matching, so there is no ambiguity
+ *      to adjudicate and no chance of merging two people who share a name.
+ *
+ *   2. A blank cell says nothing. Only a value present in the sheet can
+ *      overwrite a stored one, so a partial export cannot empty a column.
+ *
+ *   3. Nothing is ever deleted, and absence means nothing. An adhérent the file
+ *      does not mention is reported and left exactly as they are — because the
+ *      file may well be a filtered export, and "not in this file" would
+ *      otherwise be indistinguishable from "no longer a member".
+ *
+ * What this cannot protect against is a re-import overwriting a value a member
+ * changed themselves through their own account, since the sheet wins every time
+ * it has an opinion. Nothing writes those fields but this import today; the sync
+ * page says so in as many words, and the fix when it matters is a merge base
+ * recorded per adhérent.
+ */
+export const buildPlan = ({
+  existing,
+  rows,
+  season,
+}: {
+  existing: ExistingAdherent[]
+  rows: Record<string, string>[]
+  season: string
+}): SyncPlan => {
+  const byLicence = new Map<string, ExistingAdherent>()
+
+  for (const adherent of existing) {
+    if (adherent.licence) byLicence.set(adherent.licence, adherent)
+  }
+
+  const plan: SyncPlan = {
+    absent: [],
+    creates: [],
+    rejected: [],
+    season,
+    skipped: [],
+    unchanged: 0,
+    updates: [],
+  }
+
+  const seenLicences = new Set<string>()
+
+  rows.forEach((row, index) => {
+    // +2: the header is line 1, and the first row of data is line 2.
+    const line = index + 2
+    const mapped = mapSheetRow(row, line, season)
+
+    if ('skip' in mapped) {
+      plan.skipped.push({ line, reason: mapped.skip })
+      return
+    }
+
+    /**
+     * A licence twice in one file is the file contradicting itself — most likely
+     * a copied row. Applying either version would be a guess, so neither is.
+     */
+    if (seenLicences.has(mapped.licence)) {
+      plan.rejected.push({
+        line,
+        reason: `Le numéro de licence ${mapped.licence} apparaît plusieurs fois dans ce fichier.`,
+      })
+      return
+    }
+
+    seenLicences.add(mapped.licence)
+
+    const name = adherentName({
+      firstName: mapped.fields.firstName,
+      lastName: mapped.fields.lastName,
+    })
+
+    if (!mapped.fields.lastName) {
+      plan.rejected.push({
+        line,
+        reason: `La licence ${mapped.licence} n’a pas de nom de famille.`,
+      })
+      return
+    }
+
+    const current = byLicence.get(mapped.licence)
+
+    if (!current) {
+      plan.creates.push({
+        adhesion: mapped.adhesion,
+        fields: mapped.fields,
+        licence: mapped.licence,
+        line,
+        name,
+        notes: mapped.notes,
+        status: sheetRenewed(row) ? 'active' : 'pending',
+      })
+      return
+    }
+
+    const changes: FieldChange[] = []
+
+    for (const field of SHEET_OWNED) {
+      const incoming = mapped.fields[field]
+
+      // Rule 2: a blank cell is not an instruction to erase anything.
+      if (incoming === undefined) continue
+
+      if (!sameValue(field, current[field], incoming)) {
+        changes.push({ field, from: current[field] ?? null, to: incoming })
+      }
+    }
+
+    const adhesionChange = planAdhesion(current, mapped.adhesion)
+
+    if (adhesionChange) changes.push(adhesionChange)
+
+    const newNotes = mapped.notes.filter((note) => !(current.notes ?? '').includes(note))
+
+    if (changes.length === 0 && newNotes.length === 0) {
+      plan.unchanged += 1
+      return
+    }
+
+    plan.updates.push({
+      adhesion: mapped.adhesion,
+      changes,
+      id: current.id,
+      licence: mapped.licence,
+      line,
+      name: name || adherentName({ firstName: current.firstName, lastName: current.lastName }),
+      notes: newNotes,
+    })
+  })
+
+  for (const adherent of existing) {
+    if (adherent.licence && seenLicences.has(adherent.licence)) continue
+
+    plan.absent.push({
+      id: adherent.id,
+      licence: adherent.licence ?? null,
+      name: adherentName({ firstName: adherent.firstName, lastName: adherent.lastName }),
+    })
+  }
+
+  return plan
+}
+
+/**
+ * The season row is replaced wholesale when the sheet says something different
+ * about it, and left alone otherwise. Earlier seasons are never touched: this
+ * import only ever speaks about the one season its file covers.
+ */
+const planAdhesion = (
+  current: ExistingAdherent,
+  incoming: SheetAdhesion,
+): FieldChange | null => {
+  const recorded = (current.adhesions ?? []).find((row) => row.season === incoming.season)
+
+  const shape = (row?: null | SheetAdhesion) =>
+    row
+      ? {
+          amountClub: row.amountClub ?? null,
+          amountFfr: row.amountFfr ?? null,
+          paidOn: typeof row.paidOn === 'string' ? row.paidOn.slice(0, 10) : null,
+        }
+      : null
+
+  const before = shape(recorded)
+  const after = shape(incoming)
+
+  // Nothing to say about the season at all — no amounts, no payment date.
+  if (after && after.amountClub === null && after.amountFfr === null && after.paidOn === null) {
+    return null
+  }
+
+  if (JSON.stringify(before) === JSON.stringify(after)) return null
+
+  return { field: `adhesion ${incoming.season}`, from: before, to: after }
+}
