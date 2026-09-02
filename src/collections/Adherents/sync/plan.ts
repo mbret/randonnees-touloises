@@ -1,5 +1,7 @@
 import { adherentName } from '../adherentName'
+import { cell } from './columns'
 import { mapSheetRow, sheetRenewed, type SheetAdhesion, type SheetFields } from './mapRow'
+import { sheetLicence } from './values'
 
 /**
  * An adhérent as the plan needs to see one: the fields the sheet owns, plus the
@@ -56,6 +58,7 @@ const SHEET_OWNED: (keyof SheetFields)[] = [
   'email',
   'phone',
   'streetNumber',
+  'address',
   'postalCode',
   'city',
   'licenceClub',
@@ -124,31 +127,44 @@ export const buildPlan = ({
     updates: [],
   }
 
-  const seenLicences = new Set<string>()
+  /**
+   * Licences that this file names more than once.
+   *
+   * Counted up front rather than caught as they recur, because rejecting only
+   * the second occurrence would apply the first — which is picking one of two
+   * contradictory rows, exactly what refusing them is meant to avoid. Most
+   * likely a copied row, and either way it is the secretary's to resolve.
+   */
+  const occurrences = new Map<string, number>()
+
+  for (const row of rows) {
+    const licence = sheetLicence(cell(row, 'Licence'))
+
+    if (licence) occurrences.set(licence, (occurrences.get(licence) ?? 0) + 1)
+  }
 
   rows.forEach((row, index) => {
     // +2: the header is line 1, and the first row of data is line 2.
     const line = index + 2
     const mapped = mapSheetRow(row, line, season)
 
-    if ('skip' in mapped) {
-      plan.skipped.push({ line, reason: mapped.skip })
+    if (mapped.outcome === 'skipped') {
+      plan.skipped.push({ line, reason: mapped.reason })
       return
     }
 
-    /**
-     * A licence twice in one file is the file contradicting itself — most likely
-     * a copied row. Applying either version would be a guess, so neither is.
-     */
-    if (seenLicences.has(mapped.licence)) {
+    if (mapped.outcome === 'rejected') {
+      plan.rejected.push({ line, reason: mapped.reason })
+      return
+    }
+
+    if ((occurrences.get(mapped.licence) ?? 0) > 1) {
       plan.rejected.push({
         line,
         reason: `Le numéro de licence ${mapped.licence} apparaît plusieurs fois dans ce fichier.`,
       })
       return
     }
-
-    seenLicences.add(mapped.licence)
 
     const name = adherentName({
       firstName: mapped.fields.firstName,
@@ -214,7 +230,12 @@ export const buildPlan = ({
   })
 
   for (const adherent of existing) {
-    if (adherent.licence && seenLicences.has(adherent.licence)) continue
+    /**
+     * Mentioned at all is enough, even if the row was refused. A licence this
+     * file names twice is reported as refused; also listing the person as
+     * missing from the file would read as though they had been dropped from it.
+     */
+    if (adherent.licence && occurrences.has(adherent.licence)) continue
 
     plan.absent.push({
       id: adherent.id,
@@ -237,21 +258,42 @@ const planAdhesion = (
 ): FieldChange | null => {
   const recorded = (current.adhesions ?? []).find((row) => row.season === incoming.season)
 
+  const day = (value: unknown) => (typeof value === 'string' ? value.slice(0, 10) : null)
+
   const shape = (row?: null | SheetAdhesion) =>
     row
       ? {
           amountClub: row.amountClub ?? null,
           amountFfr: row.amountFfr ?? null,
-          paidOn: typeof row.paidOn === 'string' ? row.paidOn.slice(0, 10) : null,
+          paidOn: day(row.paidOn),
         }
       : null
 
-  const before = shape(recorded)
-  const after = shape(incoming)
-
   // Nothing to say about the season at all — no amounts, no payment date.
-  if (after && after.amountClub === null && after.amountFfr === null && after.paidOn === null) {
+  if (
+    incoming.amountClub === undefined &&
+    incoming.amountFfr === undefined &&
+    incoming.paidOn === undefined
+  ) {
     return null
+  }
+
+  const before = shape(recorded)
+
+  /**
+   * Rule 2 reaches the season row as well. The sheet can leave the payment date
+   * blank while changing an amount — the secretary records the two at different
+   * moments — so each part of the row is taken from the sheet only where the
+   * sheet has something to say, and kept otherwise. Replacing the row wholesale
+   * would let a half-filled export clear a payment date that is not in doubt.
+   *
+   * `??` and not `||`, because `0,00 €` is a real amount: the club charged
+   * nothing, which is not the same as saying nothing.
+   */
+  const after = {
+    amountClub: incoming.amountClub ?? before?.amountClub ?? null,
+    amountFfr: incoming.amountFfr ?? before?.amountFfr ?? null,
+    paidOn: day(incoming.paidOn) ?? before?.paidOn ?? null,
   }
 
   if (JSON.stringify(before) === JSON.stringify(after)) return null

@@ -129,7 +129,7 @@ describe('mapping a row', () => {
   it('never carries a field the site owns', () => {
     const mapped = mapSheetRow(sheetRow(), 2, SEASON)
 
-    if ('skip' in mapped) throw new Error('expected a mapped row')
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
     for (const forbidden of [
       'photo',
@@ -149,7 +149,8 @@ describe('mapping a row', () => {
   it('skips a row with no licence rather than guessing who it is', () => {
     const mapped = mapSheetRow(sheetRow({ Licence: '' }), 5, SEASON)
 
-    expect('skip' in mapped && mapped.skip).toContain('Aucun numéro de licence')
+    expect(mapped.outcome).toBe('skipped')
+    expect(mapped.outcome === 'skipped' && mapped.reason).toContain('Aucun numéro de licence')
   })
 
   it('keeps the secretary’s marginalia from the dropped columns', () => {
@@ -159,7 +160,7 @@ describe('mapping a row', () => {
       SEASON,
     )
 
-    if ('skip' in mapped) throw new Error('expected a mapped row')
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
     expect(mapped.notes).toContain('Date édition : A vérifier')
     expect(mapped.notes).toContain('Club coût : 30,75 €')
@@ -168,7 +169,7 @@ describe('mapping a row', () => {
   it('does not note a Club coût of zero, which is what most rows hold', () => {
     const mapped = mapSheetRow(sheetRow({ 'Club\ncoût': '0,00 €' }), 2, SEASON)
 
-    if ('skip' in mapped) throw new Error('expected a mapped row')
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
     expect(mapped.notes).toEqual([])
   })
@@ -176,7 +177,7 @@ describe('mapping a row', () => {
   it('keeps a certificate date that is not a date', () => {
     const mapped = mapSheetRow(sheetRow({ 'Certificat\nmédical': '2121' }), 2, SEASON)
 
-    if ('skip' in mapped) throw new Error('expected a mapped row')
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
     expect(mapped.fields.medicalCertificateDate).toBeUndefined()
     expect(mapped.notes).toContain('Certificat médical : 2121')
@@ -261,15 +262,6 @@ describe('planning a sync', () => {
     expect(plan.creates).toHaveLength(0)
   })
 
-  it('refuses a licence that appears twice in one file', () => {
-    const plan = buildPlan({ existing: [], rows: [sheetRow(), sheetRow()], season: SEASON })
-
-    expect(plan.creates).toHaveLength(1)
-    expect(plan.rejected[0].reason).toContain('plusieurs fois')
-    // Line 3: the header is 1, so the duplicate is the second data row.
-    expect(plan.rejected[0].line).toBe(3)
-  })
-
   it('refuses a row with a licence but no surname', () => {
     const plan = buildPlan({ existing: [], rows: [sheetRow({ Nom: '' })], season: SEASON })
 
@@ -335,7 +327,7 @@ describe('a payment cell that is not a date', () => {
 
     const mapped = mapSheetRow(row, 86, SEASON)
 
-    if ('skip' in mapped) throw new Error('expected a mapped row')
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
     expect(mapped.notes).toContain('Paiement illisible : 1')
     expect(mapped.adhesion.paidOn).toBeUndefined()
@@ -344,9 +336,147 @@ describe('a payment cell that is not a date', () => {
   it('leaves a well-formed payment date unremarked', () => {
     const mapped = mapSheetRow(sheetRow({ Paiement: '17/08/2026' }), 2, SEASON)
 
-    if ('skip' in mapped) throw new Error('expected a mapped row')
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
 
     expect(mapped.notes).toEqual([])
     expect(mapped.adhesion.paidOn).toBe('2026-08-17')
+  })
+})
+
+describe('the street address', () => {
+  /**
+   * 275 of the club's 276 rows carry one, and an earlier version of this mapping
+   * read the number, the postcode and the town but never the street itself.
+   */
+  it('is read, along with the rest of the address', () => {
+    const mapped = mapSheetRow(
+      sheetRow({ Adresse: 'rue des Cordeliers', CP: '54200', 'N°': '12', Ville: 'TOUL' }),
+      2,
+      SEASON,
+    )
+
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
+
+    expect(mapped.fields.address).toBe('rue des Cordeliers')
+    expect(mapped.fields.streetNumber).toBe('12')
+    expect(mapped.fields.postalCode).toBe('54200')
+    expect(mapped.fields.city).toBe('TOUL')
+  })
+
+  it('is offered as a change like any other sheet-owned field', () => {
+    const plan = buildPlan({
+      existing: [existing({ address: 'rue de la Halle' })],
+      rows: [sheetRow({ Adresse: 'rue des Cordeliers' })],
+      season: SEASON,
+    })
+
+    expect(plan.updates[0].changes).toEqual([
+      { field: 'address', from: 'rue de la Halle', to: 'rue des Cordeliers' },
+    ])
+  })
+})
+
+describe('a licence that is not a licence', () => {
+  it('is refused by name rather than carried into a write the collection rejects', () => {
+    const plan = buildPlan({ existing: [], rows: [sheetRow({ Licence: 'A VOIR' })], season: SEASON })
+
+    expect(plan.creates).toHaveLength(0)
+    expect(plan.skipped).toHaveLength(0)
+    expect(plan.rejected[0].reason).toContain('A VOIR')
+  })
+
+  /** The sheet's one short value is a lost leading zero, not a malformed licence. */
+  it('still pads the value that only lost its leading zero', () => {
+    const plan = buildPlan({ existing: [], rows: [sheetRow({ Licence: '077439W' })], season: SEASON })
+
+    expect(plan.rejected).toHaveLength(0)
+    expect(plan.creates[0].licence).toBe('0077439W')
+  })
+})
+
+describe('a licence the file names twice', () => {
+  /**
+   * Both occurrences go, not just the second. Rejecting the later one would
+   * apply the earlier — which is choosing between two contradictory rows, the
+   * thing refusing them is supposed to avoid.
+   */
+  it('rejects every occurrence and plans nothing for that person', () => {
+    const plan = buildPlan({
+      existing: [],
+      rows: [sheetRow({ Téléphone: '06 00 00 00 01' }), sheetRow({ Téléphone: '06 00 00 00 02' })],
+      season: SEASON,
+    })
+
+    expect(plan.creates).toHaveLength(0)
+    expect(plan.updates).toHaveLength(0)
+    expect(plan.rejected).toHaveLength(2)
+    expect(plan.rejected.map((r) => r.line)).toEqual([2, 3])
+  })
+
+  it('does not touch an adhérent already stored under that licence', () => {
+    const plan = buildPlan({
+      existing: [existing()],
+      rows: [sheetRow({ Téléphone: '06 00 00 00 01' }), sheetRow({ Téléphone: '06 00 00 00 02' })],
+      season: SEASON,
+    })
+
+    expect(plan.updates).toHaveLength(0)
+    expect(plan.rejected).toHaveLength(2)
+    // Refused rather than reported as missing from the file: it is in the file, twice.
+    expect(plan.absent).toHaveLength(0)
+  })
+})
+
+describe('a season the sheet only half fills in', () => {
+  /**
+   * Rule 2 reaches the season row too. The secretary records an amount and a
+   * payment date at different moments, so a sheet that names one and not the
+   * other must not clear the one it is silent about.
+   */
+  it('keeps the recorded payment date when the sheet gives only an amount', () => {
+    const plan = buildPlan({
+      existing: [
+        existing({
+          adhesions: [{ amountClub: 15, amountFfr: 33, paidOn: '2026-08-17', season: SEASON }],
+        }),
+      ],
+      rows: [sheetRow({ 'Montant\nFFR': '43,00 €' })],
+      season: SEASON,
+    })
+
+    expect(plan.updates[0].changes).toEqual([
+      {
+        field: `adhesion ${SEASON}`,
+        from: { amountClub: 15, amountFfr: 33, paidOn: '2026-08-17' },
+        to: { amountClub: 15, amountFfr: 43, paidOn: '2026-08-17' },
+      },
+    ])
+  })
+
+  it('treats a charge of zero as a real amount, not as silence', () => {
+    const plan = buildPlan({
+      existing: [existing({ adhesions: [{ amountFfr: 33, season: SEASON }] })],
+      rows: [sheetRow({ 'Montant\nFFR': '0,00 €' })],
+      season: SEASON,
+    })
+
+    expect(plan.updates[0].changes[0].to).toMatchObject({ amountFfr: 0 })
+  })
+
+  it('says nothing when the sheet repeats what is already recorded', () => {
+    const plan = buildPlan({
+      existing: [
+        existing({
+          adhesions: [{ amountClub: 15, amountFfr: 33, paidOn: '2026-08-17', season: SEASON }],
+        }),
+      ],
+      rows: [
+        sheetRow({ 'Club\ncotis.': '15,00 €', 'Montant\nFFR': '33,00 €', Paiement: '17/08/2026' }),
+      ],
+      season: SEASON,
+    })
+
+    expect(plan.updates).toHaveLength(0)
+    expect(plan.unchanged).toBe(1)
   })
 })

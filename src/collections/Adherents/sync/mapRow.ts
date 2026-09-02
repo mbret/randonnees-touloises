@@ -1,3 +1,4 @@
+import { LICENCE_PATTERN } from '../licence'
 import { cell } from './columns'
 import {
   sheetCivility,
@@ -16,6 +17,7 @@ import {
  * account link — is absent by construction, so no import can reach it.
  */
 export type SheetFields = {
+  address?: string
   birthDate?: string
   city?: string
   civility?: 'mme' | 'mr'
@@ -36,12 +38,16 @@ export type SheetAdhesion = {
   season: string
 }
 
-export type MappedRow = {
-  /** 1-based, counting the header, so it names the line the secretary would open. */
-  line: number
-} & (
-  | { adhesion: SheetAdhesion; fields: SheetFields; licence: string; notes: string[] }
-  | { skip: string }
+/**
+ * What reading one row produced. A tagged union rather than an optional `skip`,
+ * so narrowing on `outcome` is exact — and so the two ways of not importing a
+ * row stay distinct: `skipped` is a row the import has nothing to say about,
+ * `rejected` is a row it refuses to guess at.
+ */
+export type MappedRow = { line: number } & (
+  | { adhesion: SheetAdhesion; fields: SheetFields; licence: string; notes: string[]; outcome: 'mapped' }
+  | { outcome: 'rejected'; reason: string }
+  | { outcome: 'skipped'; reason: string }
 )
 
 /**
@@ -53,21 +59,44 @@ export type MappedRow = {
  * `Age` is not read either: it is a formula over the date of birth, and a stored
  * copy would be wrong by the next birthday.
  */
-export const mapSheetRow = (row: Record<string, string>, line: number, season: string): MappedRow => {
-  const licence = sheetLicence(cell(row, 'Licence'))
+export const mapSheetRow = (
+  row: Record<string, string>,
+  line: number,
+  season: string,
+): MappedRow => {
+  const raw = cell(row, 'Licence')
+  const licence = sheetLicence(raw)
+  const named = [sheetText(cell(row, 'Nom')), sheetText(cell(row, 'Prénom'))]
+    .filter(Boolean)
+    .join(' ')
 
   if (!licence) {
-    const name = [sheetText(cell(row, 'Nom')), sheetText(cell(row, 'Prénom'))]
-      .filter(Boolean)
-      .join(' ')
-
     return {
       line,
-      skip: `Aucun numéro de licence${name ? ` (${name})` : ''} — à saisir à la main.`,
+      outcome: 'skipped',
+      reason: `Aucun numéro de licence${named ? ` (${named})` : ''} — à saisir à la main.`,
+    }
+  }
+
+  /**
+   * A licence-shaped cell that is not a licence is refused here rather than
+   * carried forward. `sheetLicence` only tidies and pads; deciding whether the
+   * result is a licence at all belongs with the same pattern the collection
+   * validates against, or the import would plan a write the collection then
+   * rejects — which reports a validation failure instead of naming the bad row.
+   */
+  if (!LICENCE_PATTERN.test(licence)) {
+    return {
+      line,
+      outcome: 'rejected',
+      reason:
+        `« ${raw} » n’est pas un numéro de licence${named ? ` (${named})` : ''} : ` +
+        `il en faut sept chiffres puis une lettre.`,
     }
   }
 
   const fields: SheetFields = {
+    address: sheetText(cell(row, 'Adresse')),
     birthDate: sheetDate(cell(row, 'Date\nnaissance')),
     city: sheetText(cell(row, 'Ville')),
     civility: sheetCivility(cell(row, 'Civilité')),
@@ -125,6 +154,7 @@ export const mapSheetRow = (row: Record<string, string>, line: number, season: s
     licence,
     line,
     notes,
+    outcome: 'mapped',
   }
 }
 
