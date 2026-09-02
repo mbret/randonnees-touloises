@@ -26,9 +26,9 @@ import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
  * already gone.
  *
  * The consequence is deliberate: if the tables are not empty the production
- * build fails instead of the content being destroyed. A failed deploy is a
- * afternoon's inconvenience and a restored one is not possible, so that is the
- * right way round. The error says what it found and what to do about it.
+ * build fails instead of the content being destroyed. A failed deploy costs an
+ * afternoon and destroyed rows cannot be restored at all, so that is the right
+ * way round. The error says what it found and what to do about it.
  *
  * Page history counts as content here. A page that carried the block and had it
  * removed still has those rows under `_pages_v_`, and dropping the table costs
