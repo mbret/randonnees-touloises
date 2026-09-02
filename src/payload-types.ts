@@ -152,13 +152,11 @@ export interface Config {
     header: Header;
     footer: Footer;
     general: General;
-    teamDirectory: TeamDirectory;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     general: GeneralSelect<false> | GeneralSelect<true>;
-    teamDirectory: TeamDirectorySelect<false> | TeamDirectorySelect<true>;
   };
   locale: null;
   widgets: {
@@ -276,7 +274,6 @@ export interface Page {
     | IconCardsBlock
     | MediaLinksBlock
     | MembershipTiersBlock
-    | TeamSectionBlock
   )[];
   meta?: {
     title?: string | null;
@@ -1301,15 +1298,6 @@ export interface MembershipTiersBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TeamSectionBlock".
- */
-export interface TeamSectionBlock {
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'teamSectionBlock';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
  */
 export interface Event {
@@ -1836,7 +1824,6 @@ export interface PagesSelect<T extends boolean = true> {
         iconCards?: T | IconCardsBlockSelect<T>;
         mediaLinks?: T | MediaLinksBlockSelect<T>;
         membershipTiers?: T | MembershipTiersBlockSelect<T>;
-        teamSectionBlock?: T | TeamSectionBlockSelect<T>;
       };
   meta?:
     | T
@@ -2018,14 +2005,6 @@ export interface MembershipTiersBlockSelect<T extends boolean = true> {
         id?: T;
       };
   footnote?: T;
-  id?: T;
-  blockName?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TeamSectionBlock_select".
- */
-export interface TeamSectionBlockSelect<T extends boolean = true> {
   id?: T;
   blockName?: T;
 }
@@ -2843,40 +2822,6 @@ export interface General {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "teamDirectory".
- */
-export interface TeamDirectory {
-  id: number;
-  teamMembers?:
-    | {
-        name?: string | null;
-        role?: string | null;
-        description?: string | null;
-        image?: (number | null) | Media;
-        contactLinks?:
-          | {
-              type?: ('email' | 'phone' | 'whatsapp' | 'telegram' | 'skype' | 'custom') | null;
-              customName?: string | null;
-              value?: string | null;
-              id?: string | null;
-            }[]
-          | null;
-        socialLinks?:
-          | {
-              type?: ('facebook' | 'twitter' | 'linkedin' | 'instagram' | 'github' | 'youtube' | 'custom') | null;
-              customName?: string | null;
-              uri?: string | null;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -2933,40 +2878,6 @@ export interface FooterSelect<T extends boolean = true> {
  */
 export interface GeneralSelect<T extends boolean = true> {
   contentPassword?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "teamDirectory_select".
- */
-export interface TeamDirectorySelect<T extends boolean = true> {
-  teamMembers?:
-    | T
-    | {
-        name?: T;
-        role?: T;
-        description?: T;
-        image?: T;
-        contactLinks?:
-          | T
-          | {
-              type?: T;
-              customName?: T;
-              value?: T;
-              id?: T;
-            };
-        socialLinks?:
-          | T
-          | {
-              type?: T;
-              customName?: T;
-              uri?: T;
-              id?: T;
-            };
-        id?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

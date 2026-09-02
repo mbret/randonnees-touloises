@@ -24,7 +24,6 @@ import {
   OverviewField,
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
-import { TeamSectionBlockConfig } from '@/blocks/TeamSectionBlock/config'
 import { DEFAULT_NAV_ORDER, staticNavItems } from '@/navigation/Header/staticNavItems'
 
 /**
@@ -105,7 +104,6 @@ export const Pages: CollectionConfig<'pages'> = {
                 IconCards,
                 MediaLinks,
                 MembershipTiers,
-                TeamSectionBlockConfig,
               ],
               required: true,
               admin: {

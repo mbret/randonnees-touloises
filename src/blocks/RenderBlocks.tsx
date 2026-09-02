@@ -10,7 +10,6 @@ import { IconCardsBlock } from '@/blocks/IconCards/Component'
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
 import { MediaLinksBlock } from '@/blocks/MediaLinks/Component'
 import { MembershipTiersBlock } from '@/blocks/MembershipTiers/Component'
-import { TeamSectionBlock } from './TeamSectionBlock/Component'
 
 const blockComponents = {
   archive: ArchiveBlock,
@@ -21,7 +20,6 @@ const blockComponents = {
   mediaBlock: MediaBlock,
   mediaLinks: MediaLinksBlock,
   membershipTiers: MembershipTiersBlock,
-  teamSectionBlock: TeamSectionBlock,
 }
 
 export const RenderBlocks: React.FC<{

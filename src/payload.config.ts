@@ -22,7 +22,6 @@ import { getServerSideURL } from './utilities/getURL'
 import { GlobalPages } from './collections/GlobalPages/config'
 import { Events } from './collections/Events'
 import { General } from './cms/globals/general/config'
-import { TeamDirectoryConfig } from './cms/globals/teamDirectory/config'
 import { GalleriesConfig } from './collections/Galleries/Gallery'
 import { ContactSubmissions } from './collections/ContactSubmissions'
 
@@ -160,7 +159,7 @@ export default buildConfig({
     ContactSubmissions,
   ],
   cors: [getServerSideURL()].filter(Boolean),
-  globals: [Header, Footer, General, TeamDirectoryConfig],
+  globals: [Header, Footer, General],
   plugins: [
     ...plugins,
     // Registered either way so the generated admin import map does not depend on
