@@ -24,7 +24,10 @@ function Figure({ children }: { children: React.ReactNode }) {
  * unused shape out of the accessibility tree.
  *
  * From `sm` up it is a band: four cells divided by rules that run its full
- * height, from the hero's edge down to the bottom rule. The figures are one
+ * height, from the hero's edge down to the bottom rule. Its padding steps with
+ * the figures rather than staying put: below `lg` the number drops to `text-3xl`
+ * and a cell built for the larger one is then mostly air, which reads as a gap
+ * in the page rather than as a smaller band. The figures are one
  * claim made four ways, and boxing each separately would break a single
  * sentence into four.
  *
@@ -52,11 +55,11 @@ export function HomeKeyFigures() {
 
       <div className="container hidden sm:grid sm:grid-cols-4 sm:divide-x sm:divide-border">
         {HOME_FIGURES.map(({ label, value }) => (
-          <p className="px-6 py-10 first:pl-0 last:pr-0" key={label}>
+          <p className="px-4 py-6 first:pl-0 last:pr-0 lg:px-6 lg:py-10" key={label}>
             <Figure>
               <span className="block text-3xl leading-none lg:text-4xl">{value}</span>
             </Figure>
-            <span className="text-muted-foreground mt-3 block text-sm leading-snug text-balance">
+            <span className="text-muted-foreground mt-2 block text-sm leading-snug text-balance lg:mt-3">
               {label}
             </span>
           </p>
