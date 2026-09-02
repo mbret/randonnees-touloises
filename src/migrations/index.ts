@@ -15,6 +15,7 @@ import * as migration_20260830_092729_event_start_location from './20260830_0927
 import * as migration_20260830_110506_outing_categories from './20260830_110506_outing_categories';
 import * as migration_20260901_143542_outing_category_credential from './20260901_143542_outing_category_credential';
 import * as migration_20260902_092053_drop_team_directory from './20260902_092053_drop_team_directory';
+import * as migration_20260902_101108_adherents from './20260902_101108_adherents';
 
 export const migrations = [
   {
@@ -100,6 +101,11 @@ export const migrations = [
   {
     up: migration_20260902_092053_drop_team_directory.up,
     down: migration_20260902_092053_drop_team_directory.down,
-    name: '20260902_092053_drop_team_directory'
+    name: '20260902_092053_drop_team_directory',
+  },
+  {
+    up: migration_20260902_101108_adherents.up,
+    down: migration_20260902_101108_adherents.down,
+    name: '20260902_101108_adherents'
   },
 ];

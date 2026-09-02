@@ -15,15 +15,25 @@ import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
  * social-link arrays and have no other user, so they go too.
  *
  * `down` restores the schema but not the content — these are DROPs, so anything
- * the global held, or any block a page carried, is gone once this runs. That is
- * only safe because both were empty; confirm it against the target database
- * before applying, rather than trusting this note:
+ * the global held, or any block a page carried, is gone once this runs. Which is
+ * why `up` counts the rows first and refuses rather than proceeding.
  *
- *   SELECT (SELECT count(*) FROM team_directory_team_members) AS members,
- *          (SELECT count(*) FROM pages_blocks_team_section_block) AS blocks;
+ * That check has to be in the migration, not in a note asking someone to run a
+ * SELECT beforehand. `vercel.json` builds with `pnpm run ci`, which runs
+ * `migrate:deploy` before `next build`, so a production deployment applies this
+ * unattended: merging *is* what runs it, and there is no moment in between for a
+ * human to look. An advisory comment would have been read after the rows were
+ * already gone.
  *
- * Non-zero on either means a page or the global is publishing something this
- * would delete, and the roster work should carry it over first.
+ * The consequence is deliberate: if the tables are not empty the production
+ * build fails instead of the content being destroyed. A failed deploy costs an
+ * afternoon and destroyed rows cannot be restored at all, so that is the right
+ * way round. The error says what it found and what to do about it.
+ *
+ * Page history counts as content here. A page that carried the block and had it
+ * removed still has those rows under `_pages_v_`, and dropping the table costs
+ * the ability to roll that page back faithfully — so the check trips on it too,
+ * and a human decides whether that history is worth keeping.
  *
  * The `CASCADE` on each DROP takes the child tables' foreign keys with it, which
  * is why `down` has to recreate the constraints and indexes explicitly after the
@@ -31,6 +41,30 @@ import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
  */
 
 export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
+  const counted = await db.execute(sql`
+    SELECT (SELECT count(*) FROM "team_directory_team_members") AS members,
+           (SELECT count(*) FROM "pages_blocks_team_section_block") AS blocks,
+           (SELECT count(*) FROM "_pages_v_blocks_team_section_block") AS versions`)
+
+  // node-postgres hands back a QueryResult; be tolerant of a driver that
+  // returns the rows themselves, and of `count(*)` arriving as a bigint string.
+  const rows = Array.isArray(counted) ? counted : (counted?.rows ?? [])
+  const row = (rows[0] ?? {}) as Record<string, unknown>
+  const members = Number(row.members ?? 0)
+  const blocks = Number(row.blocks ?? 0)
+  const versions = Number(row.versions ?? 0)
+
+  if (members || blocks || versions) {
+    throw new Error(
+      `Refusing to drop the team directory: it still holds content — ` +
+        `${members} member(s) in the global, ${blocks} block(s) on live pages, ` +
+        `${versions} in page history. These are DROPs and \`down\` restores the ` +
+        `tables but not their rows, so this migration stops rather than destroy ` +
+        `them. Carry the content into the adhérents roster first, or delete the ` +
+        `rows deliberately if they are unwanted, then deploy again.`,
+    )
+  }
+
   await db.execute(sql`
    DROP TABLE "pages_blocks_team_section_block" CASCADE;
   DROP TABLE "_pages_v_blocks_team_section_block" CASCADE;

@@ -32,6 +32,26 @@ export const Users: CollectionConfig = {
       label: 'Nom',
     },
     roleField,
+    /**
+     * The adhérent this account belongs to, if the club has a row for them.
+     *
+     * A join rather than a stored column: `adherents.user` is the one place the
+     * link lives, and it is unique there, so this resolves to at most one
+     * document. Not creatable from here either — an adhérent is someone the
+     * club has written down, which is the secretary's act and not a consequence
+     * of somebody signing up.
+     */
+    {
+      name: 'adherent',
+      type: 'join',
+      label: 'Fiche adhérent',
+      collection: 'adherents',
+      on: 'user',
+      admin: {
+        allowCreate: false,
+        defaultColumns: ['fullName', 'status', 'licence'],
+      },
+    },
     {
       name: 'orders',
       type: 'join',
