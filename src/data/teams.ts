@@ -1,16 +1,16 @@
 import type { TeamMember } from '@/components/TeamSection/TeamSection'
 
 /**
- * A member as written down here: same shape as the `teamDirectory` global's
- * `teamMembers` field, except the portrait is referenced by media filename. Ids
- * are per-database sequences, so the pages resolve the filename at render time.
+ * A member as written down here: what `TeamSection` renders, except the portrait
+ * is referenced by media filename rather than by id. Ids are per-database
+ * sequences, so the pages resolve the filename at render time.
  */
 export type StaticTeamMember = Omit<TeamMember, 'media'> & { photo?: string }
 
 /**
- * Team listings kept in code so the pages can ship before the `teamDirectory`
- * entries exist in the CMS. Portraits come from scripts/import-team-photos.ts,
- * which keys each file on the member's full name.
+ * Team listings kept in code, pending the `adherents` collection that will hold
+ * the club's roster and let these pages query it instead. Portraits come from
+ * scripts/import-team-photos.ts, which keys each file on the member's full name.
  */
 export const boardMembers: StaticTeamMember[] = [
   { name: 'Pascal BRET', role: 'Président', photo: 'conseil-pascal-bret.png' },
