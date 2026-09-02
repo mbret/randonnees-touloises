@@ -7,6 +7,7 @@ import React from 'react'
 import { AdminBar } from '@/components/AdminBar/AdminBar'
 import { Footer } from '@/Footer/Component'
 import { Header } from '@/navigation/Header/Header'
+import { MAIN_CONTENT_ID, SkipLink } from '@/navigation/SkipLink'
 import { Providers } from '@/providers'
 import { mergeOpenGraph } from '@/seo/mergeOpenGraph'
 import { SEO_TITLE } from '@/seo/constants'
@@ -82,6 +83,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ClubJsonLd />
       </head>
       <body className="min-h-screen flex flex-col">
+        {/* First in the document, so it is the first thing Tab reaches. */}
+        <SkipLink />
         {/**
          * The site is light, for everyone, whatever the visitor's device is set
          * to — `forcedTheme` overrides both the stored preference and the
@@ -131,7 +134,30 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 }}
               />
               <Header />
-              {children}
+              {/**
+               * The page itself, named as a landmark so `SkipLink` has
+               * somewhere to land and so a screen reader can be asked for the
+               * content directly rather than walked to it.
+               *
+               * `flex flex-1 flex-col` reproduces the arrangement the body was
+               * giving these children before this element sat between them:
+               * `not-found` asks to grow and centre itself in what is left of
+               * the screen, which it can only do inside a column that grew
+               * first.
+               *
+               * `tabIndex` makes it a target focus can be moved to without
+               * making it a stop on the way — browsers otherwise scroll to a
+               * fragment and leave focus behind at the top of the menu, which
+               * is half a skip link. Nothing else can focus it, so the outline
+               * it would draw around the whole page is suppressed.
+               */}
+              <main
+                className="flex flex-1 flex-col scroll-mt-24 outline-none"
+                id={MAIN_CONTENT_ID}
+                tabIndex={-1}
+              >
+                {children}
+              </main>
               <Footer />
             </Providers>
           </MediaProvider>
