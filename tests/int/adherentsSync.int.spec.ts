@@ -480,3 +480,102 @@ describe('a season the sheet only half fills in', () => {
     expect(plan.unchanged).toBe(1)
   })
 })
+
+describe('the write each plan carries', () => {
+  /**
+   * The plan decides everything, including the exact payload, so that what gets
+   * written is what the report showed and both can be asserted here.
+   */
+  it('gives a create everything the collection needs', () => {
+    const plan = buildPlan({
+      existing: [],
+      rows: [
+        sheetRow({
+          Adresse: 'rue des Cordeliers',
+          'Club\ncotis.': '15,00 €',
+          CP: '54200',
+          'Montant\nFFR': '33,00 €',
+          'N°': '12',
+          Paiement: '17/08/2026',
+          Ville: 'TOUL',
+        }),
+      ],
+      season: SEASON,
+    })
+
+    expect(plan.creates[0].data).toEqual({
+      address: 'rue des Cordeliers',
+      adhesions: [{ amountClub: 15, amountFfr: 33, paidOn: '2026-08-17', season: SEASON }],
+      birthDate: '1952-12-22',
+      city: 'TOUL',
+      civility: 'mr',
+      email: 'pascal@example.net',
+      firstName: 'Pascal',
+      lastName: 'BRET',
+      licence: '0947011C',
+      licenceClub: 'Rando Toul',
+      medicalCertificateDate: undefined,
+      notes: undefined,
+      phone: '06 12 34 56 78',
+      postalCode: '54200',
+      status: 'active',
+      streetNumber: '12',
+    })
+  })
+
+  it('gives an update only the fields that changed', () => {
+    const plan = buildPlan({
+      existing: [existing()],
+      rows: [sheetRow({ Téléphone: '07 99 88 77 66' })],
+      season: SEASON,
+    })
+
+    expect(plan.updates[0].data).toEqual({ phone: '07 99 88 77 66' })
+  })
+
+  /**
+   * Payload replaces an array field wholesale, so an update that touches one
+   * season has to send the others back untouched or they are dropped.
+   */
+  it('carries earlier seasons through an update that changes this one', () => {
+    const plan = buildPlan({
+      existing: [
+        existing({
+          adhesions: [
+            { amountClub: 14, amountFfr: 33, id: 'row-1', paidOn: '2025-08-20', season: '2025/2026' },
+          ],
+        }),
+      ],
+      rows: [sheetRow({ 'Montant\nFFR': '43,00 €' })],
+      season: SEASON,
+    })
+
+    expect(plan.updates[0].data.adhesions).toEqual([
+      { amountClub: 14, amountFfr: 33, paidOn: '2025-08-20', season: '2025/2026' },
+      { amountClub: undefined, amountFfr: 43, paidOn: undefined, season: SEASON },
+    ])
+  })
+
+  /** Row ids are per-write; sending them back with reordered content edits the wrong row. */
+  it('drops the stored row ids when it rewrites the array', () => {
+    const plan = buildPlan({
+      existing: [existing({ adhesions: [{ amountFfr: 33, id: 'row-1', season: '2025/2026' }] })],
+      rows: [sheetRow({ 'Montant\nFFR': '43,00 €' })],
+      season: SEASON,
+    })
+
+    const rows = plan.updates[0].data.adhesions as Record<string, unknown>[]
+
+    for (const row of rows) expect(row).not.toHaveProperty('id')
+  })
+
+  it('appends a note rather than replacing what is there', () => {
+    const plan = buildPlan({
+      existing: [existing({ notes: 'Déjà noté.' })],
+      rows: [sheetRow({ 'Date\nédition': 'A vérifier' })],
+      season: SEASON,
+    })
+
+    expect(plan.updates[0].data.notes).toBe('Déjà noté.\nDate édition : A vérifier')
+  })
+})

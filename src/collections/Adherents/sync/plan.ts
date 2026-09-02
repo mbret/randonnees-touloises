@@ -19,8 +19,16 @@ export type ExistingAdherent = {
 
 export type FieldChange = { field: string; from: unknown; to: unknown }
 
+/**
+ * `data` is the exact payload the write will hand to Payload, worked out here
+ * rather than at apply time.
+ *
+ * The point is that the plan decides everything and the endpoint only executes:
+ * whatever the report showed is literally what gets written, and both halves can
+ * be asserted in a unit test without a database anywhere near them.
+ */
 export type PlannedCreate = {
-  adhesion: SheetAdhesion
+  data: Record<string, unknown>
   fields: SheetFields
   licence: string
   line: number
@@ -30,8 +38,8 @@ export type PlannedCreate = {
 }
 
 export type PlannedUpdate = {
-  adhesion: SheetAdhesion
   changes: FieldChange[]
+  data: Record<string, unknown>
   id: number
   licence: string
   line: number
@@ -182,19 +190,29 @@ export const buildPlan = ({
     const current = byLicence.get(mapped.licence)
 
     if (!current) {
+      const status = sheetRenewed(row) ? 'active' : 'pending'
+      const season = saysAnything(mapped.adhesion) ? [mapped.adhesion] : []
+
       plan.creates.push({
-        adhesion: mapped.adhesion,
+        data: {
+          ...mapped.fields,
+          adhesions: season,
+          licence: mapped.licence,
+          notes: mapped.notes.join('\n') || undefined,
+          status,
+        },
         fields: mapped.fields,
         licence: mapped.licence,
         line,
         name,
         notes: mapped.notes,
-        status: sheetRenewed(row) ? 'active' : 'pending',
+        status,
       })
       return
     }
 
     const changes: FieldChange[] = []
+    const data: Record<string, unknown> = {}
 
     for (const field of SHEET_OWNED) {
       const incoming = mapped.fields[field]
@@ -204,12 +222,16 @@ export const buildPlan = ({
 
       if (!sameValue(field, current[field], incoming)) {
         changes.push({ field, from: current[field] ?? null, to: incoming })
+        data[field] = incoming
       }
     }
 
-    const adhesionChange = planAdhesion(current, mapped.adhesion)
+    const seasonPlan = planSeason(current, mapped.adhesion)
 
-    if (adhesionChange) changes.push(adhesionChange)
+    if (seasonPlan.change) {
+      changes.push(seasonPlan.change)
+      data.adhesions = seasonPlan.adhesions
+    }
 
     const newNotes = mapped.notes.filter((note) => !(current.notes ?? '').includes(note))
 
@@ -218,9 +240,13 @@ export const buildPlan = ({
       return
     }
 
+    if (newNotes.length > 0) {
+      data.notes = [current.notes, ...newNotes].filter(Boolean).join('\n')
+    }
+
     plan.updates.push({
-      adhesion: mapped.adhesion,
       changes,
+      data,
       id: current.id,
       licence: mapped.licence,
       line,
@@ -252,10 +278,16 @@ export const buildPlan = ({
  * about it, and left alone otherwise. Earlier seasons are never touched: this
  * import only ever speaks about the one season its file covers.
  */
-const planAdhesion = (
+/** Whether the sheet has an opinion about the season at all. */
+const saysAnything = (adhesion: SheetAdhesion): boolean =>
+  adhesion.amountClub !== undefined ||
+  adhesion.amountFfr !== undefined ||
+  adhesion.paidOn !== undefined
+
+const planSeason = (
   current: ExistingAdherent,
   incoming: SheetAdhesion,
-): FieldChange | null => {
+): { adhesions: SheetAdhesion[]; change: FieldChange | null } => {
   const recorded = (current.adhesions ?? []).find((row) => row.season === incoming.season)
 
   const day = (value: unknown) => (typeof value === 'string' ? value.slice(0, 10) : null)
@@ -269,14 +301,10 @@ const planAdhesion = (
         }
       : null
 
+  const untouched = (current.adhesions ?? []).map(({ id: _id, ...row }) => row)
+
   // Nothing to say about the season at all — no amounts, no payment date.
-  if (
-    incoming.amountClub === undefined &&
-    incoming.amountFfr === undefined &&
-    incoming.paidOn === undefined
-  ) {
-    return null
-  }
+  if (!saysAnything(incoming)) return { adhesions: untouched, change: null }
 
   const before = shape(recorded)
 
@@ -296,7 +324,28 @@ const planAdhesion = (
     paidOn: day(incoming.paidOn) ?? before?.paidOn ?? null,
   }
 
-  if (JSON.stringify(before) === JSON.stringify(after)) return null
+  if (JSON.stringify(before) === JSON.stringify(after)) {
+    return { adhesions: untouched, change: null }
+  }
 
-  return { field: `adhesion ${incoming.season}`, from: before, to: after }
+  /**
+   * Payload replaces an array field wholesale, so the write has to carry every
+   * season — this one rewritten, the earlier ones exactly as they were. Their
+   * row ids are dropped: they are per-write identifiers, and sending them back
+   * with reordered content is how an array update starts editing the wrong row.
+   */
+  const merged: SheetAdhesion = {
+    amountClub: after.amountClub ?? undefined,
+    amountFfr: after.amountFfr ?? undefined,
+    paidOn: after.paidOn ?? undefined,
+    season: incoming.season,
+  }
+
+  return {
+    adhesions: [
+      ...untouched.filter((row) => row.season !== incoming.season),
+      merged,
+    ].sort((a, b) => a.season.localeCompare(b.season)),
+    change: { field: `adhesion ${incoming.season}`, from: before, to: after },
+  }
 }

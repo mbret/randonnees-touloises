@@ -97,14 +97,14 @@ export default buildConfig({
       beforeDashboard: ['@/components/BeforeDashboard'],
       views: {
         /**
-         * Comparing the club's FFRandonnée export against the roster. Its own
-         * screen rather than a dialog on the list: the report is long enough to
-         * need reading, and the file it reads carries every adhérent's address.
+         * Importing the club's VSC export into the roster. Its own screen
+         * rather than a dialog on the list: the report is long enough to need
+         * reading, and the file it reads carries every adhérent's address.
          */
         adherentsSync: {
           Component: '@/components/admin/AdherentsSyncView#AdherentsSyncView',
           exact: true,
-          meta: { title: 'Comparer avec l’export FFRandonnée' },
+          meta: { title: 'Synchroniser avec l’export VSC' },
           path: '/adherents/sync',
         },
       },
