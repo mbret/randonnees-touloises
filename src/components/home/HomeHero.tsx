@@ -57,7 +57,7 @@ const SCRIM = [
   'linear-gradient(to top,',
   'oklch(0.2 0 0 / 88%) 0,',
   'oklch(0.2 0 0 / 84%) 225px,',
-  'oklch(0.2 0 0 / 74%) 335px,',
+  'oklch(0.2 0 0 / 70%) 335px,',
   'oklch(0.2 0 0 / 60%) 367px,',
   'oklch(0.2 0 0 / 46%) 400px,',
   'oklch(0.2 0 0 / 32%) 433px,',
