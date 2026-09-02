@@ -384,14 +384,7 @@ html:not(.dark) .plaque {
  * and has nothing to say on a dark one, whereas a photograph is a photograph in
  * either theme and needs the same treatment on top of it.
  */
-.on-media,
-/* The header while it sits on a photograph: a page opens with one when it
- * renders `[data-hero-top]`, and `[data-scrolled]` is put on the header once
- * the page has scrolled past it. Written as a selector rather than a class so
- * the state is right in the HTML the server sends — a class toggled after
- * hydration would render the bar solid and then blink away on every visit to
- * the home page. */
-body:has([data-hero-top]) header:not([data-scrolled]) {
+.on-media {
   --foreground: oklch(0.985 0.006 75);
   --brand-orange: oklch(0.74 0.14 55);
   --primary: oklch(0.985 0.006 75);
@@ -399,6 +392,45 @@ body:has([data-hero-top]) header:not([data-scrolled]) {
   --accent: oklch(1 0 0 / 18%);
   --accent-foreground: oklch(0.985 0.006 75);
   --border: oklch(1 0 0 / 45%);
+}
+
+/**
+ * The header while it sits on a photograph.
+ *
+ * A page opens with one when it renders `[data-hero-top]`, and `[data-scrolled]`
+ * is put on the header as soon as the page moves. Written as a selector rather
+ * than a class so the state is right in the HTML the server sends — a class
+ * toggled after hydration would render the bar solid and then blink it away on
+ * every visit to the home page.
+ *
+ * It takes a shorter list than `.on-media` above, and deliberately so, having
+ * once shared it. The bar contains the « Plus » dropdown, which is a white panel
+ * floating on the *page*: it is not on the photograph and must not be dressed as
+ * if it were. Sharing the block put the photograph's `--accent` — an 18% white
+ * wash — and its cream `--accent-foreground` inside that panel, so the entry
+ * under the pointer turned cream on white and disappeared. Only what the bar
+ * itself wears belongs here; the hover wash is set below, on the entries in the
+ * bar and nothing deeper.
+ *
+ * `--border` is gone with it: the bar's own rule is set transparent by hand
+ * three lines down, and the only other border in here is the dropdown's, which
+ * should be the page's.
+ */
+body:has([data-hero-top]) header:not([data-scrolled]) {
+  --foreground: oklch(0.985 0.006 75);
+  --primary: oklch(0.985 0.006 75);
+  --primary-foreground: oklch(0.265 0.017 45);
+}
+
+/* The entries in the bar itself — a list item's own link or trigger, never
+ * anything inside the panel one of them opens. */
+body:has([data-hero-top])
+  header:not([data-scrolled])
+  [data-slot='navigation-menu-list']
+  > *
+  > :is(a, button) {
+  --accent: oklch(1 0 0 / 18%);
+  --accent-foreground: oklch(0.985 0.006 75);
 }
 
 body:has([data-hero-top]) header:not([data-scrolled]) {
