@@ -7,6 +7,7 @@ import React, { useMemo, useState } from 'react'
 
 type Report = {
   applied?: { created: number; updated: number }
+  detail?: string
   digest: string
   error?: string
   plan: SyncPlan
@@ -147,6 +148,7 @@ export const AdherentsSyncScreen: React.FC = () => {
   const [file, setFile] = useState<File | null>(null)
   const [busy, setBusy] = useState<'analyse' | 'apply' | null>(null)
   const [error, setError] = useState<null | string>(null)
+  const [detail, setDetail] = useState<null | string>(null)
   const [report, setReport] = useState<null | Report>(null)
 
   const plan = report?.plan
@@ -158,6 +160,7 @@ export const AdherentsSyncScreen: React.FC = () => {
 
     setBusy(mode)
     setError(null)
+    setDetail(null)
 
     try {
       const response = await fetch('/api/adherents/sync', {
@@ -182,6 +185,7 @@ export const AdherentsSyncScreen: React.FC = () => {
 
       if (!response.ok) {
         setError(typeof body?.error === 'string' ? body.error : 'L’opération a échoué.')
+        if (typeof body?.detail === 'string') setDetail(body.detail)
         if (mode === 'analyse') setReport(null)
         return
       }
@@ -225,6 +229,7 @@ export const AdherentsSyncScreen: React.FC = () => {
               setFile(event.target.files?.[0] ?? null)
               setReport(null)
               setError(null)
+              setDetail(null)
             }}
             type="file"
           />
@@ -234,7 +239,23 @@ export const AdherentsSyncScreen: React.FC = () => {
         </Button>
       </div>
 
-      {error ? <Banner type="error">{error}</Banner> : null}
+      {error ? (
+        <Banner type="error">
+          {error}
+          {detail ? (
+            <pre
+              style={{
+                fontSize: '.75rem',
+                margin: '.5rem 0 0',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+              }}
+            >
+              {detail}
+            </pre>
+          ) : null}
+        </Banner>
+      ) : null}
 
       {report?.applied ? (
         <Banner type="success">

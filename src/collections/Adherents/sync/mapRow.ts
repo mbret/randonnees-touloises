@@ -123,6 +123,12 @@ export const mapSheetRow = (
    * `Certificat médical` holds three values that are not dates — a typo and two
    * cells where text has bled across — and those are worth seeing too.
    *
+   * So is an address that is not one. One row reads « …@orange.fr ??? », the
+   * secretary querying it rather than mistyping it, and no repair turns that
+   * into a mailbox. It is reported and the field left empty — sending it would
+   * have failed the collection's own validator and taken the whole import with
+   * it, which is what happened the first time this ran.
+   *
    * So is a `Paiement` that is not a date. One row holds the bare value `1`,
    * with no tick and no amount beside it, so it reads as `pending` here. That
    * may well be wrong — if the `1` meant "paid", the person is up to date — and
@@ -130,6 +136,7 @@ export const mapSheetRow = (
    * the report rather than being quietly resolved either way.
    */
   const notes: string[] = []
+  const mail = cell(row, 'Mail')
   const edition = cell(row, 'Date\nédition')
   const cost = cell(row, 'Club\ncoût')
   const certificate = cell(row, 'Certificat\nmédical')
@@ -138,6 +145,7 @@ export const mapSheetRow = (
   if (edition !== '' && !sheetDate(edition)) notes.push(`Date édition : ${edition}`)
   if (certificate !== '' && !sheetDate(certificate)) notes.push(`Certificat médical : ${certificate}`)
   if (payment !== '' && !sheetDate(payment)) notes.push(`Paiement illisible : ${payment}`)
+  if (mail !== '' && fields.email === undefined) notes.push(`E-mail illisible : ${mail}`)
 
   const costAmount = sheetMoney(cost)
 

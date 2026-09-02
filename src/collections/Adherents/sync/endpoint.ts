@@ -133,8 +133,19 @@ export const syncEndpoint: Omit<Endpoint, 'root'> = {
     } catch (error) {
       req.payload.logger.error({ err: error, msg: 'adherents sync failed' })
 
+      /**
+       * The reason goes back to the screen, not just to the logs. Only an admin
+       * can reach this, and the alternative is what happened the first time this
+       * ran: a generic failure, and the actual cause — one address in the file
+       * that the collection would not accept — only findable by reading the
+       * function logs.
+       *
+       * `applyPlan` prefixes the line and licence it was writing, so the message
+       * names the row to go and look at.
+       */
       return json(
         {
+          detail: error instanceof Error ? error.message : String(error),
           error:
             'L’import a échoué et rien n’a été enregistré. ' +
             'Le fichier et les adhérents sont inchangés.',

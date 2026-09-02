@@ -579,3 +579,52 @@ describe('the write each plan carries', () => {
     expect(plan.updates[0].data.notes).toBe('Déjà noté.\nDate édition : A vérifier')
   })
 })
+
+describe('an address the collection would refuse', () => {
+  /**
+   * What broke the first real import: one row of the club's export reads
+   * « …@orange.fr    ??? ». Closing up the spaces made `…@orange.fr???`, which
+   * Payload's `email` field rejected, and the whole import failed on it.
+   */
+  it('is left empty and reported rather than repaired into nonsense', () => {
+    const mapped = mapSheetRow(sheetRow({ Mail: 'renee@orange.fr    ???' }), 77, SEASON)
+
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
+
+    expect(mapped.fields.email).toBeUndefined()
+    expect(mapped.notes).toContain('E-mail illisible : renee@orange.fr    ???')
+  })
+
+  /** The genuine typo — a space inside the address — is still closed up. */
+  it('still repairs an address typed with a space in the middle', () => {
+    const mapped = mapSheetRow(sheetRow({ Mail: 'nom prenom@example.net' }), 2, SEASON)
+
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
+
+    expect(mapped.fields.email).toBe('nomprenom@example.net')
+    expect(mapped.notes).toEqual([])
+  })
+
+  it('never plans a write carrying an address that would be rejected', () => {
+    const plan = buildPlan({
+      existing: [],
+      rows: [sheetRow({ Mail: 'pas une adresse' })],
+      season: SEASON,
+    })
+
+    expect(plan.creates[0].data).not.toHaveProperty('email', 'pas une adresse')
+    expect(plan.creates[0].data.email).toBeUndefined()
+  })
+
+  it('leaves a stored address alone when the sheet’s is unusable', () => {
+    const plan = buildPlan({
+      existing: [existing()],
+      rows: [sheetRow({ Mail: 'renee@orange.fr ???' })],
+      season: SEASON,
+    })
+
+    // Rule 2: an unreadable cell says nothing, so it cannot erase what is there.
+    expect(plan.updates[0].changes.find((change) => change.field === 'email')).toBeUndefined()
+    expect(plan.updates[0].notes).toContain('E-mail illisible : renee@orange.fr ???')
+  })
+})
