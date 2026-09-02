@@ -99,6 +99,15 @@ export function HomeHero() {
 
       <div className="container py-10 md:py-14">
         <h1 className="font-display max-w-[24ch] text-3xl leading-[1.08] font-bold tracking-tight text-balance sm:text-4xl lg:text-5xl">
+          {/* Inside the heading rather than above it. The club's name is
+              otherwise nowhere in the body of this page — it is in the title,
+              the Open Graph tags and the structured data, and the logo is an
+              image whose link is labelled « Accueil », so a screen reader never
+              says it and a heading never carries it. Set as a kicker it reads as
+              the label it is while the sentence stays the headline. */}
+          <span className="mb-3 block text-xs font-semibold tracking-[0.2em] uppercase sm:text-sm">
+            Randonnées Touloises
+          </span>{' '}
           Partager le plaisir de la randonnée,{' '}
           <span className="text-brand-orange">depuis 1987</span>.
         </h1>
