@@ -34,6 +34,15 @@ import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
  * page that will eventually read this collection matches nobody until consent is
  * recorded. That is deliberate: the pages keep their lists in `src/data` until
  * each one's permissions are collected.
+ *
+ * `down` drops the relation constraint with `IF EXISTS`, as the two migrations
+ * that added `locations` and `outing_categories` do. Dropping `adherents` with
+ * `CASCADE` above already takes with it every foreign key that referenced it,
+ * this one included, so naming it unconditionally afterwards would raise
+ * "constraint does not exist" and abort the whole rollback. The `DROP INDEX`
+ * below stays unconditional on purpose: that index hangs off the surviving
+ * `payload_locked_documents_rels.adherents_id` column rather than off the
+ * dropped table, so the cascade does not reach it.
  */
 
 export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
@@ -109,7 +118,7 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   ALTER TABLE "adherents" DISABLE ROW LEVEL SECURITY;
   DROP TABLE "adherents_adhesions" CASCADE;
   DROP TABLE "adherents" CASCADE;
-  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_adherents_fk";
+  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT IF EXISTS "payload_locked_documents_rels_adherents_fk";
   
   DROP INDEX "payload_locked_documents_rels_adherents_id_idx";
   ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "adherents_id";

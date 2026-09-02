@@ -24,8 +24,15 @@ import { fillFullName } from './hooks/fillFullName'
  * field is stored in both collections, so a member editing their telephone in
  * the espace adhérent edits this document directly and there is nothing to keep
  * in step. The single deliberate overlap is `email`, because logging in needs an
- * address and the FFRandonnée needs one to write to; a change to the login
- * address propagates here rather than the reverse.
+ * address and the FFRandonnée needs one to write to.
+ *
+ * Nothing reconciles those two addresses yet. When something does it has to run
+ * login → adhérent, so that what the secretary declares to the federation
+ * follows what the member actually uses; that wants an `afterChange` on `users`
+ * writing with `overrideAccess`, and a database to test it against. Until then a
+ * member who changes their login address through `AccountForm` leaves this
+ * `email` behind — which costs nothing while no adhérent is linked to a user,
+ * as none is, and is why it is a follow-up rather than a hole in this change.
  *
  * Read access is closed even though three pages publish parts of it. /board,
  * /animation-team and /trombinoscope are prerendered, so they read through the
