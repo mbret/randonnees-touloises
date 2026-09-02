@@ -131,7 +131,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 }}
               />
               <Header />
-              {children}
+              {/**
+               * The page itself, named as a landmark: a screen reader can then
+               * be asked for the content directly rather than walked to it past
+               * the logo and every menu entry, which is the whole of what a
+               * visitor got before this element existed.
+               *
+               * `flex flex-1 flex-col` reproduces the arrangement the body was
+               * giving these children before this element sat between them:
+               * `not-found` asks to grow and centre itself in what is left of
+               * the screen, which it can only do inside a column that grew
+               * first.
+               */}
+              <main className="flex flex-1 flex-col">{children}</main>
               <Footer />
             </Providers>
           </MediaProvider>
