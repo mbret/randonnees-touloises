@@ -422,8 +422,27 @@ body:has([data-hero-top]) header:not([data-scrolled]) {
   --primary-foreground: oklch(0.265 0.017 45);
 }
 
+/**
+ * The hover wash on the bar's own entries, on every page.
+ *
+ * `--accent` is an opaque colour chosen against the page's cream, and the bar is
+ * translucent: over the hero its ground is a dimmer cream, and there the same
+ * chip stopped being a wash at all. Measured, it went from 0.11 darker than its
+ * surround on the page to 0.03 *lighter* over the photograph — the wash
+ * inverting, which is why it read as a green patch rather than as a hover.
+ *
+ * Translucent, it darkens whatever it happens to be on by the same amount: 0.09
+ * over the photograph against 0.12 on the page, where it lands within 0.007 of
+ * the colour it replaces. The club's green is kept, since the wash is the site's
+ * hover language everywhere else; it is only made relative.
+ */
+header [data-slot='navigation-menu-list'] > * > :is(a, button) {
+  --accent: oklch(0.55 0.13 119 / 10%);
+}
+
 /* The entries in the bar itself — a list item's own link or trigger, never
- * anything inside the panel one of them opens. */
+ * anything inside the panel one of them opens. Higher specificity than the rule
+ * above, so a bar on the photograph keeps its white lift. */
 body:has([data-hero-top])
   header:not([data-scrolled])
   [data-slot='navigation-menu-list']
