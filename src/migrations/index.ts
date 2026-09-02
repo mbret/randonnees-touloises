@@ -17,6 +17,7 @@ import * as migration_20260901_143542_outing_category_credential from './2026090
 import * as migration_20260902_092053_drop_team_directory from './20260902_092053_drop_team_directory';
 import * as migration_20260902_101108_adherents from './20260902_101108_adherents';
 import * as migration_20260902_175758_drop_board_rank from './20260902_175758_drop_board_rank';
+import * as migration_20260902_190828_profile_cards_block from './20260902_190828_profile_cards_block';
 
 export const migrations = [
   {
@@ -112,6 +113,11 @@ export const migrations = [
   {
     up: migration_20260902_175758_drop_board_rank.up,
     down: migration_20260902_175758_drop_board_rank.down,
-    name: '20260902_175758_drop_board_rank'
+    name: '20260902_175758_drop_board_rank',
+  },
+  {
+    up: migration_20260902_190828_profile_cards_block.up,
+    down: migration_20260902_190828_profile_cards_block.down,
+    name: '20260902_190828_profile_cards_block'
   },
 ];

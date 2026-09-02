@@ -24,6 +24,7 @@ import {
   OverviewField,
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
+import { ProfileCardsBlockConfig } from '@/blocks/ProfileCards/config'
 import { DEFAULT_NAV_ORDER, staticNavItems } from '@/navigation/Header/staticNavItems'
 
 /**
@@ -104,6 +105,7 @@ export const Pages: CollectionConfig<'pages'> = {
                 IconCards,
                 MediaLinks,
                 MembershipTiers,
+                ProfileCardsBlockConfig,
               ],
               required: true,
               admin: {
