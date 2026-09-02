@@ -80,6 +80,7 @@ export interface Config {
     media: Media;
     categories: Category;
     users: User;
+    adherents: Adherent;
     globalPages: GlobalPage;
     gallery: Gallery;
     contactSubmissions: ContactSubmission;
@@ -103,6 +104,7 @@ export interface Config {
   };
   collectionsJoins: {
     users: {
+      adherent: 'adherents';
       orders: 'orders';
       cart: 'carts';
       addresses: 'addresses';
@@ -123,6 +125,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    adherents: AdherentsSelect<false> | AdherentsSelect<true>;
     globalPages: GlobalPagesSelect<false> | GlobalPagesSelect<true>;
     gallery: GallerySelect<false> | GallerySelect<true>;
     contactSubmissions: ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
@@ -480,6 +483,11 @@ export interface User {
   id: number;
   name?: string | null;
   roles?: ('admin' | 'customer')[] | null;
+  adherent?: {
+    docs?: (number | Adherent)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   orders?: {
     docs?: (number | Order)[];
     hasNextPage?: boolean;
@@ -513,6 +521,76 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "adherents".
+ */
+export interface Adherent {
+  id: number;
+  status: 'prospect' | 'pending' | 'active' | 'lapsed' | 'former';
+  /**
+   * Renseigné lorsque l’adhérent crée un compte sur le site.
+   */
+  user?: (number | null) | User;
+  civility?: ('mme' | 'mr') | null;
+  lastName: string;
+  firstName?: string | null;
+  fullName?: string | null;
+  /**
+   * L’âge n’est pas conservé, il se déduit de cette date.
+   */
+  birthDate?: string | null;
+  household?: (number | null) | Adherent;
+  /**
+   * Peut être partagé avec un conjoint : 28 adresses couvrent 60 adhérents.
+   */
+  email?: string | null;
+  phone?: string | null;
+  streetNumber?: string | null;
+  address?: string | null;
+  postalCode?: string | null;
+  city?: string | null;
+  photo?: (number | null) | Media;
+  publicationConsent?: {
+    photo?: boolean | null;
+    phone?: boolean | null;
+    email?: boolean | null;
+  };
+  /**
+   * Sept chiffres et une lettre, par exemple 0947011C.
+   */
+  licence?: string | null;
+  /**
+   * Si la licence est prise dans un autre club.
+   */
+  licenceClub?: string | null;
+  /**
+   * La date du certificat, pas son contenu.
+   */
+  medicalCertificateDate?: string | null;
+  /**
+   * Renseigner cette fonction place l’adhérent au conseil.
+   */
+  boardRole?: string | null;
+  /**
+   * Ordre d’affichage sur la page du conseil.
+   */
+  boardRank?: number | null;
+  isAnimateur?: boolean | null;
+  adhesions?:
+    | {
+        season: string;
+        paidOn?: string | null;
+        amountFfr?: number | null;
+        amountClub?: number | null;
+        note?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1681,6 +1759,10 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'adherents';
+        value: number | Adherent;
+      } | null)
+    | ({
         relationTo: 'globalPages';
         value: number | GlobalPage;
       } | null)
@@ -2214,6 +2296,7 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
   roles?: T;
+  adherent?: T;
   orders?: T;
   cart?: T;
   addresses?: T;
@@ -2233,6 +2316,53 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "adherents_select".
+ */
+export interface AdherentsSelect<T extends boolean = true> {
+  status?: T;
+  user?: T;
+  civility?: T;
+  lastName?: T;
+  firstName?: T;
+  fullName?: T;
+  birthDate?: T;
+  household?: T;
+  email?: T;
+  phone?: T;
+  streetNumber?: T;
+  address?: T;
+  postalCode?: T;
+  city?: T;
+  photo?: T;
+  publicationConsent?:
+    | T
+    | {
+        photo?: T;
+        phone?: T;
+        email?: T;
+      };
+  licence?: T;
+  licenceClub?: T;
+  medicalCertificateDate?: T;
+  boardRole?: T;
+  boardRank?: T;
+  isAnimateur?: T;
+  adhesions?:
+    | T
+    | {
+        season?: T;
+        paidOn?: T;
+        amountFfr?: T;
+        amountClub?: T;
+        note?: T;
+        id?: T;
+      };
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
