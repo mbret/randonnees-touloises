@@ -6,6 +6,7 @@ import { adminOrLinkedUser } from '@/access/adminOrLinkedUser'
 
 import { normaliseLicence, validateLicence } from './licence'
 import { fillFullName } from './hooks/fillFullName'
+import { syncEndpoint } from './sync/endpoint'
 
 /**
  * Everyone the club knows: the adhérents, which includes the conseil
@@ -54,6 +55,10 @@ export const Adherents: CollectionConfig<'adherents'> = {
     update: adminOrLinkedUser,
   },
   admin: {
+    components: {
+      // The button that opens the CSV comparison, above the list it concerns.
+      beforeListTable: ['@/components/admin/AdherentsSyncLink#AdherentsSyncLink'],
+    },
     defaultColumns: ['fullName', 'status', 'licence', 'updatedAt'],
     group: 'Utilisateurs',
     // The derived name holds both halves, but the secretary looking for a
@@ -62,6 +67,7 @@ export const Adherents: CollectionConfig<'adherents'> = {
     useAsTitle: 'fullName',
   },
   defaultSort: 'fullName',
+  endpoints: [syncEndpoint],
   fields: [
     /**
      * Where the roster stands for this person, said outright rather than

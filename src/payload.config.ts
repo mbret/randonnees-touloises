@@ -95,6 +95,19 @@ export default buildConfig({
       // The `BeforeDashboard` component renders the 'welcome' block that you see after logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below.
       beforeDashboard: ['@/components/BeforeDashboard'],
+      views: {
+        /**
+         * Comparing the club's FFRandonnée export against the roster. Its own
+         * screen rather than a dialog on the list: the report is long enough to
+         * need reading, and the file it reads carries every adhérent's address.
+         */
+        adherentsSync: {
+          Component: '@/components/admin/AdherentsSyncView#AdherentsSyncView',
+          exact: true,
+          meta: { title: 'Comparer avec l’export FFRandonnée' },
+          path: '/adherents/sync',
+        },
+      },
     },
     importMap: {
       baseDir: path.resolve(dirname),
