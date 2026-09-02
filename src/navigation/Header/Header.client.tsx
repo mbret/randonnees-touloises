@@ -93,11 +93,16 @@ export function HeaderClient({ navItems }: HeaderClientProps) {
 
   return (
     <header
-      {/* A fixed height, not padding around whatever the logo happens to be.
-       * A hero has to know how far to run up behind this bar, and a bar whose
-       * height is set by an editor's upload is not a number anything else can
-       * be written against. `h-20` and `-top-20` in `HomeHero` are the pair. */}
-      className="bg-background/92 sticky top-[var(--admin-bar-height)] z-12 mx-auto w-full flex-shrink-0 items-center justify-center border-b border-solid backdrop-blur-[20px] backdrop-saturate-125 transition-[color,background-color,border-color,backdrop-filter]"
+      /* A fixed height, not padding around whatever the logo happens to be: a
+       * hero has to know how far to run up behind this bar, and a height set by
+       * an editor's upload is not a number anything else can be written
+       * against. `h-20` here and `-top-20` in `HomeHero` are the pair.
+       *
+       * The height is on the header rather than on the row inside it so that
+       * the border counts within it — box-sizing is border-box. With `h-20` on
+       * the row the bar measured 81px against the hero's 80, and the page
+       * showed through as a hairline above the photograph. */
+      className="bg-background/92 sticky top-[var(--admin-bar-height)] z-12 mx-auto h-20 w-full flex-shrink-0 items-center justify-center border-b border-solid backdrop-blur-[20px] backdrop-saturate-125 transition-[color,background-color,border-color,backdrop-filter]"
       /* No duration of its own: the entries inside carry
        * `transition-[color,box-shadow]` from `navigationMenuTriggerStyle` and
        * the menu button `transition-all`, both on the default 150ms, so a bar
@@ -107,7 +112,7 @@ export function HeaderClient({ navItems }: HeaderClientProps) {
       {...(theme ? { 'data-theme': theme } : {})}
       {...(scrolled ? { 'data-scrolled': '' } : {})}
     >
-      <div className="container flex h-20 items-center justify-between">
+      <div className="container flex h-full items-center justify-between">
         <Link aria-label="Accueil" href="/">
           <Logo loading="eager" priority="high" className="max-h-14 w-auto" />
         </Link>
