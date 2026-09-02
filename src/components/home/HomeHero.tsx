@@ -20,25 +20,27 @@ import { buttonVariants } from '@/components/ui/button'
  * read. This darkens where the words are and leaves the top of the picture
  * alone.
  *
- * It holds its depth to just past the top of the headline and is gone by 440px,
- * where it used to still be a sixth opaque at 460px and only reached nothing at
- * the top of the hero.
+ * What decides whether the fade shows as an edge is the steepest slope in it,
+ * not how many stops it has, and CSS interpolates linearly between stops — so a
+ * curve sampled into stops is still a run of straight segments. Sampling a
+ * smootherstep every 20px made the edge visibly worse rather than better,
+ * because that curve concentrates its change in the middle and reached 1.00%/px
+ * where the plain ramp it replaced reached 0.62. Nothing here exceeds 0.44%/px
+ * and no two adjacent segments differ by more than 0.35.
  *
- * The stops from 300px up are a smootherstep — `6t⁵ - 15t⁴ + 10t³` sampled every
- * 20px — rather than a ramp, and that is the whole of why the edge is not
- * visible. A ramp is smooth in value and abrupt in slope, and the eye finds the
- * kink rather than the gradient: with straight segments a horizontal line
- * appeared across the mountains where the fall-off changed rate. Smootherstep
- * leaves and arrives with zero slope, so there is no rate to notice changing.
- * It also measures better, at 7.6:1 against the ramp's 6.0:1, because the curve
- * spends longer near the top of its range where the headline is.
+ * It reaches nothing at 520px, which is about where the flat blanket did. That
+ * is the price of the name: an eyebrow above the headline puts type 35px higher
+ * than anything else in the hero, on the thinnest part of the fade, and holding
+ * enough depth up there to carry it is most of what the shorter scrim had won
+ * back. Cream at that height measured 4.5:1 with the tighter fade — a pass with
+ * no margin, and this hero's photograph is one the club will replace.
  *
  * The stops are distances from the bottom rather than percentages, because what
  * has to stay covered is the text and the text is a fixed number of pixels
  * tall. Measured as percentages the same gradient tracks the hero instead: on a
  * phone the copy fills nearly all of it, so the headline rose into the part
  * that had faded to a third and sat on a barely dimmed photograph — 2.4:1,
- * against the 7.6:1 these stops give it. In pixels the covered band is the same
+ * against the 7.9:1 these stops give it. In pixels the covered band is the same
  * band on every screen and only the clear picture above it grows.
  *
  * The colour is neutral, and deliberately not the club's brown. Brown is right
@@ -54,15 +56,14 @@ import { buttonVariants } from '@/components/ui/button'
 const SCRIM = [
   'linear-gradient(to top,',
   'oklch(0.2 0 0 / 88%) 0,',
-  'oklch(0.2 0 0 / 84%) 210px,',
-  'oklch(0.2 0 0 / 76%) 300px,',
-  'oklch(0.2 0 0 / 74%) 320px,',
-  'oklch(0.2 0 0 / 65%) 340px,',
-  'oklch(0.2 0 0 / 48%) 360px,',
-  'oklch(0.2 0 0 / 28%) 380px,',
-  'oklch(0.2 0 0 / 11%) 400px,',
-  'oklch(0.2 0 0 / 2%) 420px,',
-  'oklch(0.2 0 0 / 0%) 440px)',
+  'oklch(0.2 0 0 / 84%) 225px,',
+  'oklch(0.2 0 0 / 74%) 335px,',
+  'oklch(0.2 0 0 / 60%) 367px,',
+  'oklch(0.2 0 0 / 46%) 400px,',
+  'oklch(0.2 0 0 / 32%) 433px,',
+  'oklch(0.2 0 0 / 19%) 463px,',
+  'oklch(0.2 0 0 / 8%) 490px,',
+  'oklch(0.2 0 0 / 0%) 520px)',
 ].join(' ')
 
 /**
