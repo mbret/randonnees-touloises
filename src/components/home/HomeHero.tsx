@@ -1,5 +1,4 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import React from 'react'
 
 /**
@@ -90,20 +89,27 @@ export function HomeHero() {
           animateurs et animatrices diplômés.
         </p>
 
+        {/* Plain anchors rather than `next/link`. These go nowhere — they move
+            the reader down the page they are already on — and the router, asked
+            to navigate to the URL it is already showing, does nothing at all:
+            having once followed « Prochaines sorties », scrolling back up and
+            pressing it again left the reader where they were. Handed to the
+            browser the fragment is re-resolved on every activation, which also
+            keeps `scroll-mt-24` doing the work rather than a scroll handler. */}
         <div className="mt-7 flex flex-wrap gap-3">
-          <Link className={buttonVariants({ size: 'lg' })} href="#agenda">
+          <a className={buttonVariants({ size: 'lg' })} href="#agenda">
             Prochaines sorties
-          </Link>
+          </a>
           {/* `ghost` rather than `outline`: the outline variant fills itself
               with the page background, which on a photograph is a cream
               rectangle indistinguishable from the button beside it. The edge
               comes from `--border`, translucent white under `.on-media`. */}
-          <Link
+          <a
             className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'border')}
             href="#programs"
           >
             Programme et séjours
-          </Link>
+          </a>
         </div>
       </div>
     </section>
