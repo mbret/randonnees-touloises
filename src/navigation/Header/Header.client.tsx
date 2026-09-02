@@ -93,14 +93,20 @@ export function HeaderClient({ navItems }: HeaderClientProps) {
 
   return (
     <header
-      className="bg-background/92 sticky top-[var(--admin-bar-height)] z-12 mx-auto w-full flex-shrink-0 items-center justify-center border-b border-solid backdrop-blur-[20px] backdrop-saturate-125 transition-colors duration-200"
-      {...(theme ? { 'data-theme': theme } : {})}
-      {...(scrolled ? { 'data-scrolled': '' } : {})}
-    >
       {/* A fixed height, not padding around whatever the logo happens to be.
        * A hero has to know how far to run up behind this bar, and a bar whose
        * height is set by an editor's upload is not a number anything else can
        * be written against. `h-20` and `-top-20` in `HomeHero` are the pair. */}
+      className="bg-background/92 sticky top-[var(--admin-bar-height)] z-12 mx-auto w-full flex-shrink-0 items-center justify-center border-b border-solid backdrop-blur-[20px] backdrop-saturate-125 transition-[color,background-color,border-color,backdrop-filter]"
+      /* No duration of its own: the entries inside carry
+       * `transition-[color,box-shadow]` from `navigationMenuTriggerStyle` and
+       * the menu button `transition-all`, both on the default 150ms, so a bar
+       * set to 200ms finished after its own labels had. `backdrop-filter` is
+       * named explicitly because `transition-colors` does not cover it, and the
+       * frosting was appearing in one step under a fading background. */
+      {...(theme ? { 'data-theme': theme } : {})}
+      {...(scrolled ? { 'data-scrolled': '' } : {})}
+    >
       <div className="container flex h-20 items-center justify-between">
         <Link aria-label="Accueil" href="/">
           <Logo loading="eager" priority="high" className="max-h-14 w-auto" />
