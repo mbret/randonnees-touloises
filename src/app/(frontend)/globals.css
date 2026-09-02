@@ -365,7 +365,7 @@ html:not(.dark) .plaque {
  * A picture is not a colour, so nothing here can be measured against the ground
  * the way the rest of the palette is. What makes it measurable is the scrim the
  * hero lays over the lower half of the image: where text sits, the photograph
- * is covered by at least 80% of `oklch(0.2 0.02 42)`, and the numbers below are
+ * is covered by at least 80% of `oklch(0.2 0 0)`, and the numbers below are
  * that composite over the brightest thing the club's photographs put behind
  * type — a hazy sky at #C9D4DE. Anything darker only reads better.
  *

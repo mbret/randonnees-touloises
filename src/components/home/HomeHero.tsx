@@ -26,21 +26,26 @@ import { buttonVariants } from '@/components/ui/button'
  * tall. Measured as percentages the same gradient tracks the hero instead: on a
  * phone the copy fills nearly all of it, so the headline rose into the part
  * that had faded to a third and sat on a barely dimmed photograph — 2.4:1,
- * against the 5.9:1 these stops give it. In pixels the covered band is the same
+ * against the 7.4:1 these stops give it. In pixels the covered band is the same
  * band on every screen and only the clear picture above it grows.
  *
- * The colour is the club's brown taken down to `oklch(0.2 …)` rather than
- * black, so the shadow the photograph sits in belongs to the same palette as
- * everything under it. See `.on-media` in globals.css for what the coverage
- * buys in contrast.
+ * The colour is neutral, and deliberately not the club's brown. Brown is right
+ * for the footer, which is a surface — the logo's own plaque at page scale. A
+ * scrim is not a surface: it is a shadow cast over someone else's colours, and
+ * the club walks in blue-green country. Tinted warm it read as a colour cast on
+ * the photograph rather than as the club's brown. The palette still shows up
+ * here, in the orange on the year, where it is a colour rather than a filter.
+ *
+ * See `.on-media` in globals.css for what the coverage buys in contrast; the
+ * ratios come from the lightness, so they are the same whatever the hue.
  */
 const SCRIM = [
   'linear-gradient(to top,',
-  'oklch(0.2 0.02 42 / 92%) 0,',
-  'oklch(0.2 0.02 42 / 86%) 220px,',
-  'oklch(0.2 0.02 42 / 70%) 340px,',
-  'oklch(0.2 0.02 42 / 16%) 460px,',
-  'oklch(0.2 0.02 42 / 3%) 100%)',
+  'oklch(0.2 0 0 / 92%) 0,',
+  'oklch(0.2 0 0 / 86%) 220px,',
+  'oklch(0.2 0 0 / 70%) 340px,',
+  'oklch(0.2 0 0 / 16%) 460px,',
+  'oklch(0.2 0 0 / 3%) 100%)',
 ].join(' ')
 
 /**
