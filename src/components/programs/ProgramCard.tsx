@@ -95,9 +95,14 @@ export function ProgramCard({
           <span className="text-muted-foreground text-sm">{badge.month}</span>
         </ItemMedia>
         <ItemContent>
-          <ItemTitle className="text-base underline-offset-4 group-hover/item:underline">
-            {title}
-          </ItemTitle>
+          {/* No underline on hover. The whole card is the link, so underlining
+           * the title alone says the title is the link and the rest of the card
+           * is something else — and it puts a second answer on the card for one
+           * cursor, next to the wash that already covers every part of it. The
+           * underline was load-bearing only while the fill barely moved: at
+           * 1.03:1 it was the one cue a reader could be sure of, and at 1.17:1
+           * it is decoration on top of an answer. */}
+          <ItemTitle className="text-base">{title}</ItemTitle>
           <ItemDescription className="line-clamp-none">
             {formatSchedule(startDate, endDate)}
           </ItemDescription>
