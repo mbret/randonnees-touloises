@@ -45,6 +45,14 @@ import { registrationStatus } from './registrationStatus'
  * is lost by dropping it: the background paints under the border box, so the
  * card's own colour runs to the outer edge with no gap and no reflow.
  *
+ * `shadow-sm` rather than the `shadow-xs` the controls wear, because with the
+ * outline gone the shadow is the only thing drawing the card's edge — and on
+ * `/programs`, where the ground is the plain cream, the raised white is 1.04:1
+ * against it and a 5% shadow left the card looking dissolved rather than
+ * lifted. It is two rungs above the resting `Card`, which is the point: that
+ * one is a region of the page at rest, this one is a surface answering a
+ * cursor, and it goes back down the moment the cursor leaves.
+ *
  * Which step it comes up is per theme, because the step is not the same token
  * in both. In light, `card` is white against a cream page — up. In dark, `card`
  * is L 0.215 and the `bg-muted/40` band it sits in resolves to L 0.218, so
@@ -79,7 +87,7 @@ export function ProgramCard({
   return (
     <Item
       asChild
-      className="[a]:hover:bg-card dark:[a]:hover:bg-muted [a]:transition-[background-color,border-color,box-shadow] hover:border-transparent hover:shadow-xs"
+      className="[a]:hover:bg-card dark:[a]:hover:bg-muted [a]:transition-[background-color,border-color,box-shadow] hover:border-transparent hover:shadow-sm"
       variant="outline"
     >
       <Link href={`${PROGRAMS_BASE}/${slug}`}>
