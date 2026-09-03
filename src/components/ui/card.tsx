@@ -6,14 +6,16 @@ function Card({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card"
-      /* `shadow-xs` rather than the stock `shadow-sm`: on the cream page a
-       * two-layer shadow at 10% black reads as a card floating well above the
-       * paper, and these cards mostly sit in grids of four where the depth
-       * repeats. `shadow-xs` is also what the button, the input and the select
-       * already carry here, so a card stops being the one surface in the
-       * palette lifted further than everything around it. */
+      /* `shadow-2xs` rather than the stock `shadow-sm`, which is two layers at
+       * 10% black: on the cream page that reads as a card floating well above
+       * the paper, and these cards mostly sit in grids of four where the depth
+       * repeats. What is left is a single 1px offset at 5% with no blur — the
+       * card sits *on* the paper rather than over it, and the border does the
+       * separating, which is what a border is for. The controls keep the blur
+       * they have: `shadow-xs` on a button or an input is a raised thing you
+       * press, where a card is a region of the page. */
       className={cn(
-        'bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-xs',
+        'bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-2xs',
         className,
       )}
       {...props}
