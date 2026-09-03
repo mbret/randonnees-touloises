@@ -1,16 +1,7 @@
 import React from 'react'
 
+import { Figure } from '@/components/common/Figure'
 import { HOME_FIGURES, KEY_FIGURES } from '@/data/keyFigures'
-
-/**
- * A number as the band and the sentence both set it: the club's orange, in the
- * display face, and never broken across a line.
- */
-function Figure({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="font-display text-brand-orange font-bold whitespace-nowrap">{children}</span>
-  )
-}
 
 /**
  * The club stated in four numbers, directly under the hero.
