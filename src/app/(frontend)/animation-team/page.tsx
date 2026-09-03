@@ -21,7 +21,7 @@ export default async function Page() {
   const teamMembers = await resolveTeamPhotos(animationTeam)
 
   return (
-    <div className="pt-24 pb-24">
+    <div className="page-shell">
       <div className="container">
         <div className="prose dark:prose-invert max-w-none mb-12">
           <h1>Équipe d’animation</h1>

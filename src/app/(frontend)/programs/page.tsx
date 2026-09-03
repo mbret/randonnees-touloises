@@ -19,7 +19,7 @@ export default async function Page() {
   const entries = await getPrograms()
 
   return (
-    <div className="container pt-24 pb-24">
+    <div className="container page-shell">
       <div className="text-center">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{TITLE}</h1>
         <p className="text-muted-foreground mt-4 text-sm leading-relaxed">{DESCRIPTION}</p>
