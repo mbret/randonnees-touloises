@@ -26,7 +26,26 @@ type HeadingProps = {
 function PostHeading({ authors, onImage, startDate, status, title, when }: HeadingProps) {
   return (
     <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2">
-      <h1 className="mb-6 text-3xl md:text-5xl lg:text-6xl">{title}</h1>
+      {/* Two treatments, two sizes. Over a photo the title is the whole of what
+          a 60vh picture has to say and has the room to carry it, so it keeps
+          the full-bleed ramp it was built with. Set on the page's own
+          background it is just a page title, and the rest of the site puts
+          those at 36px: `prose` gives the bare `<h1>` on every content page
+          that, and the programme listing a reader arrives from sets the same
+          `text-3xl sm:text-4xl`. The template's ramp applied there too, which
+          put an outing's name at 60px on a desktop — a third larger again than
+          the home page's hero, the one title meant to be the loudest on the
+          site, and the case nearly every programme entry falls into, since
+          almost none of them carry a picture. */}
+      <h1
+        className={
+          onImage
+            ? 'mb-6 text-3xl md:text-5xl lg:text-6xl'
+            : 'mb-4 text-3xl tracking-tight text-balance sm:text-4xl'
+        }
+      >
+        {title}
+      </h1>
 
       {(when || authors) && (
         <div className="flex flex-col gap-1 text-sm md:flex-row md:gap-8">
