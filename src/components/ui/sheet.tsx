@@ -49,10 +49,18 @@ function SheetContent({
   return (
     <SheetPortal>
       <SheetOverlay />
+      {/* One duration for both directions, where the panel used to take 500ms
+          to arrive against 200 to leave. The asymmetry that reads as poise on a
+          drawer you opened to look at something reads as lag on a menu: the
+          reader pressed « Menu » because they want to be somewhere else, and
+          the whole entrance is time spent before they can even see the list.
+          200ms is still movement — enough to show the panel coming from the
+          left edge rather than appearing over the page — and it is within 50ms
+          of the overlay's own fade, so scrim and panel land together. */}
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-200 data-[state=open]:duration-500',
+          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition duration-200 ease-in-out',
           side === 'right' &&
             'data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm',
           side === 'left' &&
