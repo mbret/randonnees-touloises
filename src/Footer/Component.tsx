@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { CMSLink } from '@/components/Link'
 import { ExternalLinkIcon } from 'lucide-react'
 import { FederationLogo } from './FederationLogo'
+import { Skyline } from './Skyline'
 // Commented out, not deleted, while the site is forced light — see the
 // reasoning at the `ThemeProvider` in `app/(frontend)/layout.tsx`. Uncomment
 // this together with the block below to bring the switch back.
@@ -35,12 +36,19 @@ export async function Footer() {
     /* See the note on `.plaque` in globals.css: it carries its own palette, and
      * only on a light page. */
     <footer className="plaque text-foreground mt-auto">
+      <Skyline />
+
       {/* One column with one gap, where this was three containers each paying
           its own `py-8` on top of the last one's. The address, the affiliation
           and the legal row are the same small print doing the same job; set
           32px apart, with a stack of button-sized links at the end, they read
           as three footers rather than as one band. */}
-      <div className="container flex flex-col items-center gap-6 py-12 text-center">
+      {/* `pt-6` against the `pb-12` below it, where both were 12. The band above
+          ends in solid ground — 18px of it below its deepest col, 34 below the
+          crest the walkers stand on — and that is already most of a top
+          padding. Matching the bottom would have reopened the gap the skyline
+          had just filled. */}
+      <div className="container flex flex-col items-center gap-6 pt-6 pb-12 text-center">
         {/* `address` because it is one — the club's own contact details, which
             is exactly the element's job and not the general-purpose « any
             address » it is often mistaken for. `not-italic` because browsers
