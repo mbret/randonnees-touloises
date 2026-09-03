@@ -38,11 +38,11 @@ import { buttonVariants } from '@/components/ui/button'
  * here had to move for it.
  *
  * The thin end of the fade is the desktop kicker rather than anything on a
- * phone: at `lg` the block reaches 359px, out where the ramp has fallen to 63%,
- * and cream there measures 5.9:1. That is a pass at AA and not at AAA, it
- * predates the title on the phone, and it is left alone here — the change the
- * club asked for was a phone's, and this hero's photograph is one they will
- * replace.
+ * phone: at `lg` the block reaches 363px, out where the ramp has fallen to 62%,
+ * and cream there measures 5.3:1. That is a pass at AA and not at AAA. It
+ * predates the name being the title at all, and it is left alone here — the
+ * fix is to hold the ramp higher for the wide hero, which is a change to these
+ * stops and wants measuring on the photograph the club replaces this one with.
  *
  * The stops are distances from the bottom rather than percentages, because what
  * has to stay covered is the text and the text is a fixed number of pixels
@@ -106,29 +106,16 @@ const TOP_SCRIM = [
  * The opening of the home page: what the club does, and the two ways into the
  * page below it.
  *
- * On a phone the title is the club's name, and it has not always been. The
- * largest type here used to be « Partager le plaisir de la randonnée » at every
- * width, on the argument that a visitor can act on a sentence and cannot act on
- * a name that is already in the logo directly above, in the tab title and in
- * the structured data. The club could not find itself on its own home page, and
- * reported it of a phone — where the logo is at its smallest and the sentence
- * fills the screen — so that is where the name takes the space. From `sm` the
- * old arrangement stands unchanged, down to the pixel: a 14px kicker over a
- * 36px sentence that reaches 48 at `lg`.
+ * On a phone the club's name is the title. The largest type used to be
+ * « Partager le plaisir de la randonnée » at every width, on the argument that a
+ * visitor can act on a sentence and not on a name already in the logo above;
+ * the club could not find itself on its own home page, and reported it of a
+ * phone, so that is where the name takes the space. From `sm` the name is a
+ * kicker over the sentence, as before, one size up from the 14px it was.
  *
- * The heading element carries the name at every width even so, which is the
- * half of this that is not a phone's. It changes nothing to look at — the
- * kicker was already the first line of the old heading — and it closes a gap
- * that arrangement admitted to in its own note: the name was in the metadata
- * and in an image whose link reads « Accueil », so no heading on the site ever
- * carried it.
- *
- * The sentence is a paragraph now rather than the rest of the heading, and on a
- * phone it sits under the name at the size of a promise rather than of a
- * caption. It is how the club describes itself on its own À propos page, and it
- * is still the only line here that says what the club is for — the name says
- * who, and a visitor who has read the name has not yet been told anything to
- * want.
+ * The heading element carries the name at every width. It changes nothing to
+ * look at — the kicker was already the first line of the old heading — and no
+ * heading on the site carried the club's name before.
  *
  * The two buttons are anchors, and they are two because the sections they reach
  * are genuinely two things: the agenda lists the walks you turn up to, the
@@ -157,55 +144,45 @@ export function HomeHero() {
       </div>
 
       <div className="container py-10 md:py-14">
-        {/* One heading and one paragraph, and which of them looks like the
-            headline changes at `sm`. On a phone the club's name is the title —
-            36px, two lines on all but the widest — with the sentence under it at
-            18px; from `sm` the two swap costumes and the hero is exactly the one
-            that was here before, a 14px kicker over a 36px sentence that reaches
-            48 at `lg`. A phone is where the club could not find its own name, so
-            a phone is the only place this changes.
+        {/* One heading and one paragraph that swap costumes at `sm`: on a
+            phone the name is the title at 36px with the sentence under it at
+            18px, and from `sm` the name is a kicker over the sentence.
 
-            Swapped in CSS rather than by rendering both arrangements and hiding
-            one at each breakpoint: `display:none` keeps a hidden copy out of the
-            accessibility tree but not out of the HTML, and two headings with two
-            copies of every string is a page that can disagree with itself. Both
-            designs run in the same order — name first, sentence second — so one
-            DOM covers both and only the type changes.
+            In CSS rather than two arrangements with one under `display:none` —
+            a hidden copy stays out of the accessibility tree but not out of the
+            HTML, and two headings with two copies of every string is a page
+            that can disagree with itself. Both designs run in the same order,
+            name then sentence, so one DOM covers both.
 
-            The heading is the name at every width, and that is the one thing
-            here that does not revert at `sm`. It costs nothing to look at, since
-            the kicker was already the first line of the old heading, and it
-            closes a gap the old arrangement admitted to in its own note: the
-            name was in the tab title, the Open Graph tags and the structured
-            data, and in an image whose link reads « Accueil », so no heading on
-            the site ever carried it.
+            18px at `sm`, up from the 14px the kicker had. Uppercase at 0.14em
+            it still reads as a label rather than a title. It does not buy any
+            slack in WCAG terms — 18px bold is 13.5pt, under the 14pt that would
+            make it large text — and the taller line box lifts the block 4px, so
+            the kicker sits on 62% of scrim coverage at `lg` rather than 63%,
+            where cream measures 5.3:1 against the 5.9:1 it had. Both pass AA
+            and fail AAA; the step does not change what it complies with, and
+            the thin end of this fade is a scrim problem rather than a type
+            one — see `SCRIM` above.
 
-            `sm:leading-5` is not decoration. `text-sm` takes its line-height
-            from `--tw-leading` whenever something has set one, and the
-            `leading-[1.05]` this heading wears on a phone sets it — so without
-            the override the desktop kicker would be 14px type on a 14.7px line
-            instead of the 20px line the old design gave it, and the sentence
-            would sit five pixels higher than it used to. */}
-        <h1 className="font-display text-4xl leading-[1.05] font-bold tracking-tight text-balance sm:mb-2 sm:text-sm sm:leading-5 sm:tracking-[0.14em] sm:uppercase">
+            `sm:leading-6` is load-bearing, not decoration: `text-lg` takes its
+            line-height from `--tw-leading` whenever something has set one, and
+            the `leading-[1.05]` this heading wears on a phone sets it. Without
+            an override the kicker would be 18px type on a 18.9px line. */}
+        <h1 className="font-display text-4xl leading-[1.05] font-bold tracking-tight text-balance sm:mb-2 sm:text-lg sm:leading-6 sm:tracking-[0.14em] sm:uppercase">
           Randonnées Touloises
         </h1>
 
-        {/* The sentence: a paragraph on a phone at 18px and 500, which is what
-            keeps it reading as the club's own line rather than as the lead below
-            it, and the old heading again from `sm` — display face, bold,
-            `leading-[1.08]`, and the same `24ch` measure, which resolves against
-            the same 36px Archivo it always did. The orange stays on the year,
-            the one place the palette shows up on the photograph.
+        {/* A paragraph on a phone at 18px and 500 — enough to read as the
+            club's own line rather than as the lead below it — and the old
+            heading again from `sm`: display face, bold, `leading-[1.08]`, the
+            same `24ch` measure against the same 36px Archivo.
 
-            `depuis&nbsp;1987` because `text-balance` is free to put the break
-            anywhere and the year alone on a line reads as a stray date.
-
-            No `max-w` on the phone side, and it was tried at 34ch: forty-nine
-            characters at 18px measure about 386px, close enough to what 34ch
-            comes to in Instrument Sans that the cap decided between one line and
-            two on a coin toss and flipped between widths that should have looked
-            identical. Uncapped the answer is never in doubt — the container is
-            what breaks it into two balanced lines. */}
+            `depuis&nbsp;1987` keeps `text-balance` from stranding the year on a
+            line of its own. No `max-w` on the phone side: at 34ch the cap fell
+            within a few pixels of the line's natural width, so it decided
+            between one line and two on a coin toss and flipped between widths
+            that should have looked identical. The container breaks it into two
+            balanced lines without help. */}
         <p className="mt-3 text-lg leading-snug font-medium text-balance sm:font-display sm:mt-0 sm:max-w-[24ch] sm:text-4xl sm:leading-[1.08] sm:font-bold sm:tracking-tight lg:text-5xl">
           Partager le plaisir de la randonnée,{' '}
           <span className="text-brand-orange">depuis&nbsp;1987</span>.
