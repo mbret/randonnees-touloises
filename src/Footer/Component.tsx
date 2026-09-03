@@ -55,8 +55,14 @@ export async function Footer() {
             read one after the other, are only an obstacle to anyone tabbing or
             listening through the footer. The badge is decorative because the
             wording beside it already names where the link goes. */}
+        {/* `text-left` against the centring the rest of the footer inherits.
+            The wording runs to two lines on a phone, and centred under a badge
+            the short second line floats free of everything — the block reads as
+            a caption that has come loose. Ranged left it keeps one edge with
+            the badge beside it, which is the shape a logo and its wording
+            usually take. Nothing to see from `md` up, where it is one line. */}
         <Link
-          className="hover:text-primary inline-flex items-center gap-3 text-sm transition-colors"
+          className="hover:text-primary inline-flex items-center gap-3 text-left text-sm transition-colors"
           href="https://www.ffrandonnee.fr/"
           rel="noopener noreferrer"
           target="_blank"
