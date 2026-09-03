@@ -14,6 +14,14 @@ import { StartLocationMap } from './StartLocationMap'
  * the leading column, then the kind of walk, where it starts, and the rest of
  * the details as the editor laid them out.
  *
+ * The card has no fill of its own, and that is now the one thing separating it
+ * from the programme cards it is otherwise built alike — see `ProgramCard`.
+ * These are inert: text an editor typed, with nowhere to go, where every
+ * programme card is a link. So a surface there says *there is an object here*,
+ * and the bare outline here says *there is a block of text here*, which is
+ * exactly what this is. Filling this one to match would take the distinction
+ * back out again.
+ *
  * The meeting point is the one detail lifted out of that rich text and given a
  * line of its own, because it is the only one a reader has to act on. The
  * animateur, the kilométrage and the dénivelé stay in the text, in the order the
