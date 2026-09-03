@@ -105,9 +105,19 @@ export function ProgramCard({
           {summary && <ItemDescription className="line-clamp-2">{summary}</ItemDescription>}
         </ItemContent>
         <ItemActions>
-          {/* `motion-safe:` on the shift alone: the darkening is a fade rather
+          {/* Lighter than lucide ships it — 14 px at stroke 1.5 rather than
+           * 16 at 2 — because this one is not a control, it is a mark saying
+           * the card leads somewhere. At the shipped weight it read as a
+           * button sitting in the corner of the card, and competed with the
+           * title for the eye on a list of twenty; thinned, it sits with the
+           * date and the small print, and the hover still brings it up.
+           *
+           * `motion-safe:` on the shift alone: the darkening is a fade rather
            * than motion, and it is what carries the cue when the shift is off. */}
-          <ChevronRightIcon className="text-muted-foreground size-4 transition-[color,transform] group-hover/item:text-foreground motion-safe:group-hover/item:translate-x-0.5" />
+          <ChevronRightIcon
+            className="text-muted-foreground size-3.5 transition-[color,transform] group-hover/item:text-foreground motion-safe:group-hover/item:translate-x-0.5"
+            strokeWidth={1.5}
+          />
         </ItemActions>
       </Link>
     </Item>
