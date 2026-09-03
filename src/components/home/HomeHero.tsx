@@ -144,7 +144,16 @@ export function HomeHero() {
           <span className="text-brand-orange">depuis 1987</span>.
         </h1>
 
-        <p className="text-foreground/90 mt-4 max-w-[46ch] leading-relaxed sm:text-lg">
+        {/* Gone below `sm`. On a phone this wraps to three or four lines and
+            every one of them pushes the two buttons — the only things in the
+            hero a visitor can act on — further down a picture that is already
+            at its shortest, `min-h-[26rem]` against the 32 it gets from `md`.
+            The headline carries what the club is and the buttons carry what to
+            do about it; the count of outings and who leads them is the part
+            that can wait for a wider screen — and the band of figures directly
+            below the hero, which condenses to a single line at the same
+            breakpoint, already says something concrete about the club there. */}
+        <p className="text-foreground/90 mt-4 hidden max-w-[46ch] leading-relaxed sm:block sm:text-lg">
           Six sorties par semaine autour de Toul, pour tous les niveaux, encadrées par des
           animateurs et animatrices diplômés.
         </p>
