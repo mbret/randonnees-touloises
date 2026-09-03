@@ -277,6 +277,7 @@ export interface Page {
     | IconCardsBlock
     | MediaLinksBlock
     | MembershipTiersBlock
+    | ProfileCardsBlock
   )[];
   meta?: {
     title?: string | null;
@@ -1372,6 +1373,19 @@ export interface MembershipTiersBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProfileCardsBlock".
+ */
+export interface ProfileCardsBlock {
+  /**
+   * Glissez pour changer l’ordre d’affichage. La fonction de chacun vient de sa fiche adhérent ; sa photo et son téléphone n’apparaissent que s’il a donné son accord.
+   */
+  members: (number | Adherent)[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'profileCards';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
  */
 export interface Event {
@@ -1902,6 +1916,7 @@ export interface PagesSelect<T extends boolean = true> {
         iconCards?: T | IconCardsBlockSelect<T>;
         mediaLinks?: T | MediaLinksBlockSelect<T>;
         membershipTiers?: T | MembershipTiersBlockSelect<T>;
+        profileCards?: T | ProfileCardsBlockSelect<T>;
       };
   meta?:
     | T
@@ -2083,6 +2098,15 @@ export interface MembershipTiersBlockSelect<T extends boolean = true> {
         id?: T;
       };
   footnote?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProfileCardsBlock_select".
+ */
+export interface ProfileCardsBlockSelect<T extends boolean = true> {
+  members?: T;
   id?: T;
   blockName?: T;
 }
