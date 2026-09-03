@@ -412,17 +412,17 @@ html:not(.dark) .plaque {
  * A picture is not a colour, so nothing here can be measured against the ground
  * the way the rest of the palette is. What makes it measurable is the scrim the
  * hero lays over the lower half of the image: where text sits, the photograph
- * is covered by between 63% and 88% of `oklch(0.2 0 0)` — 88 at the foot of the
- * picture, 77 under the top line of a phone's title, and 63 under the 14px
+ * is covered by between 62% and 88% of `oklch(0.2 0 0)` — 88 at the foot of the
+ * picture, 77 under the top line of a phone's title, and 62 under the 18px
  * kicker at `lg`, which is the highest and thinnest thing the hero sets. The
  * numbers below are that composite over the brightest thing the club's
  * photographs put behind type — a hazy sky at #C9D4DE. Anything darker only
  * reads better.
  *
  *   - `--foreground` is the page cream: 10.6:1 on the 80% that covers most of
- *     the block, 9.9:1 under a phone's title and 6.4:1 at the thin end.
+ *     the block, 9.9:1 under a phone's title and 6.3:1 at the thin end.
  *     Measured on this hero's actual photograph rather than on that stand-in
- *     sky, the top line comes out at 9.6:1 on a phone and 5.9:1 under the `lg`
+ *     sky, the top line comes out at 9.6:1 on a phone and 5.3:1 under the `lg`
  *     kicker, on means of 10 to 12. That thin end is a pass at AA and not at
  *     AAA, and it is older than the title on the phone: the kicker has always
  *     been the highest type in a desktop hero, and the 80% this note used to
