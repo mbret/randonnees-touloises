@@ -1,6 +1,5 @@
 import type { CollectionConfig } from 'payload'
 
-import { authenticated } from '../../access/authenticated'
 import { authenticatedOrPublished } from '../../access/authenticatedOrPublished'
 import { Archive } from '../../blocks/ArchiveBlock/config'
 import { CallToAction } from '../../blocks/CallToAction/config'
@@ -24,6 +23,7 @@ import {
   OverviewField,
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
+import { adminOnly } from '@/access/adminOnly'
 import { ProfileCardsBlockConfig } from '@/blocks/ProfileCards/config'
 import { DEFAULT_NAV_ORDER, staticNavItems } from '@/navigation/Header/staticNavItems'
 
@@ -45,11 +45,33 @@ export const Pages: CollectionConfig<'pages'> = {
     singular: 'Page',
     plural: 'Pages',
   },
+  /**
+   * Writing a page is an administrator's job, not any account holder's.
+   *
+   * `authenticated` meant every logged-in user, and `Users.access.create` is
+   * public — so a stranger could sign up and write, publish or delete pages
+   * through the REST API, which does not care that the admin panel is closed to
+   * them. Nothing is lost by narrowing it: the committee are administrators, and
+   * they are the only people who have ever reached the page builder.
+   *
+   * It also has to be narrowed for `profileCards` to be safe. That block resolves
+   * the adhérents a page names with the access check overridden, because
+   * `adherents` is closed to public reads and a page renders for a visitor with
+   * no user at all. Which is sound only while the ids come from someone trusted:
+   * with page writes open to any account, a stranger could publish a page naming
+   * guessed adhérent ids and read back the names the roster exists to keep
+   * unenumerable.
+   *
+   * `read` is left as it was. It exposes drafts to any account holder, which is
+   * the same class of problem in a milder form — and it belongs with the wider
+   * fix, since every other content collection here has the same `authenticated`
+   * writes and `contactSubmissions` is readable on the same terms.
+   */
   access: {
-    create: authenticated,
-    delete: authenticated,
+    create: adminOnly,
+    delete: adminOnly,
     read: authenticatedOrPublished,
-    update: authenticated,
+    update: adminOnly,
   },
   // This config controls what's populated by default when a page is referenced
   // https://payloadcms.com/docs/queries/select#defaultpopulate-collection-config-property
