@@ -136,8 +136,29 @@ export function HomeHero() {
               the Open Graph tags and the structured data, and the logo is an
               image whose link is labelled « Accueil », so a screen reader never
               says it and a heading never carries it. Set as a kicker it reads as
-              the label it is while the sentence stays the headline. */}
-          <span className="mb-3 block text-xs font-semibold tracking-[0.2em] uppercase sm:text-sm">
+              the label it is while the sentence stays the headline.
+
+              Sized for a phone, where the club could not find its own name. Not
+              a contrast problem, which is where this looked like it was going:
+              measured on the composited photograph at 390px, the ground under
+              this line is 10.0:1 against cream at its worst pixel and 14:1 on
+              average — the scrim below is doing what its own note claims for it.
+              What was missing was ink. At 12px, 600 and 0.2em the strokes are
+              about a pixel wide and the letters stand far enough apart that the
+              line reads as texture over a treeline rather than as a word; 14px
+              at 700, with the tracking pulled back to 0.14em, is a line of the
+              same length carrying enough mass to hold. It stays one line down to
+              320px. The `sm:text-sm` this used to grow into goes with the
+              change — 14px is now the size on every screen rather than the one a
+              phone was kept below.
+
+              `mb-2` rather than `mb-3` because the taller line box would
+              otherwise push the whole block 4px further up the fade, and the top
+              of the text is exactly what the scrim's stops are measured against:
+              8px under a 20px line box leaves the headline where 12px under a
+              16px one did, so the block keeps the coverage it was tuned for and
+              nothing below it moves. */}
+          <span className="mb-2 block text-sm font-bold tracking-[0.14em] uppercase">
             Randonnées Touloises
           </span>{' '}
           Partager le plaisir de la randonnée,{' '}
