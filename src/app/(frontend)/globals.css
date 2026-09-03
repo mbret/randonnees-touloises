@@ -28,6 +28,35 @@
 }
 
 /**
+ * The vertical frame a content page sits in: the space under the header and the
+ * space above the footer.
+ *
+ * One utility rather than the `pt-24 pb-24` every page had copied, because the
+ * top of it has to answer to the header. The header is `sticky h-20`, so its
+ * 80px sit in the flow directly above this padding, and 96px below that put a
+ * page's title 176px down — a quarter of a phone's visible page, most of it
+ * empty. It reads as generous at 1400px and as a hole at 390px, which is what a
+ * single fixed value buys.
+ *
+ * So the top halves on a phone and returns at `md`, where there is room for it;
+ * the bottom stays put, since space above the footer costs nothing anyone is
+ * looking at. The step matches the one the home page's own sections already
+ * make — `py-16 md:py-24` there, `py-10 md:py-14` in the hero — rather than
+ * introducing a second idea about vertical rhythm.
+ *
+ * Named for the page rather than for its padding so the next page to be written
+ * asks for the frame and gets whatever this decides, instead of copying a number
+ * out of a sibling.
+ */
+@utility page-shell {
+  padding-block: 3rem 6rem;
+
+  @media (width >= theme(--breakpoint-md)) {
+    padding-block-start: 6rem;
+  }
+}
+
+/**
  * A `<details>` whose content slides open instead of appearing.
  *
  * The platform animates the native element now: `::details-content` is the

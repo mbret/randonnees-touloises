@@ -5,7 +5,7 @@ import React from 'react'
 
 export default function Page() {
   return (
-    <div className="pt-24 pb-24">
+    <div className="page-shell">
       <div className="container">
         <div className="prose dark:prose-invert max-w-none">
           <h1>Politique de confidentialité</h1>
