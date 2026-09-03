@@ -388,9 +388,18 @@
  *     the band does read flat when its text is grey throughout.
  *
  * Cream on this ground is 11.14:1.
+ *
+ * `--plaque-ground` is that colour under a name, because the footer's skyline
+ * has to paint with it too: the near range is the footer arriving, so it is the
+ * same paint rather than a copy of the value kept in step by hand.
+ * `--plaque-ridge` is the range behind it, one step up in lightness — far
+ * enough to read as distance, close enough that it is plainly the same country.
+ * Neither is text and neither ever carries any, so they answer to nothing.
  */
 html:not(.dark) .plaque {
-  background-color: oklch(0.31 0.028 42);
+  --plaque-ground: oklch(0.31 0.028 42);
+  --plaque-ridge: oklch(0.375 0.026 42);
+  background-color: var(--plaque-ground);
   --foreground: oklch(0.94 0.008 80);
   --brand-green: oklch(0.78 0.155 119);
   --primary: var(--brand-green);
