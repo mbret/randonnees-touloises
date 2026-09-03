@@ -19,56 +19,56 @@ import { registrationStatus } from './registrationStatus'
 
 /**
  * One programme entry: the day down the leading column, then what it is and when,
- * mirroring the agenda's cards so the two sections read as one page.
+ * built on the agenda's card so the two sections read as one page — the same
+ * geometry, the same `w-14` day column, the same rhythm down the list.
  *
- * The whole card is the link rather than a « en savoir plus » at the end of it —
- * every entry has a page, and that page is the only thing the card is for.
+ * The same geometry, but not the same surface, and that is deliberate. The
+ * whole card is the link rather than a « en savoir plus » at the end of it —
+ * every entry has a page, and that page is the only thing the card is for —
+ * while the agenda's cards are inert: text an editor typed, with nowhere to go.
+ * Sharing the outline exactly, as this did, made those two things
+ * indistinguishable until the cursor was already on one of them, so the
+ * clickable one has a fill of its own. `bg-card` says there is an object here;
+ * the agenda's bare outline says there is a block of text here. It is the one
+ * cue that is there before the cursor is.
  *
- * Which is why hovering answers with the whole card rather than tinting it.
- * `Item` ships a `bg-accent/50` wash that repaints the fill and nothing else:
- * over the `bg-muted/40` the home page sits these cards on, that wash is
- * 1.03:1, and almost none of it is lightness — the hue turns 33° into the pale
- * lime while the value stays put, which reads as a card that has been
- * « marked » rather than one answering the cursor, and leaves the border, the
- * title and the chevron frozen. So the surface comes up a step instead, the
- * border firms up with it, the title underlines, and the chevron — the one part
- * of the card whose whole job is to say there is somewhere to go — darkens and
- * shifts a little towards where it points.
+ * That fill is also what makes the hover work at all, and it is why the wash
+ * `Item` already ships is the right one after all. `[a]:hover:bg-accent/50`
+ * over a *transparent* card on the home page's `bg-muted/40` band is 1.03:1,
+ * which this file long read as the wash being wrong. The wash was never wrong;
+ * washing nothing was. With `bg-card` beneath it the same token at full
+ * strength is a real step — 1.17:1 in light, 1.31:1 in dark — and it is the
+ * hover the rest of the site already answers with: outline buttons, ghost
+ * buttons, the nav. A card that is a link hovers like everything else that is.
  *
- * The border stays and darkens rather than leaving in favour of a shadow, which
- * is what this did first: `hover:border-transparent hover:shadow-sm`, the card
- * lifting off the page instead of drawing itself. It failed at the top edge,
- * and it had to. Every shadow in the scale is cast downwards — `shadow-sm` is
- * 1 px down under 3 px of blur — so the flanks and the foot of the card get an
- * edge and the head of it gets none, and what is left up there is the raised
- * white meeting the ground at 1.04:1 on `/programs`, 1.09:1 in the home page's
- * band. Not a soft edge: no edge. The card read as having come apart along the
- * top rather than as a surface that had come up, and no amount of blur or
- * spread mends that without also hanging a halo above the card that nothing in
- * the scene casts.
+ * Nothing grows. The border is the same 1 px at rest and hovered, no shadow
+ * arrives, and only the fill moves. Two attempts here got that wrong from
+ * opposite ends. `hover:shadow-sm` over `hover:border-transparent` lifted the
+ * card off the page, and every shadow in the scale is cast downwards —
+ * `shadow-sm` is 1 px down under 3 px of blur — so the flanks and the foot of
+ * the card got an edge and the head of it got none: raised white meeting the
+ * ground at 1.04:1 on `/programs`, a card that read as having come apart along
+ * the top. Then a step to `input` drew all four edges evenly and still grew,
+ * which was the half of the fault that had nothing to do with the shadow. An
+ * edge that thickens under the cursor reads as the card acquiring an outline
+ * rather than as the card answering, and it is worst over a pale fill, where
+ * the interior says *lifted* and the edge says *outlined chip*.
  *
- * A border has no direction, which is the whole of why it wins here: one value,
- * four edges, and the head of the card drawn exactly as well as its foot.
- * `input` is the step it takes — the palette's other edge token, the darker one
- * a field wears so a form is findable. Against the fill it encloses it goes
- * 1.29:1 → 1.87:1 in light and 1.43:1 → 1.81:1 in dark: the same firming in
- * both, from a rule a reader has to look for to one that has closed around what
- * the cursor is on.
- *
- * Which step the surface comes up is per theme, because the step is not the
- * same token in both. In light, `card` is white against a cream page — up. In
- * dark, `card` is L 0.215 and the `bg-muted/40` band it sits in resolves to
- * L 0.218, so `card` is not a step at all: the two are the same colour, and the
- * border would be left carrying the hover alone. `muted` is the step there,
- * 1.18:1 over that band and 1.29:1 on a plain page.
+ * Dark takes `input` for that border instead of `border` — at rest and hovered
+ * alike, so it is a value the card wears rather than a step it takes. On
+ * `/programs` a `card` fill is 1.30:1 above the page and the rim is most of
+ * what draws the object; and a rim *lighter* than the fill it encloses reads as
+ * light catching an edge, where the same move in light can only be a darker
+ * line drawn around one. It is the edge the outline button already wears in
+ * dark (`dark:border-input`), for the same reason.
  *
  * `[a]:` on the background because that is the variant `itemVariants` sets its
  * own hover under: the arbitrary variant outranks a plain `hover:bg-*`, and
  * tailwind-merge matches on the variant set, so a plain one would be kept
- * alongside it and then lose on specificity. The border needs none of that —
- * `outline` sets `border-border` flat, with no hover of its own to outrank —
- * and neither property needs a transition spelled out here now that there is no
- * shadow among them: the base `transition-colors` already carries both.
+ * alongside it and then lose on specificity. Spelled the same way, it collapses
+ * the shipped `/50` instead of racing it — same modifier set, same class group,
+ * ours last. Nothing needs a transition spelled out here: with only the fill
+ * moving, the base `transition-colors` carries it.
  */
 export function ProgramCard({
   availability,
@@ -88,11 +88,7 @@ export function ProgramCard({
   })
 
   return (
-    <Item
-      asChild
-      className="[a]:hover:bg-card dark:[a]:hover:bg-muted hover:border-input"
-      variant="outline"
-    >
+    <Item asChild className="bg-card [a]:hover:bg-accent dark:border-input" variant="outline">
       <Link href={`${PROGRAMS_BASE}/${slug}`}>
         <ItemMedia className="w-14 flex-col items-start gap-0 tabular-nums">
           <span className="font-mono text-lg leading-none font-semibold">{badge.day}</span>
