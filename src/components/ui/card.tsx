@@ -6,8 +6,14 @@ function Card({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card"
+      /* `shadow-xs` rather than the stock `shadow-sm`: on the cream page a
+       * two-layer shadow at 10% black reads as a card floating well above the
+       * paper, and these cards mostly sit in grids of four where the depth
+       * repeats. `shadow-xs` is also what the button, the input and the select
+       * already carry here, so a card stops being the one surface in the
+       * palette lifted further than everything around it. */
       className={cn(
-        'bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm',
+        'bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-xs',
         className,
       )}
       {...props}

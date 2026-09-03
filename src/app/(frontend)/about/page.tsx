@@ -1,6 +1,7 @@
 import type { Metadata } from 'next/types'
 
 import aboutHero from '@/assets/about-hero.webp'
+import { Figure } from '@/components/common/Figure'
 import { Card, CardContent } from '@/components/ui/card'
 import { ABOUT_FIGURES } from '@/data/keyFigures'
 import { servedAt } from '@/seo/servedAt'
@@ -33,7 +34,9 @@ export default function Page() {
           {ABOUT_FIGURES.map(({ label, value }) => (
             <Card key={label}>
               <CardContent className="text-center">
-                <p className="text-3xl font-semibold">{value}</p>
+                <p className="text-3xl">
+                  <Figure>{value}</Figure>
+                </p>
                 <p className="text-muted-foreground text-sm mt-2">{label}</p>
               </CardContent>
             </Card>
