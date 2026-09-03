@@ -367,21 +367,30 @@
  * palette should state one, not raise the theme flag.
  *
  * On this ground:
- *   - the brown is a little warmer than the logo's own #544742. That hex is
- *     chroma 0.0196, a whisker off neutral: at plaque size, ringed by white and
- *     a bright green, simultaneous contrast reads it as a warm brown, and
- *     across a full-width band with nothing to push against it reads muddy
- *     instead. Same lightness, same hue, chroma raised to 0.042 — the colour
- *     the plaque looks rather than the colour it is, and the only place on the
- *     site that does not use `--brand-brown` verbatim.
+ *   - the brown is deeper than the logo's own #544742, and that is a correction
+ *     for area rather than a different colour. A large field reads lighter and
+ *     more saturated than a chip of the same paint, so the plaque's own value —
+ *     L 0.41, a mid brown — comes out across a full-width band as neither dark
+ *     nor coloured, which is the definition of muddy. The first fix here was to
+ *     raise chroma at that lightness, and it bought warmth at the cost of
+ *     reading redder than anything else on the site. Going down instead fixes
+ *     it at the source: L 0.31 is dark enough to read as a base, and at that
+ *     depth chroma comes back near the logo's own 0.0196 and still reads warm.
+ *     Same hue throughout, and the only place on the site that does not use
+ *     `--brand-brown` verbatim.
  *   - the club's green is its lighter cut, the one the dark palette uses. The
- *     deep green light mode is set in reads 1.89:1 here — invisible.
- *   - `--muted-foreground` is lifted: the stock grey reads 3.52:1 on this
- *     ground, under AA. Nothing is set in it today, since the band reads flat
- *     when its text is grey, but anything muted added later starts compliant.
+ *     deep green light mode is set in reads 2.82:1 here — invisible. The light
+ *     cut is 6.84:1, against 4.62 on the old mid brown: the same green, with
+ *     more ground beneath it.
+ *   - `--muted-foreground` is lifted: the stock grey is 2.73:1 on this ground,
+ *     nowhere near AA. Lifted it is 7.09:1, and the footer's copyright line is
+ *     what it dresses — one line of it, under type that stays cream, because
+ *     the band does read flat when its text is grey throughout.
+ *
+ * Cream on this ground is 11.14:1.
  */
 html:not(.dark) .plaque {
-  background-color: oklch(0.41 0.042 42);
+  background-color: oklch(0.31 0.028 42);
   --foreground: oklch(0.94 0.008 80);
   --brand-green: oklch(0.78 0.155 119);
   --primary: var(--brand-green);
