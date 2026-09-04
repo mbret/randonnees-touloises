@@ -28,21 +28,13 @@ import { buttonVariants } from '@/components/ui/button'
  * where the plain ramp it replaced reached 0.62. Nothing here exceeds 0.44%/px
  * and no two adjacent segments differ by more than 0.35.
  *
- * It reaches nothing at 520px, which is about where the flat blanket did. That
- * is the price of the name, and the price went up when the name became the
- * title on a phone: 36px over two lines puts the top of the block 297px above
- * the foot of the picture where the kicker it replaced stood at 253. Holding
- * enough depth up there is most of what the shorter scrim had won back.
- * Measured on the composited photograph, cream at that top line is 9.6:1 at
- * 390px and 9.7:1 at 320px, on means of 12 — comfortably past AAA, so nothing
- * here had to move for it.
+ * This is the `sm`-and-up ramp; `SCRIM_PHONE` below is the one a phone gets.
+ * It reaches nothing at 520px, which is about where the flat blanket did.
  *
- * The thin end of the fade is the desktop kicker rather than anything on a
- * phone: at `lg` the block reaches 363px, out where the ramp has fallen to 62%,
- * and cream there measures 5.3:1. That is a pass at AA and not at AAA. It
- * predates the name being the title at all, and it is left alone here — the
- * fix is to hold the ramp higher for the wide hero, which is a change to these
- * stops and wants measuring on the photograph the club replaces this one with.
+ * Its thin end is the kicker: at `lg` the text block reaches 363px, out where
+ * the ramp has fallen to 62%, and cream there measures 5.3:1 — a pass at AA and
+ * not at AAA. Holding the ramp higher for the wide hero is the fix, and wants
+ * measuring on the photograph that replaces this one.
  *
  * The stops are distances from the bottom rather than percentages, because what
  * has to stay covered is the text and the text is a fixed number of pixels
@@ -73,6 +65,44 @@ const SCRIM = [
   'oklch(0.2 0 0 / 19%) 463px,',
   'oklch(0.2 0 0 / 8%) 490px,',
   'oklch(0.2 0 0 / 0%) 520px)',
+].join(' ')
+
+/**
+ * The same ramp for a phone, lifted off the picture.
+ *
+ * A phone is 496px of photograph and the ramp above covers all of it, so the
+ * club never saw their own mountains undimmed — reported as a hero that is too
+ * dark, and it was. What buys the light back is the type: a phone's title is
+ * 36px bold, which WCAG counts as large text and holds at 4.5:1 where the
+ * `sm` layout's 18px kicker needs 7:1 for the same grade.
+ *
+ * So the plateau comes down from 88% to 76% and the whole ramp with it, and the
+ * mean lightness of the phone's picture rises by about half. Composited against
+ * the photograph, the tightest three bands are the sentence at 7.1:1, the ghost
+ * button's label at 8.0:1 — both 18px and 14px, so both AAA for normal text —
+ * and the title at 6.5:1, which is AAA for large text with room over. Going
+ * lighter than this is possible and costs the AAA: the next step down measured
+ * 5.3:1 on the sentence.
+ *
+ * Only below `sm`, and that is the whole reason there are two of these. From
+ * `sm` the name is a kicker again and the sentence carries the size, and this
+ * ramp under that layout puts the kicker at 3.6:1 — a fail at AA. Nothing above
+ * `sm` moves.
+ *
+ * Shaped by the same rule as the others: nothing here exceeds 0.40%/px and no
+ * two adjacent segments differ by more than 0.10.
+ */
+const SCRIM_PHONE = [
+  'linear-gradient(to top,',
+  'oklch(0.2 0 0 / 76%) 0,',
+  'oklch(0.2 0 0 / 74%) 150px,',
+  'oklch(0.2 0 0 / 70%) 230px,',
+  'oklch(0.2 0 0 / 64%) 285px,',
+  'oklch(0.2 0 0 / 54%) 335px,',
+  'oklch(0.2 0 0 / 41%) 380px,',
+  'oklch(0.2 0 0 / 27%) 420px,',
+  'oklch(0.2 0 0 / 13%) 455px,',
+  'oklch(0.2 0 0 / 0%) 490px)',
 ].join(' ')
 
 /**
@@ -140,7 +170,11 @@ export function HomeHero() {
             stray pixel of scroll does not toggle the bar. */}
         <div className="absolute top-0 h-2 w-full" data-hero-top />
         <div className="absolute inset-0" style={{ backgroundImage: TOP_SCRIM }} />
-        <div className="absolute inset-0" style={{ backgroundImage: SCRIM }} />
+        {/* Two elements rather than one, because the two ramps differ by more
+            than a value: a phone can be lighter only because its title is
+            large text, and the `sm` layout's kicker is not. */}
+        <div className="absolute inset-0 sm:hidden" style={{ backgroundImage: SCRIM_PHONE }} />
+        <div className="absolute inset-0 hidden sm:block" style={{ backgroundImage: SCRIM }} />
       </div>
 
       <div className="container py-10 md:py-14">

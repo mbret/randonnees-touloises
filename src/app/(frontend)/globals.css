@@ -411,22 +411,22 @@ html:not(.dark) .plaque {
  *
  * A picture is not a colour, so nothing here can be measured against the ground
  * the way the rest of the palette is. What makes it measurable is the scrim the
- * hero lays over the lower half of the image: where text sits, the photograph
- * is covered by between 62% and 88% of `oklch(0.2 0 0)` — 88 at the foot of the
- * picture, 77 under the top line of a phone's title, and 62 under the 18px
- * kicker at `lg`, which is the highest and thinnest thing the hero sets. The
- * numbers below are that composite over the brightest thing the club's
- * photographs put behind type — a hazy sky at #C9D4DE. Anything darker only
- * reads better.
+ * hero lays over the lower half of the image, and there are two of those: the
+ * phone's ramp runs from 76% at the foot of the picture to 65% under the top
+ * line of the title, and the `sm`-and-up ramp from 88% down to 62% under the
+ * kicker at `lg`. The numbers below are that composite over the brightest thing
+ * the club's photographs put behind type — a hazy sky at #C9D4DE. Anything
+ * darker only reads better.
  *
- *   - `--foreground` is the page cream: 10.6:1 on the 80% that covers most of
- *     the block, 9.9:1 under a phone's title and 6.3:1 at the thin end.
- *     Measured on this hero's actual photograph rather than on that stand-in
- *     sky, the top line comes out at 9.6:1 on a phone and 5.3:1 under the `lg`
- *     kicker, on means of 10 to 12. That thin end is a pass at AA and not at
- *     AAA, and it is older than the title on the phone: the kicker has always
- *     been the highest type in a desktop hero, and the 80% this note used to
- *     claim for every line of it was only ever true of the lines lower down.
+ *   - `--foreground` is the page cream. Measured on this hero's own photograph
+ *     rather than on that stand-in sky: on a phone, 7.1:1 under the sentence,
+ *     8.0:1 under the ghost button's label and 6.5:1 under the title, which is
+ *     36px bold and therefore large text, so its bar is 4.5:1 rather than 7.
+ *     From `sm` the block runs 8.8:1 at 640px down to 5.3:1 under the `lg`
+ *     kicker — 18px, normal text by WCAG's reckoning, so that last one is a
+ *     pass at AA and not at AAA. It is the oldest number here: the kicker has
+ *     always been the highest type in a wide hero, and the 80% this note once
+ *     claimed for every line was only ever true of the lines lower down.
  *   - `--brand-orange` is the value `.dark` already carries. The printed orange
  *     is a light colour held back for the cream page; here the ground is dark
  *     again, so the club's colour returns to the value that suits it: 4.6:1,
