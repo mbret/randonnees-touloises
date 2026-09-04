@@ -146,6 +146,13 @@ export const Posts: CollectionConfig<'posts'> = {
         {
           name: 'meta',
           label: 'Référencement',
+          admin: {
+            // Said here rather than left as a surprise: the description is
+            // scrubbed on save, so an editor who types a phone number into it
+            // knows why it is not there afterwards.
+            description:
+              'Ce que Google affiche et ce qui s’imprime sous chaque vignette. Les numéros de téléphone et les adresses e-mail en sont retirés : la description est publique, même sur une publication protégée par mot de passe.',
+          },
           fields: [
             OverviewField({
               titlePath: 'meta.title',
