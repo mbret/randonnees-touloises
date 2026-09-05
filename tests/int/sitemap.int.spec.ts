@@ -59,7 +59,6 @@ describe('sitemapEntries', () => {
       `${SITE}/about`,
       `${SITE}/activities`,
       `${SITE}/animation-team`,
-      `${SITE}/board`,
       `${SITE}/contact`,
       `${SITE}/news`,
       `${SITE}/privacy`,
