@@ -3,18 +3,21 @@ import React from 'react'
 import type { Page } from '@/payload-types'
 
 import RichText from '@/components/RichText'
+import { HeroSubtitle } from '../HeroSubtitle'
 
 type LowImpactHeroType =
   | {
       children?: React.ReactNode
       richText?: never
+      subtitle?: never
     }
   | (Omit<Page['hero'], 'richText'> & {
       children?: never
       richText?: Page['hero']['richText']
+      subtitle?: Page['hero']['subtitle']
     })
 
-export const LowImpactHero: React.FC<LowImpactHeroType> = ({ children, richText }) => {
+export const LowImpactHero: React.FC<LowImpactHeroType> = ({ children, richText, subtitle }) => {
   return (
     /* The page's frame, arrived at in two parts: `[slug]` gives the article 24px
      * of padding and this makes up the rest of what `page-shell` gives a coded
@@ -27,7 +30,12 @@ export const LowImpactHero: React.FC<LowImpactHeroType> = ({ children, richText 
      * — widening it would move the picture rather than the title. */
     <div className="container mt-6 md:mt-18">
       <div className="max-w-3xl">
-        {children || (richText && <RichText data={richText} enableGutter={false} />)}
+        {children || (
+          <>
+            {richText && <RichText data={richText} enableGutter={false} />}
+            <HeroSubtitle className="mt-4">{subtitle}</HeroSubtitle>
+          </>
+        )}
       </div>
     </div>
   )
