@@ -53,6 +53,11 @@ export const staticNavItems: StaticNavItem[] = [
     navOrder: 50,
     link: { label: 'Programme hebdomadaire', type: 'custom', url: '/programs' },
   },
+  /* `/board` has no route file of its own any more: it is a `pages` document,
+   * rendered by `/[slug]`. The entry stays here rather than coming from the
+   * page's own `showInNav`, so the conseil keeps its place in the menu whoever
+   * edits the page — and because a static entry claims its address, the page's
+   * own entry would be suppressed in favour of this one regardless. */
   {
     id: 'static-board',
     navOrder: 60,
