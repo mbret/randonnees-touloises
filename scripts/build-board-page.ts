@@ -10,13 +10,20 @@
  * cannot do rather than leaving half a page behind:
  *
  *   1. matches the fifteen members of `src/data/teams.ts` to adhérents
- *   2. writes each one's `boardRole`
+ *   2. writes each one's `boardRole`, and clears it on anyone who has one but
+ *      is no longer on the list
  *   3. links each portrait, already in media as `conseil-<name>.png`
  *   4. records permission to publish those portraits — see below
  *   5. creates (or updates) the page at slug `board`, published
  *
+ * All of it inside one transaction, so a failure anywhere leaves the database
+ * exactly as it was. Half a conseil is worse than none: some people would carry
+ * a role and a portrait while others did not, and nothing on screen would say
+ * which half had landed.
+ *
  * Re-running it is safe and says "unchanged" for anything already right, so it
- * doubles as a way to put the page back after the conseil changes.
+ * doubles as a way to put the page back after the conseil changes — including
+ * when somebody has left it, which is why step 2 clears as well as writes.
  *
  * TWO THINGS IT DECIDES, both worth knowing before running it:
  *
@@ -35,9 +42,15 @@
  * AND ONE THING IT CANNOT DO: make the page visible. `src/app/(frontend)/board`
  * is a route, and a route wins over `/[slug]`, so /board keeps serving the coded
  * page until that directory is deleted. Which is the point of the order —
- * running this changes nothing a visitor sees, so the page can be checked
- * through the admin's live preview first, and deleting the route then swaps it
- * in with no gap.
+ * running this changes nothing a visitor sees, and deleting the route then swaps
+ * it in with no gap.
+ *
+ * That shadowing also swallows the admin's live preview, which points at /board
+ * and so gets the coded page back whatever the draft holds; there is no
+ * previewing this one in place. What does show it is the Vercel preview
+ * deployment of the pull request that deletes the route: preview builds read the
+ * production database (see `scripts/migrate-on-deploy.mjs`), so that URL renders
+ * the real page, with the real people, without touching the live site.
  */
 import type { Adherent } from '@/payload-types'
 
@@ -140,7 +153,8 @@ const main = async () => {
     process.exit(1)
   }
 
-  const { getPayload } = await import('payload')
+  const { commitTransaction, createLocalReq, getPayload, initTransaction, killTransaction } =
+    await import('payload')
   const config = (await import('@payload-config')).default
   const payload = await getPayload({ config })
 
@@ -150,7 +164,13 @@ const main = async () => {
     limit: 0,
     overrideAccess: true,
     pagination: false,
-    select: { boardRole: true, firstName: true, lastName: true, photo: true },
+    select: {
+      boardRole: true,
+      firstName: true,
+      lastName: true,
+      photo: true,
+      publicationConsent: true,
+    },
   })
 
   if (roster.length === 0) {
@@ -166,7 +186,10 @@ const main = async () => {
   const byName = new Map<string, Adherent>()
 
   for (const adherent of roster as Adherent[]) {
-    byName.set(`${normalise(adherent.lastName ?? '')}|${normalise(adherent.firstName ?? '')}`, adherent)
+    byName.set(
+      `${normalise(adherent.lastName ?? '')}|${normalise(adherent.firstName ?? '')}`,
+      adherent,
+    )
   }
 
   /**
@@ -205,7 +228,9 @@ const main = async () => {
   }
 
   for (const { name, photoId, role } of matched) {
-    console.log(`  ${name.padEnd(26)} ${role.padEnd(22)} ${photoId ? 'portrait' : 'PAS DE PORTRAIT'}`)
+    console.log(
+      `  ${name.padEnd(26)} ${role.padEnd(22)} ${photoId ? 'portrait' : 'PAS DE PORTRAIT'}`,
+    )
   }
 
   if (missing.length > 0) {
@@ -225,93 +250,194 @@ const main = async () => {
     )
   }
 
+  /**
+   * Anyone the collection still says is on the conseil who is not on the list any
+   * more. Without this the script only ever adds: change `src/data/teams.ts` and
+   * run it again, and the person who stepped down keeps their `boardRole` — off
+   * the page, because the page holds its own list of members, but reading as a
+   * board member everywhere the collection is read. The role is a fact about the
+   * conseil, so the rebuild owns clearing it as much as setting it.
+   *
+   * Only the role. The portrait and the permission to publish it stay: they were
+   * given for a photograph, not for a mandate, and this is not the place to
+   * withdraw them.
+   */
+  const kept = new Set(matched.map(({ adherent }) => adherent.id))
+  const departed = (roster as Adherent[])
+    .filter((adherent) => adherent.boardRole && !kept.has(adherent.id))
+    .map((adherent) => ({
+      adherent,
+      name: `${adherent.firstName ?? ''} ${adherent.lastName ?? ''}`.trim(),
+    }))
+
+  if (departed.length > 0) {
+    console.log(
+      `\n${departed.length} adhérent(s) hold a role but are no longer on the list: ` +
+        `${departed.map(({ adherent, name }) => `${name} (${adherent.boardRole})`).join(', ')}.` +
+        `\nTheir role will be cleared; their portrait and permissions are left alone.`,
+    )
+  }
+
   if (dryRun) {
     console.log(
-      `\nDry run, nothing written. Would set ${matched.length} boardRole(s), link ` +
-        `${matched.length - withoutPortrait.length} portrait(s), ` +
+      `\nDry run, nothing written. Would set ${matched.length} boardRole(s), clear ` +
+        `${departed.length}, link ${matched.length - withoutPortrait.length} portrait(s), ` +
         `${withConsent ? 'record consent to publish them, ' : 'record no consent, '}` +
         `and publish the page at /${PAGE.slug}.`,
     )
     return
   }
 
+  /**
+   * One transaction over the fifteen roles, the portraits, the permissions and
+   * the page itself. Payload assigns it to `req.transactionID` and every write
+   * below is handed the same `req`, so they land together or not at all; a throw
+   * anywhere reaches `killTransaction` and the database is untouched.
+   *
+   * `createLocalReq` because a script has no request of its own. Building one by
+   * hand, or spreading an existing one, silently breaks: a `PayloadRequest` is a
+   * Web `Request`, so a spread copy keeps the own properties and drops every
+   * prototype getter, `headers` included.
+   *
+   * `disableRevalidate` for the same reason the other import scripts set it: the
+   * pages' `afterChange` hook calls `revalidatePath`, which needs a Next request
+   * to be inside of and throws `Invariant: static generation store missing` out
+   * here. Which leaves a running deployment serving the page and the menu it had
+   * cached — and here that costs nothing, because the deployment that deletes
+   * `src/app/(frontend)/board` is what makes this page reachable in the first
+   * place, and it rebuilds both.
+   */
+  const req = await createLocalReq({ context: { disableRevalidate: true } }, payload)
+
+  await initTransaction(req)
+
   console.log('')
-  let touched = 0
 
-  for (const { adherent, name, photoId, role } of matched) {
-    const data: Record<string, unknown> = {}
+  /** Which write was in flight, so a failure names the person rather than a row id. */
+  let at = ''
 
-    if (adherent.boardRole !== role) data.boardRole = role
+  try {
+    let touched = 0
 
-    const currentPhoto = typeof adherent.photo === 'object' ? adherent.photo?.id : adherent.photo
+    for (const { adherent, name, photoId, role } of matched) {
+      const data: Record<string, unknown> = {}
 
-    if (photoId && currentPhoto !== photoId) data.photo = photoId
-    if (withConsent && photoId) data.publicationConsent = { photo: true }
+      at = name
 
-    if (Object.keys(data).length === 0) {
-      console.log(`  ${name.padEnd(26)} unchanged`)
-      continue
+      if (adherent.boardRole !== role) data.boardRole = role
+
+      const currentPhoto = typeof adherent.photo === 'object' ? adherent.photo?.id : adherent.photo
+
+      if (photoId && currentPhoto !== photoId) data.photo = photoId
+
+      /**
+       * Consent is written only when it is not already recorded, and the other
+       * two permissions are carried across rather than left out. A group written
+       * as `{ photo: true }` is a statement about the whole group, and this
+       * script knows nothing about the telephone and the e-mail — those are the
+       * adhérent's own answers, given elsewhere.
+       */
+      if (withConsent && photoId && adherent.publicationConsent?.photo !== true) {
+        data.publicationConsent = { ...adherent.publicationConsent, photo: true }
+      }
+
+      if (Object.keys(data).length === 0) {
+        console.log(`  ${name.padEnd(26)} unchanged`)
+        continue
+      }
+
+      await payload.update({
+        collection: 'adherents',
+        data,
+        depth: 0,
+        id: adherent.id,
+        overrideAccess: true,
+        req,
+      })
+
+      touched += 1
+      console.log(`  ${name.padEnd(26)} ${Object.keys(data).join(', ')}`)
     }
 
-    await payload.update({
-      collection: 'adherents',
-      data,
-      depth: 0,
-      id: adherent.id,
-      overrideAccess: true,
-    })
+    for (const { adherent, name } of departed) {
+      at = name
 
-    touched += 1
-    console.log(`  ${name.padEnd(26)} ${Object.keys(data).join(', ')}`)
-  }
+      await payload.update({
+        collection: 'adherents',
+        data: { boardRole: null },
+        depth: 0,
+        id: adherent.id,
+        overrideAccess: true,
+        req,
+      })
 
-  const { docs: existing } = await payload.find({
-    collection: 'pages',
-    depth: 0,
-    draft: true,
-    limit: 1,
-    overrideAccess: true,
-    pagination: false,
-    where: { slug: { equals: PAGE.slug } },
-  })
+      touched += 1
+      console.log(`  ${name.padEnd(26)} boardRole effacé`)
+    }
 
-  const document = {
-    _status: 'published' as const,
-    hero: { type: 'lowImpact' as const, richText: heroRichText },
-    layout: [
-      { blockType: 'profileCards' as const, members: matched.map(({ adherent }) => adherent.id) },
-    ],
-    meta: { description: PAGE.description, title: PAGE.title },
-    publishedAt: new Date().toISOString(),
-    slug: PAGE.slug,
-    title: PAGE.title,
-  }
+    at = `la page /${PAGE.slug}`
 
-  if (existing[0]) {
-    await payload.update({
+    const { docs: existing } = await payload.find({
       collection: 'pages',
-      data: document,
       depth: 0,
-      id: existing[0].id,
+      draft: true,
+      limit: 1,
       overrideAccess: true,
+      pagination: false,
+      req,
+      where: { slug: { equals: PAGE.slug } },
     })
-    console.log(`\nUpdated the page at /${PAGE.slug} (${matched.length} profiles)`)
-  } else {
-    await payload.create({
-      collection: 'pages',
-      data: document,
-      depth: 0,
-      overrideAccess: true,
-    })
-    console.log(`\nCreated the page at /${PAGE.slug} (${matched.length} profiles)`)
-  }
 
-  console.log(
-    `${touched} adhérent(s) updated.\n\n` +
-      `The page is published but not yet visible: src/app/(frontend)/board still\n` +
-      `answers /${PAGE.slug}. Check it through the admin's live preview, then delete that\n` +
-      `directory and its entry in STATIC_ROUTES to swap it in.`,
-  )
+    const document = {
+      _status: 'published' as const,
+      hero: { type: 'lowImpact' as const, richText: heroRichText },
+      layout: [
+        { blockType: 'profileCards' as const, members: matched.map(({ adherent }) => adherent.id) },
+      ],
+      meta: { description: PAGE.description, title: PAGE.title },
+      publishedAt: new Date().toISOString(),
+      slug: PAGE.slug,
+      title: PAGE.title,
+    }
+
+    if (existing[0]) {
+      await payload.update({
+        collection: 'pages',
+        data: document,
+        depth: 0,
+        id: existing[0].id,
+        overrideAccess: true,
+        req,
+      })
+      console.log(`\nUpdated the page at /${PAGE.slug} (${matched.length} profiles)`)
+    } else {
+      await payload.create({
+        collection: 'pages',
+        data: document,
+        depth: 0,
+        overrideAccess: true,
+        req,
+      })
+      console.log(`\nCreated the page at /${PAGE.slug} (${matched.length} profiles)`)
+    }
+
+    await commitTransaction(req)
+
+    console.log(
+      `${touched} adhérent(s) updated.\n\n` +
+        `The page is published but not yet visible: src/app/(frontend)/board still\n` +
+        `answers /${PAGE.slug}, and shadows the admin's live preview with it. Delete that\n` +
+        `directory and its entry in STATIC_ROUTES to swap it in; the preview deployment\n` +
+        `of that pull request reads this same database, so it shows the real page first.`,
+    )
+  } catch (error) {
+    await killTransaction(req)
+
+    const because = error instanceof Error ? error.message : String(error)
+
+    console.error(`\n${at ? `${at} : ` : ''}${because}\n\nNothing was written.`)
+    process.exit(1)
+  }
 }
 
 await main()
