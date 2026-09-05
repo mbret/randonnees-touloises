@@ -5,12 +5,16 @@ import type { Page } from '@/payload-types'
 import { CMSLink } from '@/components/Link'
 import { Media } from '@/components/Media'
 import RichText from '@/components/RichText'
+import { HeroSubtitle } from '../HeroSubtitle'
 
-export const MediumImpactHero: React.FC<Page['hero']> = ({ links, media, richText }) => {
+export const MediumImpactHero: React.FC<Page['hero']> = ({ links, media, richText, subtitle }) => {
   return (
     <div className="">
       <div className="container mb-8">
-        {richText && <RichText className="mb-6" data={richText} enableGutter={false} />}
+        {richText && (
+          <RichText className={subtitle ? 'mb-3' : 'mb-6'} data={richText} enableGutter={false} />
+        )}
+        <HeroSubtitle className="mb-6">{subtitle}</HeroSubtitle>
 
         {Array.isArray(links) && links.length > 0 && (
           <ul className="flex gap-4">

@@ -235,6 +235,10 @@ export interface Page {
       };
       [k: string]: unknown;
     } | null;
+    /**
+     * Une phrase sous le titre, en plus clair. À laisser vide s’il n’y en a pas.
+     */
+    subtitle?: string | null;
     links?:
       | {
           link: {
@@ -1885,6 +1889,7 @@ export interface PagesSelect<T extends boolean = true> {
     | {
         type?: T;
         richText?: T;
+        subtitle?: T;
         links?:
           | T
           | {
