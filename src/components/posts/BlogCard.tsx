@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Media } from '../Media'
 import { cn } from '../ui/utils'
 import { postPath } from '@/utilities/postPath'
+import { publicDescription } from '@/seo/publicText'
 
 export type CardPostData = Pick<Post, 'slug' | 'meta' | 'title' | 'heroImage' | 'schedule'>
 
@@ -23,9 +24,11 @@ export const BlogCard: React.FC<{
 }> = ({ doc, title: titleFromProps, authors, media, publishedAt, className, ...rest }) => {
   const { card, link } = useClickableCard({})
   const { schedule, slug, meta, title } = doc || {}
-  const { description } = meta || {}
+  // Cards print the same description the meta tag does, and a listing is as
+  // public as a page — so it is read through the same guard, which collapses the
+  // non-breaking spaces a French keyboard leaves behind on the way.
+  const description = publicDescription(meta)
   const titleToUse = titleFromProps || title
-  const sanitizedDescription = description?.replace(/\s/g, ' ') // replace non-breaking space with white space
   const href = postPath({ schedule, slug: slug ?? '' })
 
   return (
@@ -59,7 +62,11 @@ export const BlogCard: React.FC<{
             </Link>
           </CardTitle>
         )}
-        {description && <div className="mt-2">{description && <p>{sanitizedDescription}</p>}</div>}
+        {description && (
+          <div className="mt-2">
+            <p>{description}</p>
+          </div>
+        )}
       </CardHeader>
       <CardFooter>
         {authors?.map((author, index) => (

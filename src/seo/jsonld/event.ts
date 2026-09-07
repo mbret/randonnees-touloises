@@ -6,6 +6,7 @@ import { CLUB, clubId } from './club'
 import { dayInFrance } from '@/utilities/parisDay'
 import { getImageURL } from '../imageUrl'
 import { postPath } from '@/utilities/postPath'
+import { publicDescription } from '../publicText'
 import { registrationStatus } from '@/components/programs/registrationStatus'
 import { SEO_SITE_NAME } from '../constants'
 
@@ -114,6 +115,7 @@ export const programEventJsonLd = (post: Post): JsonLdNode | null => {
   // an announcement with no date is not an event.
   if (!start) return null
 
+  const description = publicDescription(post.meta)
   const startDate = dayInFrance(start)
   const endDate = post.schedule?.endDate ? dayInFrance(post.schedule.endDate) : undefined
 
@@ -123,7 +125,7 @@ export const programEventJsonLd = (post: Post): JsonLdNode | null => {
     name: post.title,
     startDate,
     ...(endDate && endDate !== startDate ? { endDate } : {}),
-    ...(post.meta?.description ? { description: post.meta.description } : {}),
+    ...(description ? { description } : {}),
     url: absoluteUrl(postPath(post)),
     image: getImageURL(post.meta?.image),
     eventStatus: 'https://schema.org/EventScheduled',
