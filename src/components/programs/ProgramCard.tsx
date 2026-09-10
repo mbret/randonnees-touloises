@@ -34,7 +34,7 @@ import { registrationStatus } from './registrationStatus'
  *
  * That fill is also what makes the hover work at all, and it is why the wash
  * `Item` already ships is the right one after all. `[a]:hover:bg-accent/50`
- * over a *transparent* card on the home page's `bg-muted/40` band is 1.03:1,
+ * over a *transparent* card on the home page's `band` is 1.03:1,
  * which this file long read as the wash being wrong. The wash was never wrong;
  * washing nothing was. With `bg-card` beneath it the same token at full
  * strength is a real step — 1.17:1 in light, 1.31:1 in dark — and it is the

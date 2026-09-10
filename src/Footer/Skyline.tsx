@@ -74,8 +74,8 @@ const WIDE = {
  *
  * It is laid *over* `SKY` rather than replacing it, and that is what makes the
  * join exact rather than nearly right. The band it has to match is a wash —
- * `bg-muted/40`, forty percent of `--muted` on the page — so the sky is that
- * same wash on the same page colour, composited by the same code path.
+ * `--band`, forty percent of `--muted` on the page — so the sky is that same
+ * value on the same page colour, composited by the same code path.
  * Resolving the two to one opaque colour instead lands a unit off in the red
  * channel, which nobody would see; being a unit off for a reason nobody could
  * name is the part worth avoiding. An opaque value works here too, since it
