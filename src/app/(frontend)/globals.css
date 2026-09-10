@@ -407,6 +407,44 @@ html:not(.dark) .plaque {
 }
 
 /**
+ * The sky the skyline's peaks rise out of, for a page that does not end on the
+ * page.
+ *
+ * The footer's own colours are all above; this one is not, because it is not
+ * the footer's. The band above the peaks is the last section of the page
+ * carrying on for another 64px, and `Skyline` painting it `--background`
+ * assumed every page ends on the page's own ground. The home page does not: it
+ * ends on the programme band, a 40% wash of `--muted`, and the strip between
+ * that band and the peaks came out six to eight units per channel *paler* than
+ * the band it was supposed to continue. A difference that small does not read
+ * as two sections — it reads as a rendering fault, a seam where the footer
+ * failed to line up.
+ *
+ * So the page says what it ends on and the footer paints that: `data-band` goes
+ * on a full-bleed final section, and the selector is « a `main` whose last child
+ * is one, and the footer directly after it ». Both halves matter. Scoping to the
+ * last child means a band in the middle of a page — which is where most of them
+ * would go — says nothing about the footer, and a section added after this one
+ * takes the declaration back off by itself rather than leaving the sky painted
+ * for a band that is no longer at the foot of the page.
+ *
+ * The value below is the band's own, not a second opinion on it: `bg-muted/40`
+ * compiles to exactly this, and `Skyline` paints it over the page colour the
+ * way the band is painted over the page, so the two composite to the same
+ * pixel rather than to two values that ought to agree. Resolving it here to one
+ * opaque cream instead came out a unit off in red — invisible, and still a
+ * number nobody could have explained. Change the band's opacity and this has to
+ * follow: it is one colour written twice, which is the price of the band and
+ * the footer being siblings rather than one inside the other.
+ *
+ * Unscoped by theme, unlike the block above: the skyline is `dark:hidden`, so on
+ * a dark page there is nothing for this to paint.
+ */
+main:has(> [data-band]:last-child) + footer {
+  --plaque-sky: color-mix(in oklab, var(--muted) 40%, transparent);
+}
+
+/**
  * Type set over a photograph.
  *
  * A picture is not a colour, so nothing here can be measured against the ground

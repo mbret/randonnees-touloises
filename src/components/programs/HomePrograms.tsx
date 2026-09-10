@@ -20,7 +20,13 @@ export async function HomePrograms() {
   const shown = entries.slice(0, PREVIEW)
 
   return (
-    <section className="bg-muted/40 scroll-mt-24 py-16 md:py-24" id="programs">
+    /* `data-band` is read by the footer and by nothing here: this is the last
+     * section of the home page, so the 64px of sky the skyline's peaks rise out
+     * of is this band carrying on rather than the page. See the rule beside
+     * `.plaque` in globals.css — without it that strip renders in the page's own
+     * cream, a few units paler than the wash below it, and the join reads as a
+     * mistake rather than as two sections. */
+    <section className="bg-muted/40 scroll-mt-24 py-16 md:py-24" data-band id="programs">
       <div className="container">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Programme hebdomadaire</h2>
