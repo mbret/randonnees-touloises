@@ -16,7 +16,8 @@ import React from 'react'
  * Two ranges rather than one, because the far one is what makes it a landscape:
  * a single silhouette is a torn edge, and the moment a paler range shows behind
  * it the eye reads distance. The colours are the footer's own ground and one
- * step up from it — see `--plaque-ground` and `--plaque-ridge` in globals.css.
+ * step up from it — see `--plaque-ground` and `--plaque-ridge` in globals.css,
+ * and `--plaque-sky` there for the band the peaks rise out of.
  */
 
 /**
@@ -60,20 +61,47 @@ const WIDE = {
  * collapses into the sky rather than rendering as black paths — the band is
  * hidden outright there, and this is what keeps the mistake quiet if it ever
  * is not.
+ *
+ * `--plaque-sky` is the exception to that. It lands on the footer like the
+ * rest, but from a rule that asks what the *page* ends on rather than one that
+ * dresses the footer — see beside `.plaque` in globals.css. The sky is not the
+ * footer's colour to choose: it is the last thing on the page carrying on for
+ * another 64px, and a page that ends on a full-bleed band ends on something
+ * other than `--background`. Painting the page's own ground there regardless
+ * put a strip of paler cream between the home page's programme band and the
+ * peaks — six to eight units per channel, which is little enough to read as a
+ * rendering fault and plenty to see.
+ *
+ * It is laid *over* `SKY` rather than replacing it, and that is what makes the
+ * join exact rather than nearly right. The band it has to match is a wash —
+ * `--band`, forty percent of `--muted` on the page — so the sky is that same
+ * value on the same page colour, composited by the same code path.
+ * Resolving the two to one opaque colour instead lands a unit off in the red
+ * channel, which nobody would see; being a unit off for a reason nobody could
+ * name is the part worth avoiding. An opaque value works here too, since it
+ * simply covers the rectangle beneath, so a band that is a colour rather than a
+ * wash needs nothing added.
+ *
+ * Defaulting to `transparent` leaves every other page exactly as it was: the
+ * page's own ground, which is what those pages end on.
  */
 const GROUND = { fill: 'var(--plaque-ground, var(--background))' }
 const RIDGE = { fill: 'var(--plaque-ridge, var(--background))' }
 const SKY = { fill: 'var(--background)' }
+const SKY_WASH = { fill: 'var(--plaque-sky, transparent)' }
 
 /**
- * One range. The rectangle underneath is the page's own colour: the footer's
- * background is painted across its whole box, so without it the sky above the
- * peaks would be footer brown and there would be no skyline at all.
+ * One range. The two rectangles underneath are whatever the page ends on — the
+ * page's own ground, and over it whatever the last section lays on top of it.
+ * The footer's background is painted across its whole box, so without them the
+ * sky above the peaks would be footer brown and there would be no skyline at
+ * all.
  */
 function Range({ className, far, near, viewBox }: { className: string } & typeof NARROW) {
   return (
     <svg className={className} preserveAspectRatio="none" viewBox={viewBox}>
       <rect height="100%" style={SKY} width="100%" />
+      <rect height="100%" style={SKY_WASH} width="100%" />
       <path d={far} style={RIDGE} />
       <path d={near} style={GROUND} />
     </svg>

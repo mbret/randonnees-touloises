@@ -20,7 +20,14 @@ export async function HomePrograms() {
   const shown = entries.slice(0, PREVIEW)
 
   return (
-    <section className="bg-muted/40 scroll-mt-24 py-16 md:py-24" id="programs">
+    /* `band` rather than the `bg-muted/40` it used to spell out, and the class is
+     * read twice: here, for the ground, and by the footer, which asks whether the
+     * page ends on a band. This section is the last on the home page, so the
+     * 64px of sky the skyline's peaks rise out of is this band carrying on
+     * rather than the page — see `--band` and the rule beside `.plaque` in
+     * globals.css. Spelt out, that strip rendered in the page's own cream, a few
+     * units paler than the wash above it, and the join read as a mistake. */
+    <section className="band scroll-mt-24 py-16 md:py-24" id="programs">
       <div className="container">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Programme hebdomadaire</h2>

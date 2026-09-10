@@ -105,6 +105,23 @@
   }
 }
 
+/**
+ * A full-bleed band: a run of sections set on a wash of the page rather than on
+ * the page, so the eye reads them as one part of it.
+ *
+ * A utility rather than `bg-muted/40` on the section, because the colour is not
+ * only the band's. A band that ends a page is also what the footer's skyline
+ * rises out of, and the two have to be the same paint rather than the same
+ * number typed twice — see `--band` and the rule beside `.plaque`.
+ *
+ * It carries the ground and nothing else. How much air a band gives its
+ * contents is the section's own business, and the two bands a page might want
+ * will not agree on it.
+ */
+@utility band {
+  background-color: var(--band);
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -264,6 +281,20 @@
   --secondary-foreground: oklch(0.33 0.019 45);
   --muted: oklch(0.945 0.013 80);
   --muted-foreground: oklch(0.505 0.019 48);
+  /**
+   * The wash a full-bleed band lays over the page, to set one run of sections
+   * apart from the next without introducing a second surface. Forty percent of
+   * the muted grey and no more: a band has to be visible as a band and must not
+   * read as a card the width of the window.
+   *
+   * A named value rather than `bg-muted/40` written wherever one is wanted,
+   * because two elements have to agree on it — the band, and the footer's sky
+   * where a band is the last thing on the page. See `@utility band` above and
+   * the rule beside `.plaque` below, which are its only two readers. Written as
+   * a wash rather than as the cream it resolves to so that both of them
+   * composite it the same way, over the same ground.
+   */
+  --band: color-mix(in oklab, var(--muted) 40%, transparent);
   /* A hover wash, not a colour in its own right: roughly half the chroma it
    * carried, so hovering an outline button reads as "this responds" rather
    * than as a green button. */
@@ -404,6 +435,42 @@ html:not(.dark) .plaque {
   --brand-green: oklch(0.78 0.155 119);
   --primary: var(--brand-green);
   --muted-foreground: oklch(0.8 0.016 60);
+}
+
+/**
+ * The sky the skyline's peaks rise out of, for a page that does not end on the
+ * page.
+ *
+ * The footer's own colours are all above; this one is not, because it is not
+ * the footer's. The band above the peaks is the last section of the page
+ * carrying on for another 64px, and `Skyline` painting it `--background`
+ * assumed every page ends on the page's own ground. The home page does not: it
+ * ends on the programme band, a 40% wash of `--muted`, and the strip between
+ * that band and the peaks came out six to eight units per channel *paler* than
+ * the band it was supposed to continue. A difference that small does not read
+ * as two sections — it reads as a rendering fault, a seam where the footer
+ * failed to line up.
+ *
+ * So the footer asks the page instead of being told: « a `main` whose last child
+ * is a band, and the footer directly after it ». Nothing marks the section for
+ * the footer's benefit — `.band` is there because the section is one, and the
+ * selector reads the same fact. Scoping to the last child is what makes it
+ * self-correcting in both directions: a band in the middle of a page, which is
+ * where most of them would go, says nothing about the footer, and a section
+ * added after this one takes the declaration back off by itself rather than
+ * leaving the sky painted for a band no longer at the foot of the page.
+ *
+ * `--band` and not a second opinion on it. The two have to composite to the same
+ * pixel, and the way to be sure of that is for there to be one value: `Skyline`
+ * lays it over the page colour exactly as the band is laid over the page.
+ * Resolving it here to the opaque cream it comes out as instead landed a unit
+ * off in red — invisible, and a number nobody could have explained.
+ *
+ * Unscoped by theme, unlike the block above: the skyline is `dark:hidden`, so on
+ * a dark page there is nothing for this to paint.
+ */
+main:has(> .band:last-child) + footer {
+  --plaque-sky: var(--band);
 }
 
 /**
