@@ -40,6 +40,10 @@ export const WithContentProtectedPassword = async ({
    * dynamic when the box is ticked later, and it would go on serving the body it
    * was built with. So every post reads the cookie whenever the site has a
    * password at all, gated or not.
+   *
+   * Setting or clearing that password moves every post page between the two
+   * modes, and a route's mode is fixed at build time — so that particular change
+   * needs a deploy to take effect here. See the note on `revalidateGeneral`.
    */
   if (!general.contentPassword) {
     return children
