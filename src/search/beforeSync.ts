@@ -1,5 +1,7 @@
 import { BeforeSync, DocToSync } from '@payloadcms/plugin-search/types'
 
+import { publicDescription } from '@/seo/publicText'
+
 export const beforeSyncWithSearch: BeforeSync = async ({ originalDoc, searchDoc }) => {
   const { schedule, slug, title, meta } = originalDoc
 
@@ -11,7 +13,7 @@ export const beforeSyncWithSearch: BeforeSync = async ({ originalDoc, searchDoc 
       ...meta,
       title: meta?.title || title,
       image: meta?.image?.id || meta?.image,
-      description: meta?.description,
+      description: publicDescription(meta) ?? null,
     },
   }
 
