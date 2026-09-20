@@ -55,29 +55,47 @@ const LADDER = ['thumbnail', 'small', 'medium', 'large', 'xlarge'] as const
 /** The narrowest rung, so an upload below it can never have one. */
 const NARROWEST_RUNG = 300
 
+/** The widest, which `withoutEnlargement` caps at the upload's own width. */
+const TOP_RUNG = 1920
+
 type MediaDoc = {
   id: number | string
   filename?: null | string
   mimeType?: null | string
-  sizes?: null | Record<string, { mimeType?: null | string } | null | undefined>
+  sizes?: null | Record<
+    string,
+    { mimeType?: null | string; width?: null | number } | null | undefined
+  >
   url?: null | string
   width?: null | number
 }
 
+/** The width of the widest rung `Media.ts` can build for an upload this wide. */
+const expectedTopRung = (width: number) => Math.min(TOP_RUNG, width)
+
 /**
- * Whether this document has already been through the ladder.
+ * Whether this document has the ladder `Media.ts` would build for it today.
  *
- * A rung reporting `image/webp` is the mark of it. An upload narrower than the
- * narrowest rung has none and never will — Payload omits a size wider than the
- * original rather than upscaling into it — so it counts as done rather than
- * being re-fetched on every run, as does anything sharp does not rasterise.
+ * Not merely whether it has a WebP rung. The first backfill ran before `xlarge`
+ * carried `withoutEnlargement`, so an upload narrower than 1920 got no top rung
+ * at all: 149 of them were left offering 300px against originals of 500-odd,
+ * and a `<source>` is committed to, so the original on the `<img>` is out of
+ * reach. Asking for the widest rung the config can now produce is what lets a
+ * rerun find them — and lets it leave alone the ones already correct.
+ *
+ * An upload narrower than the narrowest rung has none and never will, as does
+ * anything sharp does not rasterise.
  */
 const alreadyDone = (doc: MediaDoc) => {
   if (!doc.mimeType?.startsWith('image/')) return true
   if (doc.mimeType === 'image/svg+xml') return true
-  if (typeof doc.width === 'number' && doc.width < NARROWEST_RUNG) return true
+  if (typeof doc.width !== 'number' || doc.width < NARROWEST_RUNG) return true
 
-  return LADDER.some((name) => doc.sizes?.[name]?.mimeType === 'image/webp')
+  const widest = LADDER.map((name) => doc.sizes?.[name])
+    .filter((size) => size?.mimeType === 'image/webp' && typeof size?.width === 'number')
+    .reduce((top, size) => Math.max(top, size!.width!), 0)
+
+  return widest >= expectedTopRung(doc.width)
 }
 
 const fetchOriginal = async (doc: MediaDoc) => {

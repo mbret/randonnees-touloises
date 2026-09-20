@@ -152,9 +152,27 @@ export const Media: CollectionConfig = {
         width: 1400,
         formatOptions: { format: 'webp', options: { quality: 75 } },
       },
+      /**
+       * The top of the ladder, and the only rung guaranteed to exist.
+       *
+       * `withoutEnlargement` changes what Payload does with an upload narrower
+       * than the rung: left unset it omits the size, which is right for the
+       * middle of the ladder — there is nothing to gain from a 900px copy of a
+       * 527px picture. At the top it is wrong, because it leaves the widest
+       * WebP on offer far below what the original holds. A browser commits to
+       * the `<source>` and cannot reach back to the original on the `<img>`,
+       * so 149 of the club's 244 pictures were being served at as little as
+       * half their detail — the trombinoscope portraits worst, 581px originals
+       * offering 300px.
+       *
+       * Set, sharp resizes rather than skipping and declines to upscale, so
+       * this yields WebP at `min(1920, original width)`: 1920 for a
+       * photograph, 527 for that poster, always the best there is.
+       */
       {
         name: 'xlarge',
         width: 1920,
+        withoutEnlargement: true,
         formatOptions: { format: 'webp', options: { quality: 75 } },
       },
       /**

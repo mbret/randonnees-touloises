@@ -130,6 +130,33 @@ describe('the ladder a browser is offered', () => {
     expect(img.getAttribute('src')).toBe(`/api/media/file/photo.jpg?${TAG}`)
   })
 
+  /**
+   * An original sitting exactly on a rung is produced by that rung and by the
+   * one above it, which declines to enlarge rather than skipping. Two
+   * candidates at the same width give a browser nothing to choose between.
+   */
+  it('never offers the same width twice', () => {
+    const { source } = renderMedia(
+      <ImageMedia
+        resource={upload({
+          width: 1400,
+          sizes: {
+            thumbnail: rung('thumbnail', 300),
+            large: rung('large', 1400),
+            xlarge: { ...rung('xlarge', 1400), url: '/api/media/file/photo-xlarge.webp' },
+          },
+        })}
+      />,
+    )
+
+    expect(source?.getAttribute('srcset')).toBe(
+      [
+        `/api/media/file/photo-thumbnail.webp?${TAG} 300w`,
+        `/api/media/file/photo-large.webp?${TAG} 1400w`,
+      ].join(', '),
+    )
+  })
+
   /** A half-regenerated document offers the rungs that were rebuilt and no others. */
   it('offers only the rungs already in the advertised format', () => {
     const legacy = {
