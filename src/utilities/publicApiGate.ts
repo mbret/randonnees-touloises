@@ -17,14 +17,16 @@
  * ceiling on it — the same shape as the image-optimisation bill, minus the
  * cache that eventually capped that one.
  *
- * The dearest of them is not a query at all. `/api/og` is Payload's own
- * social-card renderer, and it answered anyone: a 1200x630 PNG drawn per
- * request, 0.77s of it, `x-vercel-cache: MISS`, with the text taken from the
- * query string so a caller can vary the URL forever. Nothing here asks for it
- * — the site's `og:image` is the static `/og-image.jpg`, and neither
- * `plugin-seo` nor the admin references the route — so it is closed below with
- * the rest. Dynamic social cards would mean opening it again, and rendering
- * them somewhere that caches.
+ * One of them is not a query at all. `/api/og` is Payload's own social-card
+ * renderer: a 1200x630 PNG drawn per request, `x-vercel-cache: MISS`, with the
+ * text taken from the query string. Warm it costs about what a small read does
+ * — 0.36s against 0.32s for `/api/pages?limit=1` — so it is not dearer per
+ * call; what is different is that the query string is free-form, so the cache
+ * key can be varied without end and nothing put in front of it would ever
+ * settle. Nothing here asks for it: the site's `og:image` is the static
+ * `/og-image.jpg`, and neither `plugin-seo` nor the admin references the route.
+ * Dynamic social cards would mean opening it again, and rendering them
+ * somewhere that caches.
  *
  * It also hands out `contentPassword`. `/api/globals/general` carries the
  * shared password for gated posts, so today it can be read without visiting a
@@ -64,6 +66,13 @@ const READ_METHODS = new Set(['GET', 'HEAD'])
  * admin's login screen asks for before anyone has logged in. Close these and
  * the committee cannot reach the panel — which is the one failure worth being
  * careful about here, since nobody would notice it until they tried.
+ *
+ * Worth knowing what they still cost, since this is easy to read as having
+ * closed everything: `access` answers 14.7 KB in about 0.4s, uncached, to
+ * anyone who asks, and it has to, because the login screen asks before there is
+ * a session to show. Closing the collections does not make the API free. It
+ * makes the shapes that have no ceiling — `?limit=0` over every document, a
+ * render keyed on a free-form query string — unreachable.
  */
 const ANONYMOUS_READS = new Set(['access', 'users/init', 'users/me'])
 
