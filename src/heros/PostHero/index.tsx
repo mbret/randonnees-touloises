@@ -132,8 +132,18 @@ export const PostHero: React.FC<{
           step, one rung down, so a post's opening is always a little smaller
           than the site's and always the same size as itself. 26rem leaves
           about 180px of clear picture above a two-line title at `lg`, and
-          `min-h` means a longer one still gets the room it needs. */}
-      <div className="min-h-[20rem] select-none md:min-h-[26rem]">
+          `min-h` means a longer one still gets the room it needs.
+
+          The old viewport heights stay on as a ceiling, because `md` is a
+          width breakpoint and says nothing about how tall the screen is. A
+          phone held sideways is 844x390: wide enough for `md`, so it would
+          take a 416px floor inside a 390px window and push the article a
+          hundred pixels below the fold — worse than the 234px the viewport
+          rule gave it. `min()` keeps whichever is smaller, so the rem value
+          governs from about 693px of height upwards, which is every screen
+          the first paragraph is about, and the short ones keep what they
+          had. */}
+      <div className="min-h-[min(20rem,50vh)] select-none md:min-h-[min(26rem,60vh)]">
         <Media fill priority imgClassName="-z-10 object-cover" resource={media} />
         <div className="bg-linear-to-t pointer-events-none absolute bottom-0 left-0 h-[90%] w-full from-black to-transparent" />
       </div>
