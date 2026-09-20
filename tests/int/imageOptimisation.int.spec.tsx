@@ -109,6 +109,45 @@ describe('the ladder a browser is offered', () => {
   })
 
   /**
+   * An upload from before the ladder has rungs too — JPEG and PNG ones, built
+   * under the previous config. Offering those under `type="image/webp"` says
+   * something untrue, and it survives only on the browser sniffing the bytes it
+   * actually receives. It shipped that way and reached production: thirteen PNG
+   * rungs and one JPEG were being advertised as WebP on the home page.
+   */
+  it('offers no ladder built before the format changed', () => {
+    const legacy = {
+      ...rung('medium', 900),
+      url: '/api/media/file/photo-900x600.png',
+      mimeType: 'image/png',
+      filename: 'photo-900x600.png',
+    }
+    const { img, source } = renderMedia(
+      <ImageMedia resource={upload({ sizes: { medium: legacy } })} />,
+    )
+
+    expect(source).toBeNull()
+    expect(img.getAttribute('src')).toBe(`/api/media/file/photo.jpg?${TAG}`)
+  })
+
+  /** A half-regenerated document offers the rungs that were rebuilt and no others. */
+  it('offers only the rungs already in the advertised format', () => {
+    const legacy = {
+      ...rung('medium', 900),
+      url: '/api/media/file/photo-900x600.png',
+      mimeType: 'image/png',
+      filename: 'photo-900x600.png',
+    }
+    const { source } = renderMedia(
+      <ImageMedia
+        resource={upload({ sizes: { thumbnail: rung('thumbnail', 300), medium: legacy } })}
+      />,
+    )
+
+    expect(source?.getAttribute('srcset')).toBe(`/api/media/file/photo-thumbnail.webp?${TAG} 300w`)
+  })
+
+  /**
    * A vector has no ladder, and neither does an upload from before the
    * backfill. Both still have to render, which is what the original is for.
    */

@@ -21,8 +21,26 @@ const LADDER = ['thumbnail', 'small', 'medium', 'large', 'xlarge'] as const
 
 type GeneratedSize = NonNullable<NonNullable<MediaType['sizes']>[(typeof LADDER)[number]]>
 
+/** What the `<source>` below claims, and so what a rung has to be to go on it. */
+const LADDER_TYPE = 'image/webp'
+
+/**
+ * A rung is usable when it exists and is the format the source advertises.
+ *
+ * The format check is the load-bearing half. Uploads from before the ladder
+ * have rungs too — JPEG and PNG ones, generated under the previous config —
+ * and offering those under `type="image/webp"` tells the browser something
+ * untrue. It mostly survives on sniffing, which is what makes it worth
+ * catching: it renders, so nothing complains, and a client that takes the
+ * `type` at its word has no `<img>` to fall back to once it has committed to
+ * the source.
+ *
+ * Excluding them is also what the rollout assumed all along — a document
+ * without a WebP ladder renders its original and nothing else, until the
+ * backfill gives it one.
+ */
 const isUsable = (size: GeneratedSize | null | undefined): size is GeneratedSize =>
-  Boolean(size?.url && size?.width)
+  Boolean(size?.url && size?.width && size?.mimeType === LADDER_TYPE)
 
 /**
  * Types whose ladder would be worse than the original, whatever its size.
@@ -128,7 +146,7 @@ export const ImageMedia: React.FC<
           `<img>`'s own `srcset`: a browser that cannot decode WebP skips the
           source and takes the original below, which is left in the format it
           was uploaded in for exactly that reason. */}
-      {srcSet && <source sizes={sizes} srcSet={srcSet} type="image/webp" />}
+      {srcSet && <source sizes={sizes} srcSet={srcSet} type={LADDER_TYPE} />}
       <img
         alt={alt || ''}
         className={cn(className, imgClassName)}
