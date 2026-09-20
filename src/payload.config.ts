@@ -174,6 +174,17 @@ export default buildConfig({
     ContactSubmissions,
   ],
   cors: [getServerSideURL()].filter(Boolean),
+  /**
+   * Nothing here speaks GraphQL. The admin panel is REST, the site reads
+   * through the Local API, and the only `graphQL` key anywhere else in `src` is
+   * the form plugin naming its own types.
+   *
+   * It was answering anonymously all the same, and a query reaches further in
+   * one request than any REST call does, so it was the widest way into the
+   * database that nobody was using. `disable` turns the generated route into a
+   * 404; `proxy.ts` refuses it a step earlier, before Payload is even built.
+   */
+  graphQL: { disable: true },
   globals: [Header, Footer, General],
   plugins: [
     ...plugins,
