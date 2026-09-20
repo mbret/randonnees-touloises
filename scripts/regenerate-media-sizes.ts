@@ -52,9 +52,6 @@ const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : undefined
 /** The sizes that make the ladder, as `src/collections/Media.ts` defines it. */
 const LADDER = ['thumbnail', 'small', 'medium', 'large', 'xlarge'] as const
 
-/** The narrowest rung, so an upload below it can never have one. */
-const NARROWEST_RUNG = 300
-
 /** The widest, which `withoutEnlargement` caps at the upload's own width. */
 const TOP_RUNG = 1920
 
@@ -83,13 +80,14 @@ const expectedTopRung = (width: number) => Math.min(TOP_RUNG, width)
  * reach. Asking for the widest rung the config can now produce is what lets a
  * rerun find them — and lets it leave alone the ones already correct.
  *
- * An upload narrower than the narrowest rung has none and never will, as does
- * anything sharp does not rasterise.
+ * Nothing is excluded for being small any more: `withoutEnlargement` means even
+ * an upload under the narrowest rung gets a top one at its own width, so the
+ * only documents with no ladder are the ones sharp does not rasterise.
  */
 const alreadyDone = (doc: MediaDoc) => {
   if (!doc.mimeType?.startsWith('image/')) return true
   if (doc.mimeType === 'image/svg+xml') return true
-  if (typeof doc.width !== 'number' || doc.width < NARROWEST_RUNG) return true
+  if (typeof doc.width !== 'number') return true
 
   const widest = LADDER.map((name) => doc.sizes?.[name])
     .filter((size) => size?.mimeType === 'image/webp' && typeof size?.width === 'number')
