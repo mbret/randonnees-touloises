@@ -25,6 +25,17 @@ const isUsable = (size: GeneratedSize | null | undefined): size is GeneratedSize
   Boolean(size?.url && size?.width)
 
 /**
+ * Types whose ladder would be worse than the original, whatever its size.
+ *
+ * Sharp reads the first frame of a GIF and writes a still, so every rung of an
+ * animated one is the animation stopped dead — and a `<source>` wins over the
+ * `<img>` beneath it, so offering them is how the animation would be lost.
+ * There are none in the collection today; there is nothing stopping an editor
+ * uploading one tomorrow.
+ */
+const KEEP_ORIGINAL_TYPES = new Set(['image/gif'])
+
+/**
  * The ladder as a `srcset`, or nothing when the upload has no rungs.
  *
  * Payload skips a size wider than the original rather than enlarging it, and
@@ -38,10 +49,12 @@ const isUsable = (size: GeneratedSize | null | undefined): size is GeneratedSize
  * revision addresses them all.
  */
 const srcSetFor = (resource: MediaType) =>
-  LADDER.map((name) => resource.sizes?.[name])
-    .filter(isUsable)
-    .map((size) => `${getMediaUrl(size.url, resource.updatedAt)} ${size.width}w`)
-    .join(', ')
+  KEEP_ORIGINAL_TYPES.has(resource.mimeType ?? '')
+    ? ''
+    : LADDER.map((name) => resource.sizes?.[name])
+        .filter(isUsable)
+        .map((size) => `${getMediaUrl(size.url, resource.updatedAt)} ${size.width}w`)
+        .join(', ')
 
 /**
  * What `next/image`'s `fill` did, written out.

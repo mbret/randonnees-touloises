@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url'
 
 import { authenticated } from '../access/authenticated'
 import { publicAccess } from '@/access/publicAccess'
+import { revalidateMedia, revalidateMediaDelete } from '@/hooks/revalidateMedia'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -25,6 +26,10 @@ export const Media: CollectionConfig = {
     delete: authenticated,
     read: publicAccess,
     update: authenticated,
+  },
+  hooks: {
+    afterChange: [revalidateMedia],
+    afterDelete: [revalidateMediaDelete],
   },
   fields: [
     {

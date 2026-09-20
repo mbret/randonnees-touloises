@@ -25,6 +25,14 @@
  * Reruns are cheap — a document whose ladder is already WebP is skipped — so
  * LIMIT is the way in: run it against three documents, look at them in the
  * admin and on the site, then run it against the rest.
+ *
+ * REDEPLOY AFTERWARDS. Replacing a document's file replaces the files its old
+ * rungs pointed at, and a rendered page cached before that still carries the
+ * old URLs in its `srcset`. A `<source>` is committed to once its `type`
+ * matches, so a browser that picks a rung which has since 404ed does not fall
+ * back to the `<img>` beneath it — the image is simply broken until the page is
+ * rendered again. `revalidateMedia` covers the site assets, which are cached by
+ * tag; nothing reaches a cached page, so the render cache has to go.
  */
 import config from '@payload-config'
 
@@ -134,8 +142,23 @@ const main = async () => {
   }
 
   console.log(`\nDone: ${done} regenerated, ${failed} failed.`)
+
+  if (done > 0) {
+    console.log(
+      '\nRedeploy now: pages cached before this run still carry the rung URLs\n' +
+        'these documents had, and those files are gone.',
+    )
+  }
 }
 
 export {}
 
-await main()
+/* Payload holds the Postgres pool open, so the process outlives `main` unless
+ * it is told not to — as the other scripts here are. */
+try {
+  await main()
+  process.exit(0)
+} catch (error) {
+  console.error(error)
+  process.exit(1)
+}

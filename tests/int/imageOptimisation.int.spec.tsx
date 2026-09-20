@@ -119,6 +119,20 @@ describe('the ladder a browser is offered', () => {
     expect(img.getAttribute('src')).toBe(`/api/media/file/photo.jpg?${TAG}`)
   })
 
+  /**
+   * Sharp reads the first frame of a GIF and writes a still, so a rung of an
+   * animated one is the animation stopped dead — and a matching `<source>` is
+   * committed to, so offering the ladder is how the animation would be lost.
+   */
+  it('offers no ladder for an animation, however many rungs exist', () => {
+    const { img, source } = renderMedia(
+      <ImageMedia resource={upload({ mimeType: 'image/gif', url: '/api/media/file/loop.gif' })} />,
+    )
+
+    expect(source).toBeNull()
+    expect(img.getAttribute('src')).toBe(`/api/media/file/loop.gif?${TAG}`)
+  })
+
   it('always leaves the original on the image, whatever the ladder holds', () => {
     const { img } = renderMedia(<ImageMedia resource={upload()} />)
 
