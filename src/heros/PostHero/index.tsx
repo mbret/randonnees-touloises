@@ -123,7 +123,7 @@ export const PostHero: React.FC<{
           phone, 169% on a tall monitor. The cap is because `md` is a width
           breakpoint: a phone held sideways is 844x390, wide enough for `md`
           and too short for a 416px floor. */}
-      <div className="min-h-[min(20rem,50vh)] select-none md:min-h-[min(26rem,60vh)]">
+      <div className="min-h-[min(20rem,50vh)] select-none md:min-h-[min(26rem,60vh)] lg:min-h-[min(30rem,60vh)]">
         <Media fill priority imgClassName="-z-10 object-cover" resource={media} />
         <div className="bg-linear-to-t pointer-events-none absolute bottom-0 left-0 h-[90%] w-full from-black to-transparent" />
       </div>
