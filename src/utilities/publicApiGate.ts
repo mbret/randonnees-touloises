@@ -17,6 +17,15 @@
  * ceiling on it — the same shape as the image-optimisation bill, minus the
  * cache that eventually capped that one.
  *
+ * The dearest of them is not a query at all. `/api/og` is Payload's own
+ * social-card renderer, and it answered anyone: a 1200x630 PNG drawn per
+ * request, 0.77s of it, `x-vercel-cache: MISS`, with the text taken from the
+ * query string so a caller can vary the URL forever. Nothing here asks for it
+ * — the site's `og:image` is the static `/og-image.jpg`, and neither
+ * `plugin-seo` nor the admin references the route — so it is closed below with
+ * the rest. Dynamic social cards would mean opening it again, and rendering
+ * them somewhere that caches.
+ *
  * It also hands out `contentPassword`. `/api/globals/general` carries the
  * shared password for gated posts, so today it can be read without visiting a
  * gated post at all. That lock is a speed bump either way — see

@@ -51,6 +51,21 @@ describe('what an anonymous caller is refused', () => {
     },
   )
 
+  /**
+   * Payload's own social-card renderer, and the dearest thing that was open:
+   * a 1200x630 PNG drawn per request, no cache, the text taken from the query
+   * string so the URL can be varied forever. The site's `og:image` is the
+   * static `/og-image.jpg` and nothing references this route.
+   */
+  it('refuses the on-demand social card renderer', () => {
+    expect(isClosedToAnonymous(request('/api/og?title=anything'))).toBe(true)
+  })
+
+  /** The search page reads through the Local API; the collection needs no door. */
+  it('refuses the search collection', () => {
+    expect(isClosedToAnonymous(request('/api/search?limit=1'))).toBe(true)
+  })
+
   it('refuses a single document as readily as a list', () => {
     expect(isClosedToAnonymous(request('/api/pages/4'))).toBe(true)
   })
