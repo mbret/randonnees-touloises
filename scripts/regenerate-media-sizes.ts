@@ -24,7 +24,12 @@
  *
  * Reruns are cheap — a document whose ladder is already WebP is skipped — so
  * LIMIT is the way in: run it against three documents, look at them in the
- * admin and on the site, then run it against the rest.
+ * admin and on the site, then run it against the rest. That is not a formality;
+ * the first three run before `overwriteExistingFiles` was set came back renamed.
+ *
+ * Check the filenames after a LIMIT run, not just that it reported success. A
+ * document that comes back under a new name has left every URL that pointed at
+ * the old one answering 404.
  *
  * REDEPLOY AFTERWARDS. Replacing a document's file replaces the files its old
  * rungs pointed at, and a rendered page cached before that still carries the
@@ -131,6 +136,15 @@ const main = async () => {
         id: doc.id,
         data: {},
         file: await fetchOriginal(doc),
+        /* Without this Payload treats the document's own file as a name
+         * collision and picks the next free one instead, so a regeneration
+         * renames what it was meant to rebuild. It does not stop at one: the
+         * first three run this way turned `pot-1.jpg` into `pot-2.jpg`, and
+         * then `pot.jpg` into the `pot-1.jpg` that had just been vacated — a
+         * cascade between documents, with every old URL 404 behind it.
+         * `generateFileData` skips `getSafeFileName` when this is set, which is
+         * the whole of the difference. */
+        overwriteExistingFiles: true,
       })
 
       done++
