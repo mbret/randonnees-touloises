@@ -93,11 +93,40 @@ export const Media: CollectionConfig = {
       return headers
     },
     focalPoint: true,
+    /**
+     * What a visitor is actually served, and the reason nothing is resized at
+     * request time any more.
+     *
+     * These five widths were already being generated for every upload and
+     * nothing read them: the site handed the full-size original to
+     * `next/image`, which derived the same ladder again per width, per format
+     * and per browser, at a price per derivation that renewed monthly. Sharp
+     * does the work here instead — once, at upload, into storage that is
+     * charged by the gigabyte rather than by the request.
+     *
+     * WebP because it is where the saving is: 240 of the club's 249 uploads are
+     * JPEG or PNG, and converting them is worth more than any amount of
+     * resizing. `ImageMedia` offers this ladder through a `<source>` typed
+     * `image/webp`, so a browser too old to decode it falls through to the
+     * original in the format it was uploaded in.
+     *
+     * `withoutEnlargement` is deliberately unset: left alone, Payload omits a
+     * size wider than the original rather than upscaling into it, so a 400px
+     * logo gets the bottom of the ladder and nothing above it, and the
+     * `srcset` offers only rungs that exist.
+     */
     imageSizes: [
       {
         name: 'thumbnail',
         width: 300,
+        formatOptions: { format: 'webp', options: { quality: 75 } },
       },
+      /**
+       * A centre crop rather than a scaled copy, so it cannot join the ladder
+       * above — a `srcset` may only offer one shape. Nothing reads it today;
+       * it is kept because dropping a size drops its columns, which wants a
+       * migration of its own rather than a line in this one.
+       */
       {
         name: 'square',
         width: 500,
@@ -106,19 +135,28 @@ export const Media: CollectionConfig = {
       {
         name: 'small',
         width: 600,
+        formatOptions: { format: 'webp', options: { quality: 75 } },
       },
       {
         name: 'medium',
         width: 900,
+        formatOptions: { format: 'webp', options: { quality: 75 } },
       },
       {
         name: 'large',
         width: 1400,
+        formatOptions: { format: 'webp', options: { quality: 75 } },
       },
       {
         name: 'xlarge',
         width: 1920,
+        formatOptions: { format: 'webp', options: { quality: 75 } },
       },
+      /**
+       * The social card, left in the format it was uploaded in on purpose:
+       * this URL is read by scrapers rather than by browsers, and WebP support
+       * across them is not something to discover after a post is shared.
+       */
       {
         name: 'og',
         width: 1200,

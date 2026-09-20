@@ -6,15 +6,14 @@ import type { Media as MediaType } from '@/payload-types'
 export interface Props {
   alt?: string
   className?: string
-  fill?: boolean // for NextImage only
+  fill?: boolean // stretches the image over the ancestor its caller positions
   htmlElement?: ElementType | null
   onClick?: () => void
   onLoad?: () => void
-  loading?: 'lazy' | 'eager' // for NextImage only
-  priority?: boolean // for NextImage only
-  quality?: number // for NextImage only
+  loading?: 'lazy' | 'eager'
+  priority?: boolean // loads eagerly, at high fetch priority
   resource?: MediaType | string | number | null // for Payload media
-  size?: string // for NextImage only
+  size?: string // what the image renders at, for the browser to pick a rung with
   src?: StaticImageData // for static media
 }
 
