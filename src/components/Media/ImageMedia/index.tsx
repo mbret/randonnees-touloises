@@ -71,6 +71,11 @@ const srcSetFor = (resource: MediaType) =>
     ? ''
     : LADDER.map((name) => resource.sizes?.[name])
         .filter(isUsable)
+        /* An original sitting exactly on a rung is resized by that rung and by
+         * the one above it, which declines to enlarge — same width, twice. A
+         * browser picking between two identical descriptors gains nothing from
+         * the second. */
+        .filter((size, i, all) => all.findIndex((other) => other.width === size.width) === i)
         .map((size) => `${getMediaUrl(size.url, resource.updatedAt)} ${size.width}w`)
         .join(', ')
 
