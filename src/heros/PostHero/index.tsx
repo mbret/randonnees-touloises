@@ -64,8 +64,8 @@ function PostHeading({ authors, onImage, startDate, status, title, when }: Headi
  * With an image it is the full-bleed treatment: the picture behind, a gradient
  * up from the bottom and the title in white over it. Without one there is
  * nothing to put behind the title, so the hero collapses to a plain header
- * rather than reserving 60vh of empty gradient — which is the normal case here,
- * since most programme entries carry no picture at all.
+ * rather than reserving a screenful of empty gradient — which is the normal
+ * case here, since most programme entries carry no picture at all.
  *
  * The date shown is the date of the outing, not the day the post was written:
  * these are announcements, and `publishedAt` says nothing a reader wants. It
@@ -118,7 +118,22 @@ export const PostHero: React.FC<{
   return (
     <div className="relative flex items-end">
       <div className="container relative z-10 pb-8 text-white">{heading}</div>
-      <div className="min-h-[50vh] select-none md:min-h-[60vh]">
+      {/* In `rem` rather than `vh`, and one step below `HomeHero`.
+
+          Measured against the viewport, this grew with the window while the
+          thing it frames — a title, a date and a pill — did not: 350px on a
+          phone against the home page's 416, and 864px on a tall monitor
+          against the same 416. The post hero was 84% of the front door's on
+          one screen and 169% of it on another, which is not a proportion
+          anyone chose. On a 1289px monitor it came to 773px, so the article
+          it introduces began below the fold.
+
+          `HomeHero` is 26rem and 32rem. This is 20 and 26 — the same 6rem
+          step, one rung down, so a post's opening is always a little smaller
+          than the site's and always the same size as itself. 26rem leaves
+          about 180px of clear picture above a two-line title at `lg`, and
+          `min-h` means a longer one still gets the room it needs. */}
+      <div className="min-h-[20rem] select-none md:min-h-[26rem]">
         <Media fill priority imgClassName="-z-10 object-cover" resource={media} />
         <div className="bg-linear-to-t pointer-events-none absolute bottom-0 left-0 h-[90%] w-full from-black to-transparent" />
       </div>
