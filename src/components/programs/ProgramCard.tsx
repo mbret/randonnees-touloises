@@ -67,8 +67,24 @@ import { registrationStatus } from './registrationStatus'
  * tailwind-merge matches on the variant set, so a plain one would be kept
  * alongside it and then lose on specificity. Spelled the same way, it collapses
  * the shipped `/50` instead of racing it — same modifier set, same class group,
- * ours last. Nothing needs a transition spelled out here: with only the fill
- * moving, the base `transition-colors` carries it.
+ * ours last.
+ *
+ * `[a]:hover:duration-0` is the only timing the card asks for, and it is about
+ * the list rather than about the card. `itemVariants` fades the fill over 100ms
+ * in both directions, so moving from one entry to the next runs two fades at
+ * once. Measured across the 12px gap: at the same frame the entry being left
+ * sat at 54% of its wash and the entry being arrived at was at 46%, and the two
+ * stayed somewhere in the middle for about 80ms. Half of a 1.17:1 wash is
+ * 1.08:1, which is nothing — so for a tenth of a second neither entry was lit,
+ * and the highlight read as blinking off and on rather than as moving to the
+ * next line. Nought on the way in settles it at the end that matters: the entry
+ * under the cursor carries the whole wash on the first frame, every time, and
+ * the one being left keeps its 100ms to fade out behind it. The other way round
+ * — instant out, fade in — is the same fault made worse, with both entries at
+ * nothing on the first frame.
+ *
+ * It stops at this element: Tailwind registers `--tw-duration` with
+ * `inherits: false`, so the chevron below keeps its own 150ms.
  */
 export function ProgramCard({
   availability,
@@ -88,7 +104,11 @@ export function ProgramCard({
   })
 
   return (
-    <Item asChild className="bg-card [a]:hover:bg-accent dark:border-input" variant="outline">
+    <Item
+      asChild
+      className="bg-card [a]:hover:bg-accent [a]:hover:duration-0 dark:border-input"
+      variant="outline"
+    >
       <Link href={`${PROGRAMS_BASE}/${slug}`}>
         <ItemMedia className="w-14 flex-col items-start gap-0 tabular-nums">
           <span className="font-mono text-lg leading-none font-semibold">{badge.day}</span>
