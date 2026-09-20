@@ -106,6 +106,45 @@
 }
 
 /**
+ * One registration pill, in the colours of whichever state it reports.
+ *
+ * Three coordinated values per state — see the `--pill-*` tokens in `:root` —
+ * so a caller names the state and nothing else. The ring is drawn as an inset
+ * shadow rather than with `ring-*`: it is part of the pill's own colour set,
+ * and splitting it across a utility and a Tailwind class is how the two come
+ * to disagree.
+ */
+@utility pill-deadline {
+  background-color: var(--pill-deadline);
+  color: var(--pill-deadline-fg);
+  box-shadow: inset 0 0 0 1px var(--pill-deadline-ring);
+}
+
+@utility pill-open {
+  background-color: var(--pill-open);
+  color: var(--pill-open-fg);
+  box-shadow: inset 0 0 0 1px var(--pill-open-ring);
+}
+
+@utility pill-wait {
+  background-color: var(--pill-wait);
+  color: var(--pill-wait-fg);
+  box-shadow: inset 0 0 0 1px var(--pill-wait-ring);
+}
+
+@utility pill-full {
+  background-color: var(--pill-full);
+  color: var(--pill-full-fg);
+  box-shadow: inset 0 0 0 1px var(--pill-full-ring);
+}
+
+@utility pill-closed {
+  background-color: var(--pill-closed);
+  color: var(--pill-closed-fg);
+  box-shadow: inset 0 0 0 1px var(--pill-closed-ring);
+}
+
+/**
  * A full-bleed band: a run of sections set on a wash of the page rather than on
  * the page, so the eye reads them as one part of it.
  *
@@ -319,6 +358,51 @@
   --sidebar-border: oklch(0.885 0.014 75);
   --sidebar-ring: var(--brand-orange);
 
+  /**
+   * The registration pills on a programme entry.
+   *
+   * Each state owns an opaque fill, a deep label of the same hue and a ring
+   * between them. Opaque is the load-bearing word. The pills used to be a grey
+   * outline over nothing and a `--muted` fill, and a programme card turns
+   * `--accent` on hover — `oklch(0.945 0.028 115)` against a fill of
+   * `oklch(0.945 0.013 80)`, the same lightness to within a hundredth. The
+   * filled pill measured 1.01:1 against the card it sat on and disappeared;
+   * the outlined ones let the wash straight through and kept only a ring, at
+   * 1.21:1. With a ground of their own, hovering the card no longer touches
+   * them.
+   *
+   * The hue is what ranks them now, where the fill used to: orange is the
+   * deadline, which is the one pill a reader acts on; green welcomes; amber is
+   * a waiting list, which is bad news with something still to do about it;
+   * brown is full; grey is a deadline already past, which is information
+   * rather than a fault.
+   *
+   * Tinted rather than filled with the brand colours themselves, and that is a
+   * contrast result rather than a preference. A pill's label is 12px, so it
+   * needs 4.5:1, and cream on `--brand-orange` is 4.31:1 — the boldest version
+   * of this is the one that fails. Against these tints the labels run 5.7:1 to
+   * 7.6:1, and the dark set below runs 5.7:1 to 8.7:1.
+   */
+  --pill-deadline: oklch(0.93 0.052 62);
+  --pill-deadline-fg: oklch(0.43 0.118 50);
+  --pill-deadline-ring: oklch(0.815 0.09 62);
+
+  --pill-open: oklch(0.918 0.05 128);
+  --pill-open-fg: oklch(0.41 0.098 128);
+  --pill-open-ring: oklch(0.79 0.085 128);
+
+  --pill-wait: oklch(0.912 0.075 85);
+  --pill-wait-fg: oklch(0.415 0.092 70);
+  --pill-wait-ring: oklch(0.785 0.105 85);
+
+  --pill-full: oklch(0.9 0.02 60);
+  --pill-full-fg: oklch(0.375 0.022 45);
+  --pill-full-ring: oklch(0.775 0.028 60);
+
+  --pill-closed: oklch(0.935 0.013 80);
+  --pill-closed-fg: oklch(0.468 0.019 48);
+  --pill-closed-ring: oklch(0.848 0.014 80);
+
   --admin-bar-height: 0px;
 }
 
@@ -373,6 +457,28 @@
   --sidebar-accent-foreground: oklch(0.885 0.085 115);
   --sidebar-border: oklch(0.33 0.014 50);
   --sidebar-ring: var(--brand-orange);
+
+  /* The same five states with the fill and the label swapped in weight: a deep
+     ground of the hue, a pale label on it. Labels run 5.7:1 to 8.7:1. */
+  --pill-deadline: oklch(0.33 0.055 62);
+  --pill-deadline-fg: oklch(0.88 0.07 68);
+  --pill-deadline-ring: oklch(0.43 0.07 62);
+
+  --pill-open: oklch(0.325 0.055 128);
+  --pill-open-fg: oklch(0.88 0.075 125);
+  --pill-open-ring: oklch(0.425 0.07 128);
+
+  --pill-wait: oklch(0.335 0.06 85);
+  --pill-wait-fg: oklch(0.885 0.08 88);
+  --pill-wait-ring: oklch(0.435 0.075 85);
+
+  --pill-full: oklch(0.31 0.018 55);
+  --pill-full-fg: oklch(0.86 0.015 70);
+  --pill-full-ring: oklch(0.41 0.02 55);
+
+  --pill-closed: oklch(0.29 0.014 50);
+  --pill-closed-fg: oklch(0.72 0.016 60);
+  --pill-closed-ring: oklch(0.385 0.015 50);
 }
 
 /**
