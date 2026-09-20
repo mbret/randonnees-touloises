@@ -110,7 +110,9 @@ export const PostHero: React.FC<{
   )
 
   if (!onImage) {
-    return <header className="container">{heading}</header>
+    /* The breathing room under the header, which only this treatment wants.
+       The full-bleed one below runs the photograph straight up to the bar. */
+    return <header className="container pt-16">{heading}</header>
   }
 
   return (

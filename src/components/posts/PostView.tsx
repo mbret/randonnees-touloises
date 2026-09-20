@@ -30,7 +30,13 @@ export async function PostView({ post }: { post: Post }) {
 
   return (
     <WithContentProtectedPassword required={post.requireContentPassword}>
-      <article className="pt-16 pb-16">
+      {/* No padding at the top, and that is the hero's business rather than
+          this element's. With a photograph the head of the post is full-bleed
+          and has to start where the header ends — 64px of cream between the bar
+          and the top of the picture reads as a gap in the page. Without one the
+          hero is a plain container and needs that space, so it carries it
+          itself: see `PostHero`. */}
+      <article className="pb-16">
         <PostViewClient />
 
         {event && <JsonLd data={event} />}
