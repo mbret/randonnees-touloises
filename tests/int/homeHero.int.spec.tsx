@@ -3,19 +3,6 @@ import { render, cleanup } from '@testing-library/react'
 
 import type { General } from '@/payload-types'
 
-/**
- * Only the two props this test is about. Rendering the real `next/image` here
- * would put the src through the optimiser and answer a question about Next
- * rather than about the hero, and the rest of its props — `fill`, `priority` —
- * are not DOM attributes.
- */
-vi.mock('next/image', () => ({
-  default: ({ alt, src }: { alt: string; src: unknown }) => (
-    // eslint-disable-next-line @next/next/no-img-element -- this is the stand-in for it
-    <img alt={alt} src={typeof src === 'string' ? src : String(src)} />
-  ),
-}))
-
 let general: Partial<General> = {}
 
 vi.mock('@/utilities/getGlobals', () => ({
@@ -59,6 +46,27 @@ describe('HomeHero', () => {
     expect((await hero()).photograph).toBe(
       '/api/media/file/col-du-galibier.jpg?v=2026-09-20T09%3A00%3A00.000Z',
     )
+  })
+
+  /**
+   * The hero is an upload like any other and renders through `Media`, so it is
+   * served from the ladder sharp built rather than resized per request. It was
+   * the last document on the site still going to the optimiser, and at `100vw`
+   * the widest — so the most expensive one to leave there.
+   */
+  it('asks the optimiser for nothing', async () => {
+    general = {
+      homeHeroImage: {
+        id: 7,
+        url: '/api/media/file/col-du-galibier.jpg',
+        updatedAt: '2026-09-20T09:00:00.000Z',
+        createdAt: '2026-09-20T09:00:00.000Z',
+      },
+    }
+
+    const { container } = render(await HomeHero())
+
+    expect(container.innerHTML).not.toContain('/_next/image')
   })
 
   /* The global is the only source: with nothing chosen there is no second
