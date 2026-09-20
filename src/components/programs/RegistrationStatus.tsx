@@ -7,8 +7,6 @@ import { cn } from '@/components/ui'
 import { formatDeadline } from './formatSchedule'
 
 const PILL = 'inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium'
-const OUTLINE = `${PILL} ring-border ring-1 ring-inset`
-const FILLED = `${PILL} bg-muted text-foreground ring-border ring-1 ring-inset`
 
 /**
  * What the club has said about joining, as pills under the date.
@@ -24,11 +22,16 @@ const FILLED = `${PILL} bg-muted text-foreground ring-border ring-1 ring-inset`
  * whole difference — so an outing that fills up early still shows the date it
  * closes on.
  *
- * The fill ranks them. Filled is a place you cannot simply take: « Complet »,
- * or a waiting list, which is the same news with something left to do about it.
- * The deadline is an outline either way. « Ouverte à tous » is an outline too,
- * because it is good news rather than an obstacle — but it is not muted, since
- * the people it is addressed to are the ones not yet in the club.
+ * The hue ranks them, where the fill used to. Orange is the deadline, which is
+ * the one pill a reader acts on; green welcomes; amber is a waiting list, which
+ * is bad news with something still to do about it; brown is full; grey is a
+ * deadline already past, which is information rather than a fault.
+ *
+ * Every state carries an opaque ground, and that is what makes the set work on
+ * a card rather than only in isolation: a programme card turns `--accent` when
+ * hovered, and the pills used to be a `--muted` fill at the same lightness
+ * (1.01:1 against it, so invisible) or an outline over nothing, which the wash
+ * went straight through. See the `--pill-*` tokens in `globals.css`.
  */
 export function RegistrationStatus({
   className,
@@ -47,9 +50,7 @@ export function RegistrationStatus({
   return (
     <span className={cn('flex flex-wrap items-center gap-2', className)}>
       {deadline && (
-        <span
-          className={cn(OUTLINE, deadline.closed ? 'text-muted-foreground' : 'text-foreground')}
-        >
+        <span className={cn(PILL, deadline.closed ? 'pill-closed' : 'pill-deadline')}>
           {deadline.closed ? (
             <CalendarOffIcon aria-hidden="true" className="size-3 shrink-0" />
           ) : (
@@ -62,11 +63,13 @@ export function RegistrationStatus({
       )}
 
       {places && (
-        <span className={FILLED}>{places === 'full' ? 'Complet' : 'Liste d’attente'}</span>
+        <span className={cn(PILL, places === 'full' ? 'pill-full' : 'pill-wait')}>
+          {places === 'full' ? 'Complet' : 'Liste d’attente'}
+        </span>
       )}
 
       {openToAll && (
-        <span className={cn(OUTLINE, 'text-foreground')}>
+        <span className={cn(PILL, 'pill-open')}>
           <UsersIcon aria-hidden="true" className="size-3 shrink-0" />
           Ouverte à tous
         </span>
