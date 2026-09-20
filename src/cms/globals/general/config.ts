@@ -1,5 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
+import { revalidateGeneral } from './revalidateGeneral'
+
 export const General: GlobalConfig = {
   slug: 'general',
   label: 'Réglages généraux',
@@ -16,5 +18,36 @@ export const General: GlobalConfig = {
       label: 'Mot de passe pour le contenu',
       required: false,
     },
+    {
+      /**
+       * The photograph the home page opens with.
+       *
+       * It lives here rather than on a page because the home page is not a CMS
+       * page: it is a React route that assembles the hero, the figures, the
+       * agenda and the programme itself. Until that changes, a global is the
+       * only place the club can reach the one thing about it they ask to
+       * change — and a field costs less than turning the route into content.
+       *
+       * Optional, and the hero keeps its bundled photograph when it is empty:
+       * an unset field must never leave the club with a blank page, and a
+       * committee member who clears this by accident should see the site go
+       * back to how it shipped rather than break.
+       */
+      name: 'homeHeroImage',
+      type: 'upload',
+      label: 'Image d’en-tête de la page d’accueil',
+      admin: {
+        description:
+          'La grande photo tout en haut de la page d’accueil. Une image large et en haute ' +
+          'définition (au moins 2000 px de large) : elle occupe toute la largeur de l’écran. ' +
+          'Le texte se pose sur le bas de la photo, alors évitez d’y placer un sujet ' +
+          'important. Sans image, la photo d’origine du site est utilisée.',
+      },
+      relationTo: 'media',
+      required: false,
+    },
   ],
+  hooks: {
+    afterChange: [revalidateGeneral],
+  },
 }

@@ -2,6 +2,9 @@ import Image from 'next/image'
 import React from 'react'
 
 /**
+ * The photograph the site ships with, and what the hero draws when the club has
+ * not chosen one of their own in « Réglages généraux ».
+ *
  * Imported rather than referenced as `/about-hero.webp`. Next hashes the
  * contents of a static import into its filename, which is what earns the
  * optimised variants an immutable `Cache-Control`; a file sitting in `public`
@@ -11,6 +14,8 @@ import React from 'react'
 import aboutHero from '@/assets/about-hero.webp'
 import { cn } from '@/components/ui'
 import { buttonVariants } from '@/components/ui/button'
+import { getCachedGlobal } from '@/utilities/getGlobals'
+import { getMediaUrl } from '@/utilities/getMediaUrl'
 
 /**
  * A gradient rather than the flat `bg-black/50` this used to wear.
@@ -151,8 +156,32 @@ const TOP_SCRIM = [
  * are genuinely two things: the agenda lists the walks you turn up to, the
  * programme lists the outings you sign up for. Both targets already carry
  * `scroll-mt-24`, so neither lands under the sticky header.
+ *
+ * The photograph behind all of it is the club's to change, from
+ * « Réglages généraux » in the admin panel — the one part of a page that is not
+ * a CMS page they asked to be able to edit. What the scrims above are measured
+ * against still holds whatever they upload, because the ramps darken the band
+ * the text sits in rather than the picture; a photograph much lighter than this
+ * one is the case to re-measure if the contrast ever looks thin.
  */
-export function HomeHero() {
+export async function HomeHero() {
+  /**
+   * Depth 1 so the upload comes back as the media document rather than as its
+   * id. `getCachedGlobal` is an `unstable_cache`, so this neither reaches the
+   * database on every request nor makes the home page dynamic — the page stays
+   * prerendered, and the global's `afterChange` hook expires it the moment the
+   * picture is swapped.
+   */
+  const general = await getCachedGlobal('general', 1)()
+  const chosen = typeof general.homeHeroImage === 'object' ? general.homeHeroImage : null
+
+  /**
+   * A string for an upload, the static import otherwise. `fill` means neither
+   * needs dimensions, and the `updatedAt` cache tag is what makes a replaced
+   * file arrive under a URL of its own — see `getMediaUrl`.
+   */
+  const src = chosen?.url ? getMediaUrl(chosen.url, chosen.updatedAt) : aboutHero
+
   return (
     <section className="on-media text-foreground relative isolate flex min-h-[26rem] flex-col justify-end md:min-h-[32rem]">
       {/* The picture and its scrims, reaching `-top-20` above the section so the
@@ -161,7 +190,7 @@ export function HomeHero() {
           so nothing below moves. The bottom scrim's stops are distances from
           the bottom, which this does not disturb. */}
       <div aria-hidden className="absolute -top-20 right-0 bottom-0 left-0 -z-10 overflow-hidden">
-        <Image alt="" className="object-cover" fill priority sizes="100vw" src={aboutHero} />
+        <Image alt="" className="object-cover" fill priority sizes="100vw" src={src} />
         {/* What tells the header there is a photograph here, and whether the
             page is still at rest on it. Its presence is the whole of « this page
             opens with a hero » — the CSS keys off it, so the bar is transparent
