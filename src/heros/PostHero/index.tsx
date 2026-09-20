@@ -64,8 +64,8 @@ function PostHeading({ authors, onImage, startDate, status, title, when }: Headi
  * With an image it is the full-bleed treatment: the picture behind, a gradient
  * up from the bottom and the title in white over it. Without one there is
  * nothing to put behind the title, so the hero collapses to a plain header
- * rather than reserving 60vh of empty gradient — which is the normal case here,
- * since most programme entries carry no picture at all.
+ * rather than reserving a screenful of empty gradient — which is the normal
+ * case here, since most programme entries carry no picture at all.
  *
  * The date shown is the date of the outing, not the day the post was written:
  * these are announcements, and `publishedAt` says nothing a reader wants. It
@@ -118,7 +118,12 @@ export const PostHero: React.FC<{
   return (
     <div className="relative flex items-end">
       <div className="container relative z-10 pb-8 text-white">{heading}</div>
-      <div className="min-h-[50vh] select-none md:min-h-[60vh]">
+      {/* `rem` rather than `vh`, capped by it. Sized to the window, the hero
+          grew while the title it frames did not — 84% of `HomeHero` on a
+          phone, 169% on a tall monitor. The cap is because `md` is a width
+          breakpoint: a phone held sideways is 844x390, wide enough for `md`
+          and too short for a 416px floor. */}
+      <div className="min-h-[min(20rem,50vh)] select-none md:min-h-[min(26rem,60vh)] lg:min-h-[min(30rem,60vh)]">
         <Media fill priority imgClassName="-z-10 object-cover" resource={media} />
         <div className="bg-linear-to-t pointer-events-none absolute bottom-0 left-0 h-[90%] w-full from-black to-transparent" />
       </div>
