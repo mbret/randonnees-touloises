@@ -118,31 +118,11 @@ export const PostHero: React.FC<{
   return (
     <div className="relative flex items-end">
       <div className="container relative z-10 pb-8 text-white">{heading}</div>
-      {/* In `rem` rather than `vh`, and one step below `HomeHero`.
-
-          Measured against the viewport, this grew with the window while the
-          thing it frames — a title, a date and a pill — did not: 350px on a
-          phone against the home page's 416, and 864px on a tall monitor
-          against the same 416. The post hero was 84% of the front door's on
-          one screen and 169% of it on another, which is not a proportion
-          anyone chose. On a 1289px monitor it came to 773px, so the article
-          it introduces began below the fold.
-
-          `HomeHero` is 26rem and 32rem. This is 20 and 26 — the same 6rem
-          step, one rung down, so a post's opening is always a little smaller
-          than the site's and always the same size as itself. 26rem leaves
-          about 180px of clear picture above a two-line title at `lg`, and
-          `min-h` means a longer one still gets the room it needs.
-
-          The old viewport heights stay on as a ceiling, because `md` is a
-          width breakpoint and says nothing about how tall the screen is. A
-          phone held sideways is 844x390: wide enough for `md`, so it would
-          take a 416px floor inside a 390px window and push the article a
-          hundred pixels below the fold — worse than the 234px the viewport
-          rule gave it. `min()` keeps whichever is smaller, so the rem value
-          governs from about 693px of height upwards, which is every screen
-          the first paragraph is about, and the short ones keep what they
-          had. */}
+      {/* `rem` rather than `vh`, capped by it. Sized to the window, the hero
+          grew while the title it frames did not — 84% of `HomeHero` on a
+          phone, 169% on a tall monitor. The cap is because `md` is a width
+          breakpoint: a phone held sideways is 844x390, wide enough for `md`
+          and too short for a 416px floor. */}
       <div className="min-h-[min(20rem,50vh)] select-none md:min-h-[min(26rem,60vh)]">
         <Media fill priority imgClassName="-z-10 object-cover" resource={media} />
         <div className="bg-linear-to-t pointer-events-none absolute bottom-0 left-0 h-[90%] w-full from-black to-transparent" />
