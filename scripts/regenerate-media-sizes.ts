@@ -7,11 +7,17 @@
  *     pnpm payload run scripts/regenerate-media-sizes.ts
  *
  * `imageSizes` decides what sharp makes at upload, so changing it reaches only
- * what is uploaded afterwards. The 249 documents already in the collection keep
- * whatever they were given when they arrived, which for all of them is a JPEG
- * or PNG ladder — and `ImageMedia` offers a rung only when it exists, so until
- * this has run those documents render their original and nothing else. Correct,
- * and the whole point of the change is undone for them.
+ * what is uploaded afterwards. The documents already in the collection keep
+ * whatever they were given when they arrived — and `ImageMedia` offers a rung
+ * only when it exists, so until this has run they render whatever ladder they
+ * were built with. Correct, and the whole point of the change is undone for
+ * them.
+ *
+ * It has been run for two changes now: first the move to a WebP ladder, where
+ * what was missing was any WebP rung at all, and then the cap that lets the top
+ * rung land at the original's own width, where what is missing is the top of
+ * the ladder on every upload narrower than 1920. `alreadyDone` below is what
+ * tells the second run from a no-op.
  *
  * Payload regenerates the sizes when a document is updated with a file, so the
  * work here is to hand each one back the bytes it already has. Those come over
@@ -52,32 +58,52 @@ const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : undefined
 /** The sizes that make the ladder, as `src/collections/Media.ts` defines it. */
 const LADDER = ['thumbnail', 'small', 'medium', 'large', 'xlarge'] as const
 
-/** The narrowest rung, so an upload below it can never have one. */
-const NARROWEST_RUNG = 300
+/** The widest rung, and so the most any upload can be asked to reach. */
+const TOP_RUNG = 1920
 
 type MediaDoc = {
   id: number | string
   filename?: null | string
   mimeType?: null | string
-  sizes?: null | Record<string, { mimeType?: null | string } | null | undefined>
+  sizes?: null | Record<
+    string,
+    { mimeType?: null | string; width?: null | number } | null | undefined
+  >
   url?: null | string
   width?: null | number
 }
 
+/** The widest WebP rung this document has, or 0 when it has none. */
+const topWebpRung = (doc: MediaDoc) =>
+  LADDER.reduce((widest, name) => {
+    const size = doc.sizes?.[name]
+
+    return size?.mimeType === 'image/webp' && typeof size.width === 'number'
+      ? Math.max(widest, size.width)
+      : widest
+  }, 0)
+
 /**
  * Whether this document has already been through the ladder.
  *
- * A rung reporting `image/webp` is the mark of it. An upload narrower than the
- * narrowest rung has none and never will — Payload omits a size wider than the
- * original rather than upscaling into it — so it counts as done rather than
- * being re-fetched on every run, as does anything sharp does not rasterise.
+ * Not « has a WebP rung » but « has the widest one it is entitled to », which
+ * is `min(original, 1920)` now that the top rung is capped at the original's
+ * own width rather than omitted when the original is narrower than it. The two
+ * tests agreed while every upload either cleared 1920 or had no ladder at all;
+ * they part company on exactly the documents this rerun is for — a 527px
+ * poster whose ladder stops at the 300 it happened to clear reports a WebP
+ * rung and is not done.
+ *
+ * A document whose width the collection never recorded falls back to the old
+ * test, which is all there is to go on.
  */
 const alreadyDone = (doc: MediaDoc) => {
   if (!doc.mimeType?.startsWith('image/')) return true
   if (doc.mimeType === 'image/svg+xml') return true
-  if (typeof doc.width === 'number' && doc.width < NARROWEST_RUNG) return true
 
-  return LADDER.some((name) => doc.sizes?.[name]?.mimeType === 'image/webp')
+  if (typeof doc.width !== 'number') return topWebpRung(doc) > 0
+
+  return topWebpRung(doc) >= Math.min(doc.width, TOP_RUNG)
 }
 
 const fetchOriginal = async (doc: MediaDoc) => {

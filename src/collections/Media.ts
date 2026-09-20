@@ -115,10 +115,18 @@ export const Media: CollectionConfig = {
      * `image/webp`, so a browser too old to decode it falls through to the
      * original in the format it was uploaded in.
      *
-     * `withoutEnlargement` is deliberately unset: left alone, Payload omits a
-     * size wider than the original rather than upscaling into it, so a 400px
-     * logo gets the bottom of the ladder and nothing above it, and the
-     * `srcset` offers only rungs that exist.
+     * `withoutEnlargement` is unset on every rung but the top one: left alone,
+     * Payload omits a size wider than the original rather than upscaling into
+     * it, so nothing on the ladder is ever an enlargement of what was uploaded
+     * and the `srcset` offers only rungs that exist.
+     *
+     * Unset on the top rung too, that rule has a hole in it, and it is the one
+     * that matters: it leaves the ladder stopping at the last rung below the
+     * original rather than at the original. A 527px poster clears 300 and
+     * misses 600, so the only WebP it had was the 300 — offered through a
+     * `<source>` that wins over the `<img>` beneath it, so a full-bleed hero
+     * 1318px wide was served 300px and the 527 sitting in the bucket was never
+     * reached. See `xlarge` for the whole of the fix.
      */
     imageSizes: [
       {
@@ -152,10 +160,29 @@ export const Media: CollectionConfig = {
         width: 1400,
         formatOptions: { format: 'webp', options: { quality: 75 } },
       },
+      /**
+       * The top of the ladder, and the only rung that is allowed to land
+       * somewhere other than its own width.
+       *
+       * `withoutEnlargement: true` does not enlarge anything — sharp still
+       * refuses to scale up, and Payload reads the flag a second time to stop
+       * omitting the size. What comes back is the original at its own size
+       * whenever that is under 1920, so the top rung is always
+       * `min(original, 1920)` and the ladder always reaches the best pixels
+       * there are. An upload over 1920 is resized to 1920 exactly as before.
+       *
+       * On the top rung alone because one is enough. Setting it on the rungs
+       * below would have each of them return that same copy — four more
+       * encodes and four more writes for a file the top rung already made,
+       * under a name generated from the dimensions, so all of them land on it
+       * anyway. It does mean this rung is sometimes 300px and still called
+       * `xlarge`; nothing reads the ladder by name, only by width.
+       */
       {
         name: 'xlarge',
         width: 1920,
         formatOptions: { format: 'webp', options: { quality: 75 } },
+        withoutEnlargement: true,
       },
       /**
        * The social card, left in the format it was uploaded in on purpose:

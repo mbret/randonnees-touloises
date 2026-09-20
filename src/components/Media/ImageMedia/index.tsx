@@ -54,13 +54,42 @@ const isUsable = (size: GeneratedSize | null | undefined): size is GeneratedSize
 const KEEP_ORIGINAL_TYPES = new Set(['image/gif'])
 
 /**
+ * One candidate per width, narrowest first.
+ *
+ * The top rung is capped at the original's own width rather than skipped when
+ * the original is narrower than 1920 — see `xlarge` in `src/collections/Media.ts`
+ * — so it lands on a width a lower rung already covers whenever the upload is
+ * exactly 300, 600, 900 or 1400 wide. Payload names a generated file after its
+ * dimensions and reuses it across sizes, so those two rungs are one file under
+ * one name, and offering it twice says nothing the first one did not.
+ *
+ * `LADDER` is ordered narrowest first and the widths only ever rise along it,
+ * so keeping the first of each width keeps that order.
+ */
+const byWidth = (sizes: GeneratedSize[]) => {
+  const seen = new Set<number>()
+
+  return sizes.filter((size) => {
+    /* `isUsable` has already established the width, which TypeScript cannot
+       carry over from a type guard on the object. */
+    const width = size.width!
+
+    if (seen.has(width)) return false
+
+    seen.add(width)
+
+    return true
+  })
+}
+
+/**
  * The ladder as a `srcset`, or nothing when the upload has no rungs.
  *
- * Payload skips a size wider than the original rather than enlarging it, and
- * generates none at all for a vector, so what comes back is a photograph's five
- * rungs, a small logo's one, or nothing. Offering what exists covers all three:
- * an empty `srcset` leaves the `<img>` below to serve the original, which is
- * also what a browser too old for WebP is served.
+ * Payload generates no sizes at all for a vector, so what comes back is a
+ * photograph's five rungs, a narrow upload's one — its own width, which is the
+ * best there is — or nothing. Offering what exists covers all three: an empty
+ * `srcset` leaves the `<img>` below to serve the original, which is also what a
+ * browser too old for WebP is served.
  *
  * Every rung carries the document's `updatedAt`, the cache tag `getMediaUrl`
  * stamps on the original too — the sizes are regenerated with it, so one
@@ -69,8 +98,7 @@ const KEEP_ORIGINAL_TYPES = new Set(['image/gif'])
 const srcSetFor = (resource: MediaType) =>
   KEEP_ORIGINAL_TYPES.has(resource.mimeType ?? '')
     ? ''
-    : LADDER.map((name) => resource.sizes?.[name])
-        .filter(isUsable)
+    : byWidth(LADDER.map((name) => resource.sizes?.[name]).filter(isUsable))
         .map((size) => `${getMediaUrl(size.url, resource.updatedAt)} ${size.width}w`)
         .join(', ')
 

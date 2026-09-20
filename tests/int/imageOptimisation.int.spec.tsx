@@ -6,6 +6,7 @@ import type { Media } from '@/payload-types'
 import nextConfig from '../../next.config.js'
 
 import { ImageMedia } from '@/components/Media/ImageMedia'
+import { Media as MediaCollection } from '@/collections/Media'
 import { MEDIA_CACHE_TAG_PARAM } from '@/utilities/mediaCacheTag'
 
 /**
@@ -96,9 +97,9 @@ describe('the ladder a browser is offered', () => {
   })
 
   /**
-   * Payload omits a size wider than the original rather than upscaling into it,
-   * so a small logo has the bottom of the ladder and nothing above it. Offering
-   * a rung that was never generated would be a 404 per visitor.
+   * Payload omits a rung wider than the original rather than upscaling into it,
+   * so most of the ladder is missing on a narrow upload. Offering a rung that
+   * was never generated would be a 404 per visitor.
    */
   it('offers only the rungs that exist', () => {
     const { source } = renderMedia(
@@ -184,6 +185,90 @@ describe('the ladder a browser is offered', () => {
 
     expect(html.match(/photo[^"\s]*\.(webp|jpg)/g)?.length).toBe(6)
     expect(html.match(new RegExp(TAG.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'))?.length).toBe(6)
+  })
+})
+
+describe('the top of the ladder', () => {
+  const rungs = (
+    typeof MediaCollection.upload === 'object' ? (MediaCollection.upload.imageSizes ?? []) : []
+  ).filter((size) => size.formatOptions?.format === 'webp')
+
+  /**
+   * Omitting a rung wider than the original stops the ladder at the last rung
+   * below the original rather than at the original itself, and that gap is
+   * where a poster fell through: 527px clears 300 and misses 600, so its only
+   * WebP was the 300. A `<source>` wins over the `<img>` beneath it, so a
+   * full-bleed hero 1318px wide was served 300px while the 527 sat in the
+   * bucket with nothing able to ask for it.
+   *
+   * `withoutEnlargement: true` on the widest rung is the whole of the fix.
+   * Sharp still refuses to scale up, so what comes back is the original at its
+   * own size, and the top of the ladder is `min(original, 1920)`.
+   */
+  it('lets the widest rung fall back to the original’s own width', () => {
+    const widest = rungs.reduce((a, b) => ((b.width ?? 0) > (a.width ?? 0) ? b : a))
+
+    expect(widest.width).toBe(1920)
+    expect(widest.withoutEnlargement).toBe(true)
+  })
+
+  /**
+   * And no rung below it. Each one set the same way would return that same
+   * copy — four more encodes and four more writes for a file the top rung has
+   * already made, under a name generated from the dimensions, so every one of
+   * them lands on it anyway.
+   */
+  it('leaves the rungs below it to be omitted rather than repeated', () => {
+    const below = rungs.filter((size) => size.width !== 1920)
+
+    expect(below.length).toBeGreaterThan(0)
+    below.forEach((size) => expect(size.withoutEnlargement).toBeUndefined())
+  })
+
+  /** The poster that went looking for 1318px and was handed 300. */
+  it('reaches the original’s own width on an upload narrower than a rung', () => {
+    const { source } = renderMedia(
+      <ImageMedia
+        resource={upload({
+          width: 527,
+          height: 745,
+          sizes: { thumbnail: rung('300x424', 300), xlarge: rung('527x745', 527) },
+        })}
+      />,
+    )
+
+    expect(source?.getAttribute('srcset')).toBe(
+      [
+        `/api/media/file/photo-300x424.webp?${TAG} 300w`,
+        `/api/media/file/photo-527x745.webp?${TAG} 527w`,
+      ].join(', '),
+    )
+  })
+
+  /**
+   * An upload exactly as wide as a rung has that rung and the capped top one
+   * land on the same width — and Payload names a generated file after its
+   * dimensions and reuses it across sizes, so they are one file under one name.
+   * Offering it twice says nothing the first entry did not.
+   */
+  it('offers a width once when two rungs land on the same file', () => {
+    const shared = rung('600x400', 600)
+    const { source } = renderMedia(
+      <ImageMedia
+        resource={upload({
+          width: 600,
+          height: 400,
+          sizes: { thumbnail: rung('300x200', 300), small: shared, xlarge: shared },
+        })}
+      />,
+    )
+
+    expect(source?.getAttribute('srcset')).toBe(
+      [
+        `/api/media/file/photo-300x200.webp?${TAG} 300w`,
+        `/api/media/file/photo-600x400.webp?${TAG} 600w`,
+      ].join(', '),
+    )
   })
 })
 
