@@ -1,16 +1,11 @@
 import Image from 'next/image'
 import React from 'react'
 
-/**
- * Imported rather than referenced as `/about-hero.webp`. Next hashes the
- * contents of a static import into its filename, which is what earns the
- * optimised variants an immutable `Cache-Control`; a file sitting in `public`
- * keeps its name across deploys, so it is served `max-age=0, must-revalidate`
- * and every visit re-downloads or at least revalidates the hero.
- */
-import aboutHero from '@/assets/about-hero.webp'
+import { ImagePlaceholder } from '@/components/common/ImagePlaceholder'
 import { cn } from '@/components/ui'
 import { buttonVariants } from '@/components/ui/button'
+import { getCachedGlobal } from '@/utilities/getGlobals'
+import { getMediaUrl } from '@/utilities/getMediaUrl'
 
 /**
  * A gradient rather than the flat `bg-black/50` this used to wear.
@@ -151,8 +146,25 @@ const TOP_SCRIM = [
  * are genuinely two things: the agenda lists the walks you turn up to, the
  * programme lists the outings you sign up for. Both targets already carry
  * `scroll-mt-24`, so neither lands under the sticky header.
+ *
+ * The photograph behind all of it comes from « Réglages généraux » in the admin
+ * panel, and from nowhere else — the one part of a page that is not a CMS page
+ * the club asked to be able to edit. What the scrims above are measured against
+ * holds whatever they upload, because the ramps darken the band the text sits
+ * in rather than the picture; a photograph much lighter than the one this was
+ * drawn on is the case to re-measure if the contrast ever looks thin.
  */
-export function HomeHero() {
+export async function HomeHero() {
+  /**
+   * Depth 1 so the upload comes back as the media document rather than as its
+   * id. `getCachedGlobal` is an `unstable_cache`, so this neither reaches the
+   * database on every request nor makes the home page dynamic — the page stays
+   * prerendered, and the global's `afterChange` hook expires it the moment the
+   * picture is swapped.
+   */
+  const general = await getCachedGlobal('general', 1)()
+  const photograph = typeof general.homeHeroImage === 'object' ? general.homeHeroImage : null
+
   return (
     <section className="on-media text-foreground relative isolate flex min-h-[26rem] flex-col justify-end md:min-h-[32rem]">
       {/* The picture and its scrims, reaching `-top-20` above the section so the
@@ -161,7 +173,43 @@ export function HomeHero() {
           so nothing below moves. The bottom scrim's stops are distances from
           the bottom, which this does not disturb. */}
       <div aria-hidden className="absolute -top-20 right-0 bottom-0 left-0 -z-10 overflow-hidden">
-        <Image alt="" className="object-cover" fill priority sizes="100vw" src={aboutHero} />
+        {/* `fill`, so the picture needs no dimensions, and the `updatedAt`
+            cache tag is what makes a replaced file arrive under a URL of its
+            own — see `getMediaUrl`.
+
+            With nothing chosen the hero draws the same stand-in the logo does
+            rather than a photograph of its own: an empty field is a thing to
+            fix in the admin panel, and a second picture bundled here to cover
+            for it would be a second answer to « which photograph opens the
+            site » that no one can change.
+
+            It wears three corrections to be legible where it lands, and each
+            was measured on the page rather than guessed. `z-10` puts it over
+            the scrims instead of under them — the ramps reach 88% at the foot
+            of the hero and swallowed it whole. The scrims stay, because they
+            are what the type reads against here: with no picture the ground is
+            the page's cream, and cream text on it would be nothing at all.
+            `items-start` with a top inset lifts the label out of the headline
+            it was sitting behind, into the band a photograph would have had to
+            itself. Cream for the dashed edge and the label, because `.on-media`
+            dresses this section for a photograph and leaves the placeholder's
+            own `--muted-foreground` — a grey chosen against the page — too dark
+            to read on the scrim. */}
+        {photograph?.url ? (
+          <Image
+            alt=""
+            className="object-cover"
+            fill
+            priority
+            sizes="100vw"
+            src={getMediaUrl(photograph.url, photograph.updatedAt)}
+          />
+        ) : (
+          <ImagePlaceholder
+            className="border-foreground/40 text-foreground/80 absolute inset-0 z-10 items-start rounded-none pt-28"
+            label="Photo d’en-tête à définir"
+          />
+        )}
         {/* What tells the header there is a photograph here, and whether the
             page is still at rest on it. Its presence is the whole of « this page
             opens with a hero » — the CSS keys off it, so the bar is transparent
