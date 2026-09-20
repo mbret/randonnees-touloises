@@ -118,9 +118,20 @@ export function ProgramCard({
            * date and the small print, and the hover still brings it up.
            *
            * `motion-safe:` on the shift alone: the darkening is a fade rather
-           * than motion, and it is what carries the cue when the shift is off. */}
+           * than motion, and it is what carries the cue when the shift is off.
+           *
+           * `translate` and not `transform` in the transition list, because
+           * that is the property the utility writes. Tailwind v4 moved
+           * `translate-x-*` off the `transform` shorthand onto the separate
+           * `translate` property, so a transition naming `transform` covers
+           * nothing this element sets. Spelt that way the 2 px arrived whole
+           * in a single frame — `translate` measured `none`, then `2px` on the
+           * next — while the colour still took its 150 ms: the arrow snapped,
+           * then darkened, and snapped back the moment the cursor left. A
+           * hover whose two halves disagree reads as a twitch rather than as
+           * an answer. */}
           <ChevronRightIcon
-            className="text-muted-foreground size-3.5 transition-[color,transform] group-hover/item:text-foreground motion-safe:group-hover/item:translate-x-0.5"
+            className="text-muted-foreground size-3.5 transition-[color,translate] group-hover/item:text-foreground motion-safe:group-hover/item:translate-x-0.5"
             strokeWidth={1.5}
           />
         </ItemActions>
