@@ -98,9 +98,21 @@ const CRON_PATH = 'payload-jobs/run'
  */
 const AUTH_COOKIE = 'payload-token'
 
-/** The REST path itself: `/api/users/me` -> `users/me`. */
-export const apiPathOf = (url: string) =>
-  new URL(url).pathname.replace(/^\/api\/?/, '').replace(/\/+$/, '')
+/**
+ * The REST path itself: `/api/users/me` -> `users/me`.
+ *
+ * Anything that is not under `/api` comes back as its own pathname, which
+ * begins with a slash and so can never be one of the names above — `/apidocs`
+ * must not read as `docs`. The matcher does not send those here; this is so
+ * that the answer does not depend on the matcher being right.
+ */
+export const apiPathOf = (url: string) => {
+  const { pathname } = new URL(url)
+
+  if (pathname !== '/api' && !pathname.startsWith('/api/')) return pathname
+
+  return pathname.slice('/api'.length).replace(/^\/+/, '').replace(/\/+$/, '')
+}
 
 /**
  * Whether the caller arrived with a session cookie.
@@ -124,8 +136,12 @@ export const isClosedToAnonymous = (request: Request): boolean => {
   const path = apiPathOf(request.url)
 
   if (path.startsWith(MEDIA_FILE_PREFIX)) return false
-  if (path === CRON_PATH) return !request.headers.has('authorization')
   if (hasSession(request)) return false
+
+  /* After the session, not before it: `jobs.access.run` allows `req.user` as
+   * well as the secret, so an administrator running the queue from the panel
+   * carries a cookie and no `Authorization` header at all. */
+  if (path === CRON_PATH) return !request.headers.has('authorization')
 
   if (GRAPHQL_PATHS.has(path)) return true
 

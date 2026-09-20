@@ -110,6 +110,15 @@ describe('what still has to get through', () => {
   })
 
   /**
+   * `jobs.access.run` allows `req.user` as well as the secret, so running the
+   * queue from the admin panel sends a cookie and no `Authorization` header.
+   * Checking the cron's path before the session would have refused it.
+   */
+  it('lets an administrator run the queue from the panel', () => {
+    expect(isClosedToAnonymous(signedIn('/api/payload-jobs/run'))).toBe(false)
+  })
+
+  /**
    * Nothing here enables `useAPIKey`, so the only caller that ever holds an
    * `Authorization` header is the cron above. Honouring it anywhere else would
    * mean the gate opened for anyone who sent the word.
@@ -206,5 +215,29 @@ describe('the path a decision is made on', () => {
   it('refuses a path that only looks allowed', () => {
     expect(isClosedToAnonymous(request('/api/users/me/../../pages'))).toBe(true)
     expect(isClosedToAnonymous(request('/api/accessories'))).toBe(true)
+  })
+
+  /**
+   * Percent-encoding is not decoded by `URL`, so `%2e%2e%2f` stays a name
+   * rather than becoming a step upwards — and Next routes it to the uploads
+   * route as a filename, where Payload looks for an upload by that name and
+   * does not find one. Checked against production, which answers 403.
+   */
+  it('does not let an encoded traversal out of the uploads path', () => {
+    expect(apiPathOf(`${ORIGIN}/api/media/file/..%2f..%2fapi%2fpages`)).toBe(
+      'media/file/..%2f..%2fapi%2fpages',
+    )
+  })
+
+  /**
+   * The matcher is what normally decides this, and a matcher is not something
+   * a test can hold — so the path itself has to be unmistakable either way.
+   */
+  it.each(['/apidocs', '/apifoo/pages', '/search'])('does not read %s as an API path', (path) => {
+    expect(apiPathOf(`${ORIGIN}${path}`)).toBe(path)
+  })
+
+  it('reads a doubled slash as the one path it is', () => {
+    expect(apiPathOf(`${ORIGIN}/api//users/me`)).toBe('users/me')
   })
 })
