@@ -5,7 +5,7 @@ import { generateMeta } from '@/seo/generateMeta'
 
 // generateMeta reads the server URL at call time, so pin it before importing
 // anything that captures it.
-const SERVER_URL = 'https://abonnes.randonnees-touloises.net'
+const SERVER_URL = 'https://www.randonnees-touloises.net'
 
 beforeAll(() => {
   process.env.NEXT_PUBLIC_SERVER_URL = SERVER_URL

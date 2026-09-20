@@ -9,7 +9,7 @@ import { serializeJsonLd } from '@/seo/jsonld/serialize'
 
 // The builders read the server URL at call time, so pin it before anything asks
 // for an absolute URL.
-const SERVER_URL = 'https://abonnes.randonnees-touloises.net'
+const SERVER_URL = 'https://www.randonnees-touloises.net'
 
 beforeAll(() => {
   process.env.NEXT_PUBLIC_SERVER_URL = SERVER_URL

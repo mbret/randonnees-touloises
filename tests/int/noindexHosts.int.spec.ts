@@ -47,14 +47,10 @@ const robotsTag = async (host: string) =>
     .at(-1)?.value
 
 describe('hosts kept out of the index', () => {
-  it('marks the staging copy served from the legacy domain', async () => {
-    expect(await robotsTag('abonnes.randonnees-touloises.net')).toBe(NOINDEX)
-  })
-
   /**
    * The production alias is not a copy of the site, it is the site under a
-   * second name — the address the project answers on before a domain of the
-   * club's own is put in front of it, and the one this was found at.
+   * second name — the address the project answers on beside the club's own
+   * domain, and the one this was found at.
    */
   it('marks the production alias Vercel gives the project', async () => {
     expect(await robotsTag('randonnees-touloises.vercel.app')).toBe(NOINDEX)
@@ -68,9 +64,9 @@ describe('hosts kept out of the index', () => {
 
   /**
    * The whole point of scoping by host: the rule has to be inert on the address
-   * the club publishes, or the cutover deindexes the live site.
+   * the club publishes, or the live site drops out of the index.
    */
-  it('leaves the host the site will be published on indexable', async () => {
+  it('leaves the host the site is published on indexable', async () => {
     expect(await robotsTag('www.randonnees-touloises.net')).toBeUndefined()
     expect(await robotsTag('randonnees-touloises.net')).toBeUndefined()
   })
@@ -78,7 +74,6 @@ describe('hosts kept out of the index', () => {
   /** Anchored, so a public host is not caught by carrying one of these inside it. */
   it('reads a pattern as the whole host rather than a substring of it', async () => {
     expect(await robotsTag('randonnees-touloises.vercel.app.example.com')).toBeUndefined()
-    expect(await robotsTag('abonnes.randonnees-touloises.net.example.com')).toBeUndefined()
   })
 
   /** A mark on the home page alone would leave every other URL crawlable. */
