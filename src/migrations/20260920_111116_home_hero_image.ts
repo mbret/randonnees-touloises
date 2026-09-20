@@ -5,14 +5,14 @@ import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
  * something the club can change from the admin panel.
  *
  * One column, on a global that has no drafts and so no `_v` table to keep in
- * step. Additive and nullable, and the hero falls back to the bundled
- * `about-hero.webp` while it is null — so the home page looks exactly as it does
- * now until somebody uploads a picture, and it looks that way again if they
- * clear the field.
+ * step. Additive and nullable, and null is where every environment starts: the
+ * hero draws the site's « à définir » stand-in until somebody uploads a
+ * picture, so the first thing to do after this migration reaches an
+ * environment is to choose one in « Réglages généraux ».
  *
  * `ON DELETE set null`, which Payload picks for every upload relationship:
  * deleting the media document empties the field rather than refusing the
- * delete, and the hero goes back to the bundled photograph.
+ * delete, and the hero shows the stand-in again.
  *
  * `down` drops the column, which forgets which image was chosen — the image
  * itself is a `media` document and is not touched.

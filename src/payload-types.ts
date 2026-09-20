@@ -2972,7 +2972,7 @@ export interface General {
   id: number;
   contentPassword?: string | null;
   /**
-   * La grande photo tout en haut de la page d’accueil. Une image large et en haute définition (au moins 2000 px de large) : elle occupe toute la largeur de l’écran. Le texte se pose sur le bas de la photo, alors évitez d’y placer un sujet important. Sans image, la photo d’origine du site est utilisée.
+   * La grande photo tout en haut de la page d’accueil. Une image large et en haute définition (au moins 2000 px de large) : elle occupe toute la largeur de l’écran. Le texte se pose sur le bas de la photo, alors évitez d’y placer un sujet important. Sans image, la page d’accueil affiche un cadre « à définir » à la place de la photo.
    */
   homeHeroImage?: (number | null) | Media;
   updatedAt?: string | null;

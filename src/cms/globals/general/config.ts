@@ -28,10 +28,10 @@ export const General: GlobalConfig = {
        * only place the club can reach the one thing about it they ask to
        * change — and a field costs less than turning the route into content.
        *
-       * Optional, and the hero keeps its bundled photograph when it is empty:
-       * an unset field must never leave the club with a blank page, and a
-       * committee member who clears this by accident should see the site go
-       * back to how it shipped rather than break.
+       * Optional, and the hero draws the site's usual « à définir » stand-in
+       * while it is empty rather than a photograph bundled for the occasion:
+       * one field decides what opens the site, and an empty one is a thing to
+       * fix here rather than something for the code to paper over.
        */
       name: 'homeHeroImage',
       type: 'upload',
@@ -41,7 +41,8 @@ export const General: GlobalConfig = {
           'La grande photo tout en haut de la page d’accueil. Une image large et en haute ' +
           'définition (au moins 2000 px de large) : elle occupe toute la largeur de l’écran. ' +
           'Le texte se pose sur le bas de la photo, alors évitez d’y placer un sujet ' +
-          'important. Sans image, la photo d’origine du site est utilisée.',
+          'important. Sans image, la page d’accueil affiche un cadre « à définir » à la ' +
+          'place de la photo.',
       },
       relationTo: 'media',
       required: false,

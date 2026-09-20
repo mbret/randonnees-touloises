@@ -24,14 +24,17 @@ vi.mock('@/utilities/getGlobals', () => ({
 
 const { HomeHero } = await import('@/components/home/HomeHero')
 
-/* Queried from the DOM rather than by role: the photograph and its scrims sit
+/* Queried from the DOM rather than by role: the picture and its scrims sit
  * under `aria-hidden`, which is exactly where a decorative image belongs and
- * exactly what keeps it out of the accessibility tree. It is the hero's only
- * image. */
-const heroSrc = async () => {
+ * exactly what keeps it — and the stand-in that replaces it — out of the
+ * accessibility tree. */
+const hero = async () => {
   const { container } = render(await HomeHero())
 
-  return container.querySelector('img')?.getAttribute('src')
+  return {
+    photograph: container.querySelector('img')?.getAttribute('src'),
+    standIn: container.querySelector('[role="img"]')?.getAttribute('aria-label'),
+  }
 }
 
 beforeEach(() => {
@@ -53,22 +56,23 @@ describe('HomeHero', () => {
 
     /* The `updatedAt` cache tag rides along, so replacing the file behind the
      * same filename reaches everyone rather than being served from a cache. */
-    expect(await heroSrc()).toBe(
+    expect((await hero()).photograph).toBe(
       '/api/media/file/col-du-galibier.jpg?v=2026-09-20T09%3A00%3A00.000Z',
     )
   })
 
-  /* The field is optional, and an empty one has to leave the club with the site
-   * they had rather than with a blank band at the top of the home page. */
-  it('falls back to the photograph the site ships with', async () => {
-    expect(await heroSrc()).toContain('about-hero')
+  /* The global is the only source: with nothing chosen there is no second
+   * photograph to fall back to, and the hero says so the way the rest of the
+   * site says it. */
+  it('shows the « à définir » stand-in when no photograph is chosen', async () => {
+    expect(await hero()).toEqual({ photograph: undefined, standIn: 'Photo d’en-tête à définir' })
   })
 
   /* Belt and braces on the depth the global is read at: an unresolved upload
    * comes back as an id, which is not something `next/image` can draw. */
-  it('falls back when the upload has not been resolved', async () => {
+  it('shows the stand-in when the upload has not been resolved', async () => {
     general = { homeHeroImage: 7 }
 
-    expect(await heroSrc()).toContain('about-hero')
+    expect(await hero()).toEqual({ photograph: undefined, standIn: 'Photo d’en-tête à définir' })
   })
 })
