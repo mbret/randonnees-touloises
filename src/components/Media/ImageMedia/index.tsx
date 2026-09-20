@@ -1,10 +1,7 @@
 'use client'
 
-import type { StaticImageData } from 'next/image'
-
 import { cn } from '@/components/ui'
-import NextImage from 'next/image'
-import React, { ComponentProps } from 'react'
+import React, { ComponentProps, CSSProperties } from 'react'
 
 import type { Media as MediaType } from '@/payload-types'
 
@@ -12,42 +9,67 @@ import type { ImageMediaProps } from '../types'
 
 import { getMediaUrl } from '@/utilities/getMediaUrl'
 
-// A base64 encoded image to use as a placeholder while the image is loading
-const placeholderBlur =
-  'data:image/png;base64,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'
+/**
+ * The generated sizes that make a width ladder, narrowest first.
+ *
+ * `square` is a centre crop rather than a scaled copy, so it cannot sit on a
+ * `srcset` beside sizes of the upload's own shape, and `og` is the social
+ * card's. What is left is what Payload builds for every upload: 300, 600, 900,
+ * 1400 and 1920, in WebP.
+ */
+const LADDER = ['thumbnail', 'small', 'medium', 'large', 'xlarge'] as const
+
+type GeneratedSize = NonNullable<NonNullable<MediaType['sizes']>[(typeof LADDER)[number]]>
+
+const isUsable = (size: GeneratedSize | null | undefined): size is GeneratedSize =>
+  Boolean(size?.url && size?.width)
 
 /**
- * The size below which asking for a transformation costs more than it saves.
+ * Types whose ladder would be worse than the original, whatever its size.
  *
- * A transformation is billed per distinct combination of source URL, width,
- * quality and `Accept` header, and the result is kept for at most 31 days — so
- * one upload is not one charge but one per width the layout asks for, times the
- * formats visitors' browsers accept, renewed monthly.
- *
- * Ten kilobytes is the floor Vercel itself gives for this. Only nine of the
- * club's 249 uploads sit under it, so this is not where the saving is — but
- * they are the ones the optimiser worked hardest to no purpose:
- * `logo-nordic-outing.png` is 4 kB and came back 19% smaller, having been
- * transformed 18 times to manage it. Below the floor the saving is rounding
- * error against the fixed cost of holding another variant.
+ * Sharp reads the first frame of a GIF and writes a still, so every rung of an
+ * animated one is the animation stopped dead — and a `<source>` wins over the
+ * `<img>` beneath it, so offering them is how the animation would be lost.
+ * There are none in the collection today; there is nothing stopping an editor
+ * uploading one tomorrow.
  */
-const OPTIMISATION_FLOOR_BYTES = 10 * 1024
+const KEEP_ORIGINAL_TYPES = new Set(['image/gif'])
 
 /**
- * Types no raster transformation improves: an SVG is already the vector the
- * optimiser would be flattening, and a GIF loses its animation on the way
- * through. Next opts SVG out by itself, but only when `src` ends in `.svg` —
- * ours never does, because `getMediaUrl` stamps a `?v=` cache tag onto every
- * URL it builds.
+ * The ladder as a `srcset`, or nothing when the upload has no rungs.
+ *
+ * Payload skips a size wider than the original rather than enlarging it, and
+ * generates none at all for a vector, so what comes back is a photograph's five
+ * rungs, a small logo's one, or nothing. Offering what exists covers all three:
+ * an empty `srcset` leaves the `<img>` below to serve the original, which is
+ * also what a browser too old for WebP is served.
+ *
+ * Every rung carries the document's `updatedAt`, the cache tag `getMediaUrl`
+ * stamps on the original too — the sizes are regenerated with it, so one
+ * revision addresses them all.
  */
-const UNOPTIMISABLE_TYPES = new Set(['image/gif', 'image/svg+xml'])
+const srcSetFor = (resource: MediaType) =>
+  KEEP_ORIGINAL_TYPES.has(resource.mimeType ?? '')
+    ? ''
+    : LADDER.map((name) => resource.sizes?.[name])
+        .filter(isUsable)
+        .map((size) => `${getMediaUrl(size.url, resource.updatedAt)} ${size.width}w`)
+        .join(', ')
 
-const notWorthOptimising = ({ filesize, mimeType }: MediaType) =>
-  UNOPTIMISABLE_TYPES.has(mimeType ?? '') ||
-  (typeof filesize === 'number' && filesize <= OPTIMISATION_FLOOR_BYTES)
+/**
+ * What `next/image`'s `fill` did, written out.
+ *
+ * It is the whole of that prop's behaviour: the image is taken out of flow and
+ * stretched over the nearest positioned ancestor, which is what lets a hero
+ * sit behind its own text. The callers that pass `fill` rely on the ancestor
+ * they already position themselves.
+ */
+const FILL_STYLE: CSSProperties = { height: '100%', inset: 0, position: 'absolute', width: '100%' }
 
 export const ImageMedia: React.FC<
-  ImageMediaProps & Omit<ComponentProps<typeof NextImage>, 'resource' | 'alt' | 'src'>
+  /* `resource` is omitted because React types it as the RDFa attribute of that
+     name, a `string`, which intersects with our own prop down to nothing. */
+  ImageMediaProps & Omit<ComponentProps<'img'>, 'alt' | 'ref' | 'resource' | 'sizes' | 'src'>
 > = (props) => {
   const {
     alt: altFromProps,
@@ -59,6 +81,7 @@ export const ImageMedia: React.FC<
     resource,
     size: sizeFromProps,
     src: srcFromProps,
+    style: styleFromProps,
     loading: loadingFromProps,
     ...rest
   } = props
@@ -66,59 +89,56 @@ export const ImageMedia: React.FC<
   let width: number | undefined
   let height: number | undefined
   let alt = altFromProps
-  let src: StaticImageData | string = srcFromProps || ''
-  let unoptimized = false
+  let src = ''
+  let srcSet = ''
 
-  if (!src && resource && typeof resource === 'object') {
+  if (srcFromProps) {
+    /* A static import is already hashed, sized and served immutable by Next, so
+     * it needs no ladder and no optimiser — only unwrapping. */
+    src = srcFromProps.src
+    width = srcFromProps.width
+    height = srcFromProps.height
+  } else if (resource && typeof resource === 'object') {
     const { alt: altFromResource, height: fullHeight, url, width: fullWidth } = resource
 
-    width = fullWidth!
-    height = fullHeight!
+    width = fullWidth ?? undefined
+    height = fullHeight ?? undefined
     alt = altFromResource || ''
-
-    const cacheTag = resource.updatedAt
-
-    src = getMediaUrl(url, cacheTag)
-    unoptimized = notWorthOptimising(resource)
+    src = getMediaUrl(url, resource.updatedAt)
+    srcSet = srcSetFor(resource)
   }
 
-  const loading = loadingFromProps || (!priority ? 'lazy' : undefined)
+  const loading = loadingFromProps ?? (priority ? 'eager' : 'lazy')
 
   /**
-   * What the browser is told the image renders at, and the prop that decides
-   * what an upload costs: `sizes` is what makes Next offer the whole
-   * `deviceSizes` + `imageSizes` srcset, and every width a browser picks off
-   * that list is a transformation of its own.
+   * What the browser is told the image renders at.
    *
-   * What this replaces was built from the breakpoints in descending order and
-   * written with `w` descriptors. Those belong to `srcset`; `sizes` takes CSS
-   * lengths, so every entry was invalid and the browser fell back to `100vw`
-   * — which is how a 40px logo came to be served the widest file on offer.
-   *
-   * `100vw` is what that fallback amounted to, so it is the default here too,
-   * and dropping it is not the saving it looks like: without `sizes` Next
-   * describes the srcset by pixel density instead, against the upload's own
-   * width rather than the width it renders at, so a 2000px photograph in a
-   * 200px card is offered the widest file on every screen including a phone.
-   * The saving is a caller naming its rendered size — see the `IMAGE_SIZES`
-   * beside the layouts that do — not the absence of one.
+   * It cannot work this out for itself: the choice is made before layout, so
+   * without being told, a browser assumes the image is as wide as the viewport
+   * and takes the widest rung on offer for a 200px card. Callers that know
+   * their rendered width say so — see the `IMAGE_SIZES` beside the layouts
+   * that do — and `100vw` is the honest answer for the rest, which are
+   * full-bleed.
    */
   const sizes = sizeFromProps ?? '100vw'
 
   return (
     <picture className={cn(pictureClassName)}>
-      <NextImage
+      {/* The ladder is WebP, so it is offered by type rather than as the
+          `<img>`'s own `srcset`: a browser that cannot decode WebP skips the
+          source and takes the original below, which is left in the format it
+          was uploaded in for exactly that reason. */}
+      {srcSet && <source sizes={sizes} srcSet={srcSet} type="image/webp" />}
+      <img
         alt={alt || ''}
         className={cn(className, imgClassName)}
-        fill={fill}
+        decoding="async"
+        fetchPriority={priority ? 'high' : undefined}
         height={!fill ? height : undefined}
-        placeholder="blur"
-        blurDataURL={placeholderBlur}
-        priority={priority}
         loading={loading}
         sizes={sizes}
         src={src}
-        unoptimized={unoptimized}
+        style={fill ? { ...FILL_STYLE, ...styleFromProps } : styleFromProps}
         width={!fill ? width : undefined}
         {...rest}
       />

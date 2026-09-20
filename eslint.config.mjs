@@ -49,6 +49,58 @@ export default defineConfig([
     },
   },
   {
+    /**
+     * `next/image` bills per transformation, and uploads no longer need one.
+     *
+     * Sharp builds a WebP ladder for every upload and `ImageMedia` serves it,
+     * so a document rendered through `Media` costs nothing at request time.
+     * Rendering one with `next/image` instead puts it back on the optimiser —
+     * silently, because the picture looks identical. That is exactly how the
+     * home page's hero came to be the last upload still being resized per
+     * request: it was written before the ladder existed and nothing said it
+     * could not be.
+     *
+     * A test cannot hold this line. `pnpm ci` is `lint && migrate:deploy &&
+     * build`, so `lint` is the only check between a commit and production —
+     * hence `error` rather than `warn`, since `eslint .` exits 0 on warnings.
+     *
+     * The type import is allowed: `StaticImageData` describes a file imported
+     * from disk and has nothing to do with the optimiser.
+     */
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'next/image',
+              allowTypeImports: true,
+              message:
+                'Render uploads with `Media` from @/components/Media — it serves the sizes sharp already generated. next/image is billed per transformation and is only for remote images and files imported from disk.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    /**
+     * The three places an optimiser still earns its keep: thumbnails fetched
+     * from platforms whose dimensions nobody here controls, and two images
+     * imported from disk, which are hashed and served immutable rather than
+     * read out of the media collection.
+     */
+    files: [
+      'src/app/(frontend)/about/page.tsx',
+      'src/Footer/FederationLogo.tsx',
+      'src/blocks/MediaLinks/Component.tsx',
+    ],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': 'off',
+    },
+  },
+  {
     ignores: ['.next/', 'node_modules/', 'src/app/(payload)/admin/importMap.js'],
   },
 ])

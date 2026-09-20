@@ -1,11 +1,10 @@
-import Image from 'next/image'
 import React from 'react'
 
 import { ImagePlaceholder } from '@/components/common/ImagePlaceholder'
 import { cn } from '@/components/ui'
 import { buttonVariants } from '@/components/ui/button'
 import { getCachedGlobal } from '@/utilities/getGlobals'
-import { getMediaUrl } from '@/utilities/getMediaUrl'
+import { Media } from '@/components/Media'
 
 /**
  * A gradient rather than the flat `bg-black/50` this used to wear.
@@ -196,13 +195,19 @@ export async function HomeHero() {
             own `--muted-foreground` — a grey chosen against the page — too dark
             to read on the scrim. */}
         {photograph?.url ? (
-          <Image
-            alt=""
-            className="object-cover"
+          /* Through `Media` rather than `next/image`: the hero is an upload like
+             any other, and the ladder sharp built for it is already in the
+             bucket. Rendered here it was the one document on the site still
+             being resized per request — and the widest, at `100vw`, so the most
+             expensive of them. `htmlElement={null}` keeps the picture out of a
+             wrapper, as it was. */
+          <Media
             fill
+            htmlElement={null}
+            imgClassName="object-cover"
             priority
-            sizes="100vw"
-            src={getMediaUrl(photograph.url, photograph.updatedAt)}
+            resource={photograph}
+            size="100vw"
           />
         ) : (
           <ImagePlaceholder
