@@ -1,11 +1,13 @@
 import type { Metadata } from 'next/types'
 
 /**
- * Imported rather than referenced as `/about-hero.webp`. Next hashes the
- * contents of a static import into its filename, which is what earns the
- * optimised variants an immutable `Cache-Control`; a file sitting in `public`
- * keeps its name across deploys, so it is served `max-age=0, must-revalidate`
- * and every visit re-downloads or at least revalidates it.
+ * Kept in `src/assets` and imported, rather than dropped in `public/` and
+ * referenced by path — there is no copy there, and putting one back would cost
+ * the caching. Next hashes the contents of a static import into its filename,
+ * which is what earns the optimised variants an immutable `Cache-Control`; a
+ * file sitting in `public` keeps its name across deploys, so it is served
+ * `max-age=0, must-revalidate` and every visit re-downloads or at least
+ * revalidates it.
  *
  * This page is the only reader left. The home page's hero used to share the
  * import and now takes its photograph from « Réglages généraux », so what the
