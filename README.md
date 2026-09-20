@@ -213,7 +213,7 @@ before changing either, and read the region a response was actually computed in
 out of the middle field of `x-vercel-id`:
 
 ```sh
-curl -sI https://abonnes.randonnees-touloises.net/api/users/me | grep x-vercel-id
+curl -sI https://www.randonnees-touloises.net/api/users/me | grep x-vercel-id
 ```
 
 ## Website

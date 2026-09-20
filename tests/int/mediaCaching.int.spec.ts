@@ -11,7 +11,7 @@ import { getMediaUrl } from '@/utilities/getMediaUrl'
 import { MEDIA_CACHE_TAG_PARAM, withMediaCacheControl } from '@/utilities/mediaCacheTag'
 
 beforeAll(() => {
-  process.env.NEXT_PUBLIC_SERVER_URL = 'https://abonnes.randonnees-touloises.net'
+  process.env.NEXT_PUBLIC_SERVER_URL = 'https://www.randonnees-touloises.net'
 })
 
 const REVISION = '2026-01-01T00:00:00.000Z'
@@ -198,11 +198,11 @@ describe('the picture a document is shared with', () => {
     const image = upload({ sizes: { og: { url: '/api/media/file/photo-1200x630.webp' } } })
 
     expect(getImageURL(image)).toBe(
-      `https://abonnes.randonnees-touloises.net/api/media/file/photo-1200x630.webp?${MEDIA_CACHE_TAG_PARAM}=${encodeURIComponent(REVISION)}`,
+      `https://www.randonnees-touloises.net/api/media/file/photo-1200x630.webp?${MEDIA_CACHE_TAG_PARAM}=${encodeURIComponent(REVISION)}`,
     )
   })
 
   it('still falls back to the site’s own image for a document carrying none', () => {
-    expect(getImageURL(null)).toBe('https://abonnes.randonnees-touloises.net/og-image.jpg')
+    expect(getImageURL(null)).toBe('https://www.randonnees-touloises.net/og-image.jpg')
   })
 })
