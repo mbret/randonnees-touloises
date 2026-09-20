@@ -85,23 +85,25 @@ export const ImageMedia: React.FC<
   const loading = loadingFromProps || (!priority ? 'lazy' : undefined)
 
   /**
-   * What the browser is told the image renders at, and the most expensive prop
-   * here: `sizes` is what makes Next offer the whole `deviceSizes` +
-   * `imageSizes` srcset instead of the intrinsic width at 1x and 2x, and every
-   * width a browser picks off that list is a transformation of its own.
-   *
-   * So it is passed through when a caller knows the rendered size, set to the
-   * viewport for a `fill` image — which really is as wide as its container —
-   * and otherwise left off, which is the honest answer for an image rendered at
-   * its own width and the cheap one.
+   * What the browser is told the image renders at, and the prop that decides
+   * what an upload costs: `sizes` is what makes Next offer the whole
+   * `deviceSizes` + `imageSizes` srcset, and every width a browser picks off
+   * that list is a transformation of its own.
    *
    * What this replaces was built from the breakpoints in descending order and
    * written with `w` descriptors. Those belong to `srcset`; `sizes` takes CSS
-   * lengths, so every entry was invalid, and a browser that cannot parse any of
-   * them falls back to `100vw` — which is how thumbnails came to be served the
-   * widest file on offer.
+   * lengths, so every entry was invalid and the browser fell back to `100vw`
+   * — which is how a 40px logo came to be served the widest file on offer.
+   *
+   * `100vw` is what that fallback amounted to, so it is the default here too,
+   * and dropping it is not the saving it looks like: without `sizes` Next
+   * describes the srcset by pixel density instead, against the upload's own
+   * width rather than the width it renders at, so a 2000px photograph in a
+   * 200px card is offered the widest file on every screen including a phone.
+   * The saving is a caller naming its rendered size — see the `IMAGE_SIZES`
+   * beside the layouts that do — not the absence of one.
    */
-  const sizes = sizeFromProps ?? (fill ? '100vw' : undefined)
+  const sizes = sizeFromProps ?? '100vw'
 
   return (
     <picture className={cn(pictureClassName)}>

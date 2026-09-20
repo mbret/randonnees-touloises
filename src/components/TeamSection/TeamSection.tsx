@@ -92,6 +92,15 @@ const getHrefForContact = (type: ContactLink['type'], value: string | null | und
   }
 }
 
+/**
+ * Two portraits to a row on a phone and as many as six in the widest container.
+ * The breakpoints on the grid are container queries, so these are the viewport
+ * widths they work out to at this page's container width rather than a reading
+ * of the class names.
+ */
+const IMAGE_SIZES =
+  '(min-width: 1536px) 200px, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw'
+
 export const TeamSection = ({ teamMembers }: { teamMembers: TeamMember[] }) => {
   return (
     /**
@@ -114,6 +123,7 @@ export const TeamSection = ({ teamMembers }: { teamMembers: TeamMember[] }) => {
                     resource={member.media}
                     className="w-full h-full"
                     imgClassName="w-full h-full object-cover object-center"
+                    size={IMAGE_SIZES}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">

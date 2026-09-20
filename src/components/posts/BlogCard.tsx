@@ -12,6 +12,13 @@ import { postPath } from '@/utilities/postPath'
 
 export type CardPostData = Pick<Post, 'slug' | 'meta' | 'title' | 'heroImage' | 'schedule'>
 
+/**
+ * The card's picture is sized by its height rather than the viewport:
+ * `aspect-video` against `h-40` (160px), or `h-50` (200px) from `md`, puts its
+ * width at 16/9 of whichever applies.
+ */
+const IMAGE_SIZES = '(min-width: 768px) 356px, 284px'
+
 export const BlogCard: React.FC<{
   alignItems?: 'center'
   className?: string
@@ -39,6 +46,7 @@ export const BlogCard: React.FC<{
           <Media
             resource={media}
             imgClassName="aspect-video h-40 md:h-50 rounded-t-md object-cover"
+            size={IMAGE_SIZES}
           />
         )}
       </CardContent>

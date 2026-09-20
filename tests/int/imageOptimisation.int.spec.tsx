@@ -106,12 +106,15 @@ describe('what an upload is allowed to cost', () => {
 
 describe('how many widths an upload is offered at', () => {
   /**
-   * `sizes` is what makes Next offer the whole `deviceSizes` + `imageSizes`
-   * srcset rather than the intrinsic width at 1x and 2x, so an image that does
-   * not know its rendered size is cheaper for saying nothing.
+   * Saying nothing is not free: without `sizes` Next describes the srcset by
+   * pixel density against the upload's own width rather than the width it
+   * renders at, so a 2000px photograph in a 200px card is offered the widest
+   * file on every screen, a phone included. `100vw` is what the old invalid
+   * default amounted to in practice, and it is the floor a caller improves on
+   * rather than a value worth removing.
    */
-  it('claims no rendered size for an image measured by its own width', () => {
-    expect(propsFor(<ImageMedia resource={upload()} />).sizes).toBeUndefined()
+  it('falls back to the viewport rather than to pixel density', () => {
+    expect(propsFor(<ImageMedia resource={upload()} />).sizes).toBe('100vw')
   })
 
   it('measures a fill image against the viewport, which is what it fills', () => {
