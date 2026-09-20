@@ -92,9 +92,36 @@ const nextConfig = {
        */
       ...THUMBNAIL_REMOTE_PATTERNS,
     ],
-    // Next 16 narrowed the default allowed qualities to [75]; ImageMedia
-    // requests quality={100}, so both have to be opted in explicitly.
-    qualities: [75, 100],
+    /**
+     * The widths a transformation may be asked for, and so — multiplied by the
+     * formats browsers accept — what one upload can cost per month.
+     *
+     * Next's defaults offer fifteen: eight device widths up to 3840 and seven
+     * image widths down to 32. Nothing the club publishes needs a 4K variant,
+     * and no two adjacent widths in that list are far enough apart to be worth
+     * a separate stored copy. These four cover a phone, a tablet, a laptop and
+     * a desktop; `imageSizes` covers the small fixed elements, the ~40px outing
+     * logos and the 192px portraits, at 1x and 2x.
+     *
+     * `imageSizes` entries have to stay below the smallest `deviceSizes` entry,
+     * which is what the two lists mean: one is consulted for images declared
+     * smaller than the screen, the other for images measured against it.
+     */
+    deviceSizes: [640, 828, 1200, 1920],
+    imageSizes: [48, 96, 192, 384],
+    /**
+     * One quality, so a width is stored once rather than once per quality.
+     *
+     * This listed 100 as well, for an `ImageMedia` that asked for it. At that
+     * setting the optimiser has almost nothing left to remove — one photo came
+     * back the same size it went in, across nine transformations — so the
+     * second copy of every width bought nothing. 75 is Next's default and the
+     * value the portraits already asked for.
+     *
+     * Next coerces an unlisted quality to the nearest listed one and warns, so
+     * a caller passing anything else now gets 75 and a line in the log.
+     */
+    qualities: [75],
     /**
      * Next 16 defaults to `[{ pathname: '**', search: '' }]`, which rejects any
      * local image carrying a query string. Payload media is served from our own
