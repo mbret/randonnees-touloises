@@ -150,6 +150,19 @@ const main = async () => {
       await payload.update({
         collection: 'media',
         id: doc.id,
+        /**
+         * `disableRevalidate` because `revalidateMedia` calls `revalidateTag`,
+         * which needs a Next request to be inside of and throws `Invariant:
+         * static generation store missing` out here — as every other script in
+         * this directory already found. It took exactly the three site assets
+         * with it, since they are the only filenames that hook fires for, and
+         * left them the last documents in the collection without a ladder.
+         *
+         * Nothing is lost by turning it off: the run ends by asking for a
+         * redeploy, which rebuilds every page and every tag with it. Expiring
+         * one tag 227 times on the way there would be work for its own sake.
+         */
+        context: { disableRevalidate: true },
         data: {},
         file: await fetchOriginal(doc),
         /* Without this Payload treats the document's own file as a name
