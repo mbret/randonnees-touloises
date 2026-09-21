@@ -69,21 +69,30 @@ import { registrationStatus } from './registrationStatus'
  * the shipped `/50` instead of racing it — same modifier set, same class group,
  * ours last.
  *
- * `[a]:hover:duration-0` is the only timing the card asks for, and it is about
- * the list rather than about the card. `itemVariants` fades the fill over 100ms
- * in both directions, so moving from one entry to the next runs two fades at
- * once. Measured across the 12px gap: at the same frame the entry being left
- * sat at 54% of its wash and the entry being arrived at was at 46%, and the two
- * stayed somewhere in the middle for about 80ms. Half of a 1.17:1 wash is
- * 1.08:1, which is nothing — so for a tenth of a second neither entry was lit,
- * and the highlight read as blinking off and on rather than as moving to the
- * next line. Nought on the way in settles it at the end that matters: the entry
- * under the cursor carries the whole wash on the first frame, every time, and
- * the one being left keeps its 100ms to fade out behind it. The other way round
- * — instant out, fade in — is the same fault made worse, with both entries at
- * nothing on the first frame.
+ * `duration-0` replaces the 100ms `itemVariants` fades the fill over, and it is
+ * about the list rather than about the card. A fade in either direction leaves
+ * two entries painted at once while the cursor crosses the 12px between them,
+ * and no version of that survives being looked at. Fading both ways, measured
+ * frame by frame: at one frame the entry being left sat at 54% of its wash and
+ * the entry being arrived at was at 46%, and the two held somewhere in the
+ * middle for about 80ms — and half of a 1.17:1 wash is 1.08:1, which is
+ * nothing, so for a tenth of a second neither entry was lit and the highlight
+ * read as blinking rather than as moving down the list. Fading out alone —
+ * whole wash on arrival, 100ms for the entry left behind — only moves the
+ * fault: the wash then trails a line above the cursor, and the entry a reader
+ * has already left is the one that still looks answered. Fading in alone is the
+ * first fault made worse, both entries at nothing on the first frame.
  *
- * It stops at this element: Tailwind registers `--tw-duration` with
+ * There is no fourth timing, because the trail is the fade. So the wash arrives
+ * and leaves whole, which is what a list of rows wants in any case: the entry
+ * under the cursor is the only one painted, on every frame, and « which one am
+ * I on » is never a tenth of a second out of date. A fade earns its keep where
+ * a hover is one object answering; across twenty rows a reader sweeps, it is
+ * only smear.
+ *
+ * Spelt without `[a]:` so tailwind-merge drops the `duration-100` it replaces
+ * rather than keeping both and leaving specificity to settle it. Either way it
+ * stops at this element: Tailwind registers `--tw-duration` with
  * `inherits: false`, so the chevron below keeps its own 150ms.
  */
 export function ProgramCard({
@@ -106,7 +115,7 @@ export function ProgramCard({
   return (
     <Item
       asChild
-      className="bg-card [a]:hover:bg-accent [a]:hover:duration-0 dark:border-input"
+      className="bg-card duration-0 [a]:hover:bg-accent dark:border-input"
       variant="outline"
     >
       <Link href={`${PROGRAMS_BASE}/${slug}`}>
