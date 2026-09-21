@@ -69,31 +69,47 @@ import { registrationStatus } from './registrationStatus'
  * the shipped `/50` instead of racing it — same modifier set, same class group,
  * ours last.
  *
- * `duration-0` replaces the 100ms `itemVariants` fades the fill over, and it is
- * about the list rather than about the card. A fade in either direction leaves
- * two entries painted at once while the cursor crosses the 12px between them,
- * and no version of that survives being looked at. Fading both ways, measured
- * frame by frame: at one frame the entry being left sat at 54% of its wash and
- * the entry being arrived at was at 46%, and the two held somewhere in the
- * middle for about 80ms — and half of a 1.17:1 wash is 1.08:1, which is
- * nothing, so for a tenth of a second neither entry was lit and the highlight
- * read as blinking rather than as moving down the list. Fading out alone —
- * whole wash on arrival, 100ms for the entry left behind — only moves the
- * fault: the wash then trails a line above the cursor, and the entry a reader
- * has already left is the one that still looks answered. Fading in alone is the
- * first fault made worse, both entries at nothing on the first frame.
+ * `duration-0` replaces the 100ms `itemVariants` fades the fill over, and the
+ * rule it carries is: do not put a fade back on this fill. It was tried at both
+ * ends and in both directions, and every version is the same fault, because the
+ * fault is the fade and not its direction — a fade paints two entries at once
+ * while the cursor crosses the 12px between them, and a reader sweeping a list
+ * cannot then tell which line answered.
  *
- * There is no fourth timing, because the trail is the fade. So the wash arrives
- * and leaves whole, which is what a list of rows wants in any case: the entry
- * under the cursor is the only one painted, on every frame, and « which one am
- * I on » is never a tenth of a second out of date. A fade earns its keep where
- * a hover is one object answering; across twenty rows a reader sweeps, it is
- * only smear.
+ * Measured frame by frame, as a share of the full wash, so the next reader need
+ * not do it again:
  *
- * Spelt without `[a]:` so tailwind-merge drops the `duration-100` it replaces
- * rather than keeping both and leaving specificity to settle it. Either way it
- * stops at this element: Tailwind registers `--tw-duration` with
- * `inherits: false`, so the chevron below keeps its own 150ms.
+ *   Both ways, which is what shipped: at one frame the entry being left sat at
+ *   54% and the entry being arrived at at 46%, and the two held in the middle
+ *   for about 80ms. Half of a 1.17:1 wash is 1.08:1, which is nothing, so for a
+ *   tenth of a second neither entry was lit and the hover read as blinking off
+ *   and on rather than as moving down the list.
+ *
+ *   Out alone — whole wash on arrival, 100ms for the entry left behind — only
+ *   moves the fault. The wash trails a line above the cursor, and the entry a
+ *   reader has already left is the one that still looks answered.
+ *
+ *   In alone is the first fault made worse, both entries at nothing on the
+ *   first frame.
+ *
+ * Nought reads 0% or 100% and nothing between, so exactly one entry is painted
+ * on every frame. It is also simply what a list of rows does — a row highlight
+ * snaps in Finder, on GitHub, in Linear — and for this reason rather than for
+ * want of polish. A fade earns its keep where a hover is one object answering;
+ * across twenty rows a reader sweeps, it is only smear.
+ *
+ * Two ways out, if the softness is ever genuinely wanted back, both of them
+ * design changes rather than fixes: a wash far enough above `card` that half of
+ * it is still legible, so a cross-fade reads as a dissolve; or a list with no
+ * gap for the cursor to cross, where the fade can be suppressed while any row
+ * is hovered and kept for the list's outer edges. Shortening the fade is not
+ * one of them — it halves the smear and keeps the fault.
+ *
+ * The hover is not motionless. Tailwind registers `--tw-duration` with
+ * `inherits: false`, so this stops at the card: the chevron below keeps its own
+ * 150ms, for its colour and its shift alike. Spelt without `[a]:` so
+ * tailwind-merge drops the `duration-100` it replaces rather than keeping both
+ * and leaving specificity to settle it.
  */
 export function ProgramCard({
   availability,
