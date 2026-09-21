@@ -17,22 +17,34 @@ import type { OrderedNavItem } from './staticNavItems'
 
 /**
  * How many of the leading nav items sit outside the "Plus" menu: two below
- * `md`, three below `lg`, four above. Each entry pairs a class for the item's
- * shortcut with the complementary one for its entry in the menu, so exactly one
- * of the two copies shows at any width and the menu never repeats what is
- * already on display.
+ * `md`, three below `lg`, five from `lg` up. Each entry pairs a class for the
+ * item's shortcut with the complementary one for its entry in the menu, so
+ * exactly one of the two copies shows at any width and the menu never repeats
+ * what is already on display.
  *
- * The counts are deliberately conservative — they hold even for long labels — so
- * that the split can be plain CSS. Measuring the viewport instead renders one
- * thing on the server and another in the browser, which breaks hydration.
- * Tailwind only picks these up as literal strings.
+ * The ladder ends at `lg` because the bar stops growing there. Everything in
+ * the header is laid out inside `container`, which is capped at 64rem — `lg`
+ * exactly — so a wider viewport only widens the margins around the page. The
+ * step at `xl` this used to end on therefore bought a fifth shortcut out of no
+ * new room at all: the same 960px of bar carried four links on a 1024px screen
+ * and five on an ultrawide, and the two disagreed about a menu neither had
+ * resized. Whatever the widest bar holds, it holds from `lg` up.
+ *
+ * Five is what that widest bar has room for. At `lg` the container leaves
+ * 960px, the logo takes about 105 of them, and the trigger and five links
+ * measure around 635 together — room to spare for labels longer than the ones
+ * in the menu today, which is the margin these counts are picked for. The two
+ * steps below `lg` are conservative in the same way, since the split has to be
+ * plain CSS: measuring the viewport instead renders one thing on the server and
+ * another in the browser, which breaks hydration. Tailwind only picks these up
+ * as literal strings.
  */
 const shortcutLadder = [
   { shortcut: '', menu: 'hidden' },
   { shortcut: '', menu: 'hidden' },
   { shortcut: 'max-md:hidden', menu: 'md:hidden' },
   { shortcut: 'max-lg:hidden', menu: 'lg:hidden' },
-  { shortcut: 'max-xl:hidden', menu: 'xl:hidden' },
+  { shortcut: 'max-lg:hidden', menu: 'lg:hidden' },
 ]
 
 /**
