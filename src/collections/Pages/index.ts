@@ -25,19 +25,7 @@ import {
 } from '@payloadcms/plugin-seo/fields'
 import { adminOnly } from '@/access/adminOnly'
 import { ProfileCardsBlockConfig } from '@/blocks/ProfileCards/config'
-import { DEFAULT_NAV_ORDER, staticNavItems } from '@/navigation/Header/staticNavItems'
-
-/**
- * What an editor needs in order to aim at a gap: the positions the menu's fixed
- * entries actually occupy, read off the menu itself rather than restated here,
- * where the two would drift apart the first time one of them moved.
- */
-const navOrderDescription =
-  'Classement croissant sur l’ensemble du menu. Les entrées fixes occupent ' +
-  staticNavItems.map(({ link, navOrder }) => `${navOrder} ${link.label}`).join(', ') +
-  `. Sans valeur, la page se place en ${DEFAULT_NAV_ORDER}, donc après elles. ` +
-  'Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact ' +
-  'et À propos — et à nombre égal la page passe devant l’entrée fixe.'
+import { navOrderDescription } from '@/navigation/Header/navOrderDescription'
 
 export const Pages: CollectionConfig<'pages'> = {
   slug: 'pages',
@@ -201,7 +189,7 @@ export const Pages: CollectionConfig<'pages'> = {
       label: 'Ordre dans le menu',
       admin: {
         condition: (_, siblingData) => Boolean(siblingData?.showInNav),
-        description: navOrderDescription,
+        description: navOrderDescription('la page'),
         position: 'sidebar',
       },
     },
