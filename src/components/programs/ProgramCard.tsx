@@ -67,8 +67,49 @@ import { registrationStatus } from './registrationStatus'
  * tailwind-merge matches on the variant set, so a plain one would be kept
  * alongside it and then lose on specificity. Spelled the same way, it collapses
  * the shipped `/50` instead of racing it — same modifier set, same class group,
- * ours last. Nothing needs a transition spelled out here: with only the fill
- * moving, the base `transition-colors` carries it.
+ * ours last.
+ *
+ * `duration-0` replaces the 100ms `itemVariants` fades the fill over, and the
+ * rule it carries is: do not put a fade back on this fill. It was tried at both
+ * ends and in both directions, and every version is the same fault, because the
+ * fault is the fade and not its direction — a fade paints two entries at once
+ * while the cursor crosses the 12px between them, and a reader sweeping a list
+ * cannot then tell which line answered.
+ *
+ * Measured frame by frame, as a share of the full wash, so the next reader need
+ * not do it again:
+ *
+ *   Both ways, which is what shipped: at one frame the entry being left sat at
+ *   54% and the entry being arrived at at 46%, and the two held in the middle
+ *   for about 80ms. Half of a 1.17:1 wash is 1.08:1, which is nothing, so for a
+ *   tenth of a second neither entry was lit and the hover read as blinking off
+ *   and on rather than as moving down the list.
+ *
+ *   Out alone — whole wash on arrival, 100ms for the entry left behind — only
+ *   moves the fault. The wash trails a line above the cursor, and the entry a
+ *   reader has already left is the one that still looks answered.
+ *
+ *   In alone is the first fault made worse, both entries at nothing on the
+ *   first frame.
+ *
+ * Nought reads 0% or 100% and nothing between, so exactly one entry is painted
+ * on every frame. It is also simply what a list of rows does — a row highlight
+ * snaps in Finder, on GitHub, in Linear — and for this reason rather than for
+ * want of polish. A fade earns its keep where a hover is one object answering;
+ * across twenty rows a reader sweeps, it is only smear.
+ *
+ * Two ways out, if the softness is ever genuinely wanted back, both of them
+ * design changes rather than fixes: a wash far enough above `card` that half of
+ * it is still legible, so a cross-fade reads as a dissolve; or a list with no
+ * gap for the cursor to cross, where the fade can be suppressed while any row
+ * is hovered and kept for the list's outer edges. Shortening the fade is not
+ * one of them — it halves the smear and keeps the fault.
+ *
+ * The hover is not motionless. Tailwind registers `--tw-duration` with
+ * `inherits: false`, so this stops at the card: the chevron below keeps its own
+ * 150ms, for its colour and its shift alike. Spelt without `[a]:` so
+ * tailwind-merge drops the `duration-100` it replaces rather than keeping both
+ * and leaving specificity to settle it.
  */
 export function ProgramCard({
   availability,
@@ -88,7 +129,11 @@ export function ProgramCard({
   })
 
   return (
-    <Item asChild className="bg-card [a]:hover:bg-accent dark:border-input" variant="outline">
+    <Item
+      asChild
+      className="bg-card duration-0 [a]:hover:bg-accent dark:border-input"
+      variant="outline"
+    >
       <Link href={`${PROGRAMS_BASE}/${slug}`}>
         <ItemMedia className="w-14 flex-col items-start gap-0 tabular-nums">
           <span className="font-mono text-lg leading-none font-semibold">{badge.day}</span>
@@ -118,9 +163,20 @@ export function ProgramCard({
            * date and the small print, and the hover still brings it up.
            *
            * `motion-safe:` on the shift alone: the darkening is a fade rather
-           * than motion, and it is what carries the cue when the shift is off. */}
+           * than motion, and it is what carries the cue when the shift is off.
+           *
+           * `translate` and not `transform` in the transition list, because
+           * that is the property the utility writes. Tailwind v4 moved
+           * `translate-x-*` off the `transform` shorthand onto the separate
+           * `translate` property, so a transition naming `transform` covers
+           * nothing this element sets. Spelt that way the 2 px arrived whole
+           * in a single frame — `translate` measured `none`, then `2px` on the
+           * next — while the colour still took its 150 ms: the arrow snapped,
+           * then darkened, and snapped back the moment the cursor left. A
+           * hover whose two halves disagree reads as a twitch rather than as
+           * an answer. */}
           <ChevronRightIcon
-            className="text-muted-foreground size-3.5 transition-[color,transform] group-hover/item:text-foreground motion-safe:group-hover/item:translate-x-0.5"
+            className="text-muted-foreground size-3.5 transition-[color,translate] group-hover/item:text-foreground motion-safe:group-hover/item:translate-x-0.5"
             strokeWidth={1.5}
           />
         </ItemActions>
