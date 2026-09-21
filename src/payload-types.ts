@@ -2922,6 +2922,7 @@ export interface Header {
           url?: string | null;
           label: string;
         };
+        navOrder?: number | null;
         id?: string | null;
       }[]
     | null;
@@ -2998,6 +2999,7 @@ export interface HeaderSelect<T extends boolean = true> {
               url?: T;
               label?: T;
             };
+        navOrder?: T;
         id?: T;
       };
   updatedAt?: T;

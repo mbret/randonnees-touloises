@@ -19,7 +19,8 @@ import * as migration_20260902_101108_adherents from './20260902_101108_adherent
 import * as migration_20260902_175758_drop_board_rank from './20260902_175758_drop_board_rank';
 import * as migration_20260902_190828_profile_cards_block from './20260902_190828_profile_cards_block';
 import * as migration_20260905_093601_hero_subtitle from './20260905_093601_hero_subtitle';
-import * as migration_20260920_111116_home_hero_image from './20260920_111116_home_hero_image';
+import * as migration_20260920_111116_home_hero_image from './20260920_111116_home_hero_image'
+import * as migration_20260921_094500_header_nav_item_order from './20260921_094500_header_nav_item_order';
 
 export const migrations = [
   {
@@ -131,5 +132,10 @@ export const migrations = [
     up: migration_20260920_111116_home_hero_image.up,
     down: migration_20260920_111116_home_hero_image.down,
     name: '20260920_111116_home_hero_image'
+  },
+  {
+    up: migration_20260921_094500_header_nav_item_order.up,
+    down: migration_20260921_094500_header_nav_item_order.down,
+    name: '20260921_094500_header_nav_item_order'
   },
 ];
