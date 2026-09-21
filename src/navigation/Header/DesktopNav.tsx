@@ -17,7 +17,7 @@ import type { OrderedNavItem } from './staticNavItems'
 
 /**
  * How many of the leading nav items sit outside the "Plus" menu: two below
- * `md`, four from `md`, five from `lg` up. Each entry pairs a class for the
+ * `md`, three from `md`, five from `lg` up. Each entry pairs a class for the
  * item's shortcut with the complementary one for its entry in the menu, so
  * exactly one of the two copies shows at any width and the menu never repeats
  * what is already on display.
@@ -30,20 +30,19 @@ import type { OrderedNavItem } from './staticNavItems'
  * and five on an ultrawide, and the two disagreed about a menu neither had
  * resized. Whatever the widest bar holds, it holds from `lg` up.
  *
- * The counts are measured against that bar rather than guessed at. The logo
- * takes about 105px of it, the "Plus" trigger 75, and the links in the menu
- * today run from 85 to 133 apiece with a 4px gap between them. At `lg` the
- * container leaves 960px, so the trigger and five links come to roughly 635 of
- * the 855 beside the logo — room to spare for labels longer than any of these.
+ * That cap is also what makes `lg` the one rung that can be picked confidently.
+ * A count has to hold at its band's *narrowest* width, not at a comfortable one
+ * — and `lg` has only one width. Every band below it spans a range: `md` runs
+ * from 704px of content up to 959, so a fourth shortcut that sits easily at
+ * 950 has to also fit at 768, where the gutters have just doubled from 1rem to
+ * 2rem and taken the content from 735px down to 704.
  *
- * `md` is where it is tight, and tightest at exactly 768px: the gutters double
- * from 1rem to 2rem there, so crossing into `md` *narrows* the content from
- * 735px to 704 before any breakpoint hands out a link. That leaves 599 beside
- * the logo against the roughly 537 the trigger and four links measure. It fits,
- * and it is the one rung with only about 60px in hand, so a label much longer
- * than « Sorties du mois » in one of the first four positions is what would
- * cost it — `NavigationMenuList` wraps rather than overflowing, and a second
- * row does not fit inside an `h-20` header.
+ * A fourth at `md` was tried and does not. The labels here are editor-set, and
+ * « Programme hebdomadaire » alone measures about 180px against the 85 to 133
+ * of the others; with it in the menu the trigger and four links come to roughly
+ * 660, which wrapped onto a second row at 825px — inside `h-20`, where there is
+ * no second row to wrap onto. Three come to about 530 against the 599 that 768
+ * leaves beside the logo, and that is the margin this rung is holding.
  *
  * The split has to stay plain CSS: measuring the viewport instead renders one
  * thing on the server and another in the browser, which breaks hydration.
@@ -53,7 +52,7 @@ const shortcutLadder = [
   { shortcut: '', menu: 'hidden' },
   { shortcut: '', menu: 'hidden' },
   { shortcut: 'max-md:hidden', menu: 'md:hidden' },
-  { shortcut: 'max-md:hidden', menu: 'md:hidden' },
+  { shortcut: 'max-lg:hidden', menu: 'lg:hidden' },
   { shortcut: 'max-lg:hidden', menu: 'lg:hidden' },
 ]
 
