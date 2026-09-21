@@ -96,7 +96,13 @@ describe('withStaticNavItems', () => {
   it('places a page between the two static entries its order falls between', () => {
     const merged = withStaticNavItems(null, [derived('/adhesion', 'Adhésions', 15)])
 
-    expect(labels(merged).slice(0, 4)).toEqual(['Recherche', 'Contact', 'Adhésions', 'À propos'])
+    expect(labels(merged).slice(0, 5)).toEqual([
+      'Recherche',
+      'Programme hebdomadaire',
+      'Contact',
+      'Adhésions',
+      'À propos',
+    ])
   })
 
   // So that `0` reads as the front of the menu rather than as second place.
@@ -112,8 +118,9 @@ describe('withStaticNavItems', () => {
       [derived('/page', 'Page', 15)],
     )
 
-    expect(labels(merged).slice(0, 5)).toEqual([
+    expect(labels(merged).slice(0, 6)).toEqual([
       'Recherche',
+      'Programme hebdomadaire',
       'Contact',
       'Global',
       'Page',
