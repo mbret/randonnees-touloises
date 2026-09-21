@@ -17,7 +17,7 @@ import type { OrderedNavItem } from './staticNavItems'
 
 /**
  * How many of the leading nav items sit outside the "Plus" menu: two below
- * `md`, three below `lg`, five from `lg` up. Each entry pairs a class for the
+ * `md`, four from `md`, five from `lg` up. Each entry pairs a class for the
  * item's shortcut with the complementary one for its entry in the menu, so
  * exactly one of the two copies shows at any width and the menu never repeats
  * what is already on display.
@@ -30,20 +30,30 @@ import type { OrderedNavItem } from './staticNavItems'
  * and five on an ultrawide, and the two disagreed about a menu neither had
  * resized. Whatever the widest bar holds, it holds from `lg` up.
  *
- * Five is what that widest bar has room for. At `lg` the container leaves
- * 960px, the logo takes about 105 of them, and the trigger and five links
- * measure around 635 together — room to spare for labels longer than the ones
- * in the menu today, which is the margin these counts are picked for. The two
- * steps below `lg` are conservative in the same way, since the split has to be
- * plain CSS: measuring the viewport instead renders one thing on the server and
- * another in the browser, which breaks hydration. Tailwind only picks these up
- * as literal strings.
+ * The counts are measured against that bar rather than guessed at. The logo
+ * takes about 105px of it, the "Plus" trigger 75, and the links in the menu
+ * today run from 85 to 133 apiece with a 4px gap between them. At `lg` the
+ * container leaves 960px, so the trigger and five links come to roughly 635 of
+ * the 855 beside the logo — room to spare for labels longer than any of these.
+ *
+ * `md` is where it is tight, and tightest at exactly 768px: the gutters double
+ * from 1rem to 2rem there, so crossing into `md` *narrows* the content from
+ * 735px to 704 before any breakpoint hands out a link. That leaves 599 beside
+ * the logo against the roughly 537 the trigger and four links measure. It fits,
+ * and it is the one rung with only about 60px in hand, so a label much longer
+ * than « Sorties du mois » in one of the first four positions is what would
+ * cost it — `NavigationMenuList` wraps rather than overflowing, and a second
+ * row does not fit inside an `h-20` header.
+ *
+ * The split has to stay plain CSS: measuring the viewport instead renders one
+ * thing on the server and another in the browser, which breaks hydration.
+ * Tailwind only picks these up as literal strings.
  */
 const shortcutLadder = [
   { shortcut: '', menu: 'hidden' },
   { shortcut: '', menu: 'hidden' },
   { shortcut: 'max-md:hidden', menu: 'md:hidden' },
-  { shortcut: 'max-lg:hidden', menu: 'lg:hidden' },
+  { shortcut: 'max-md:hidden', menu: 'md:hidden' },
   { shortcut: 'max-lg:hidden', menu: 'lg:hidden' },
 ]
 
