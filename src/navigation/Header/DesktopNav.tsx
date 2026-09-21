@@ -17,13 +17,34 @@ import type { OrderedNavItem } from './staticNavItems'
 
 /**
  * How many of the leading nav items sit outside the "Plus" menu: two below
- * `md`, three below `lg`, four above. Each entry pairs a class for the item's
- * shortcut with the complementary one for its entry in the menu, so exactly one
- * of the two copies shows at any width and the menu never repeats what is
- * already on display.
+ * `md`, three from `md`, five from `lg` up. Each entry pairs a class for the
+ * item's shortcut with the complementary one for its entry in the menu, so
+ * exactly one of the two copies shows at any width and the menu never repeats
+ * what is already on display.
  *
- * The counts are deliberately conservative — they hold even for long labels — so
- * that the split can be plain CSS. Measuring the viewport instead renders one
+ * The ladder ends at `lg` because the bar stops growing there. Everything in
+ * the header is laid out inside `container`, which is capped at 64rem — `lg`
+ * exactly — so a wider viewport only widens the margins around the page. The
+ * step at `xl` this used to end on therefore bought a fifth shortcut out of no
+ * new room at all: the same 960px of bar carried four links on a 1024px screen
+ * and five on an ultrawide, and the two disagreed about a menu neither had
+ * resized. Whatever the widest bar holds, it holds from `lg` up.
+ *
+ * That cap is also what makes `lg` the one rung that can be picked confidently.
+ * A count has to hold at its band's *narrowest* width, not at a comfortable one
+ * — and `lg` has only one width. Every band below it spans a range: `md` runs
+ * from 704px of content up to 959, so a fourth shortcut that sits easily at
+ * 950 has to also fit at 768, where the gutters have just doubled from 1rem to
+ * 2rem and taken the content from 735px down to 704.
+ *
+ * A fourth at `md` was tried and does not. The labels here are editor-set, and
+ * « Programme hebdomadaire » alone measures about 180px against the 85 to 133
+ * of the others; with it in the menu the trigger and four links come to roughly
+ * 660, which wrapped onto a second row at 825px — inside `h-20`, where there is
+ * no second row to wrap onto. Three come to about 530 against the 599 that 768
+ * leaves beside the logo, and that is the margin this rung is holding.
+ *
+ * The split has to stay plain CSS: measuring the viewport instead renders one
  * thing on the server and another in the browser, which breaks hydration.
  * Tailwind only picks these up as literal strings.
  */
@@ -32,7 +53,7 @@ const shortcutLadder = [
   { shortcut: '', menu: 'hidden' },
   { shortcut: 'max-md:hidden', menu: 'md:hidden' },
   { shortcut: 'max-lg:hidden', menu: 'lg:hidden' },
-  { shortcut: 'max-xl:hidden', menu: 'xl:hidden' },
+  { shortcut: 'max-lg:hidden', menu: 'lg:hidden' },
 ]
 
 /**
