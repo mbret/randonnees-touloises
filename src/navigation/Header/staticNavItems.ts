@@ -42,17 +42,23 @@ export const staticNavItems: StaticNavItem[] = [
     navOrder: 0,
     link: { label: 'Recherche', type: 'custom', url: '/search' },
   },
+  /* Off the tens, and deliberately: this one is placed against an entry in the
+   * Header global rather than against the entries around it. « Nos sorties du
+   * mois » is set to 1, and the programme belongs beside it — the two are the
+   * same question asked of two different collections — so this sits in the gap
+   * above it. Whatever number that entry takes, the programme wants to be the
+   * next one up; there is nowhere on the tens to say that. */
+  {
+    id: 'static-programs',
+    navOrder: 5,
+    link: { label: 'Programme hebdomadaire', type: 'custom', url: '/programs' },
+  },
   {
     id: 'static-contact',
     navOrder: 10,
     link: { label: 'Contact', type: 'custom', url: '/contact' },
   },
   { id: 'static-about', navOrder: 30, link: { label: 'À propos', type: 'custom', url: '/about' } },
-  {
-    id: 'static-programs',
-    navOrder: 50,
-    link: { label: 'Programme hebdomadaire', type: 'custom', url: '/programs' },
-  },
   /* `/board` has no route file of its own any more: it is a `pages` document,
    * rendered by `/[slug]`. The entry stays here rather than coming from the
    * page's own `showInNav`, so the conseil keeps its place in the menu whoever
