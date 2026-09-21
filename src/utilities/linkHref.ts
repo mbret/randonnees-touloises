@@ -10,6 +10,18 @@ export type LinkLike = {
   url?: string | null
 }
 
+/**
+ * A slug with the separator it is about to be joined with taken off the front.
+ *
+ * `globalPages` slugs are typed by hand into a field whose label says « URL »,
+ * so they get typed as addresses: `/#agenda` rather than `#agenda`. Joined
+ * naively that reads `//#agenda`, which a browser parses as a protocol-relative
+ * address with no host — not a fragment on this site — and the link goes
+ * nowhere. Trimming makes the two spellings the one address they were meant to
+ * be, and leaves a slug of `/` as the site root rather than as `//`.
+ */
+const withoutLeadingSlashes = (slug: string) => slug.replace(/^\/+/, '')
+
 const slugOf = (value: unknown): string | null => {
   if (!value || typeof value !== 'object' || !('slug' in value)) return null
 
@@ -38,7 +50,7 @@ export const linkHref = ({ reference, type, url }: LinkLike): string | null => {
     if (slug) {
       const prefix = servedFromRoot.includes(reference.relationTo) ? '' : `/${reference.relationTo}`
 
-      return `${prefix}/${slug}`
+      return `${prefix}/${withoutLeadingSlashes(slug)}`
     }
   }
 

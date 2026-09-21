@@ -64,6 +64,36 @@ describe('linkHref', () => {
     ).toBe('/posts/sortie')
   })
 
+  // An editor filling in a field labelled « Identifiant d’URL » writes an
+  // address, slash and all; joined naively that reads `//#agenda`, which is a
+  // protocol-relative address with no host rather than a fragment on this site.
+  it('reads a slug carrying its own leading slash as the one address it spells', () => {
+    expect(
+      linkHref({
+        reference: { relationTo: 'globalPages', value: { slug: '/#agenda' } },
+        type: 'reference',
+      }),
+    ).toBe('/#agenda')
+  })
+
+  it('resolves a bare fragment to that section of the site root', () => {
+    expect(
+      linkHref({
+        reference: { relationTo: 'globalPages', value: { slug: '#agenda' } },
+        type: 'reference',
+      }),
+    ).toBe('/#agenda')
+  })
+
+  it('leaves a slug of the root as the root', () => {
+    expect(
+      linkHref({
+        reference: { relationTo: 'globalPages', value: { slug: '/' } },
+        type: 'reference',
+      }),
+    ).toBe('/')
+  })
+
   it('falls back to the address when a reference was never populated', () => {
     expect(
       linkHref({

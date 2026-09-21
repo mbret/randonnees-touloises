@@ -23,6 +23,11 @@ export const GlobalPages: CollectionConfig = {
       name: 'slug',
       type: 'text',
       label: 'Identifiant d’URL',
+      admin: {
+        description:
+          'L’adresse de la page, sans le nom du site : « contact » pour /contact. ' +
+          'Pour pointer vers une section de la page d’accueil, écrivez « #agenda ».',
+      },
       required: true,
     },
   ],
