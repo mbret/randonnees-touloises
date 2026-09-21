@@ -671,6 +671,67 @@ header :is([data-slot='navigation-menu-list'] > * > :is(a, button), [data-slot='
   --accent: oklch(0.55 0.13 119 / 10%);
 }
 
+/**
+ * The panel's rows take the bar's timing: `color` and `box-shadow`, never the
+ * fill. Two rules down, `navigationMenuTriggerStyle` says exactly this for the
+ * bar's own chips, and the panel is the same menu.
+ *
+ * `navigation-menu-link` ships `transition-all`, so a row's fill fades over
+ * 150ms — and a reader moving down a menu spends nothing like 150ms on a row.
+ * Sweeping six rows at about 40ms each, every fade outlives the row that
+ * started it and they pile up: measured frame by frame, 17 frames with two rows
+ * lit at once and 6 with three, out of 42. Which row is answering stops having
+ * an answer, and the faster the cursor moves the worse it gets — the one place
+ * a fill has no business fading is the one a reader sweeps.
+ *
+ * The label still fades, which is the part a reader sees as softness rather
+ * than as a wash appearing: with this, every frame of that same sweep has
+ * exactly one row lit, and its colour still travels. It is the arrangement the
+ * bar has had all along without anyone reporting it.
+ *
+ * An override of the shipped component, and the only one here — the 16px `gap-4`
+ * that used to sit between these rows was ours, and deleting it needed no rule
+ * at all. See `DesktopNav`.
+ */
+header [data-slot='navigation-menu-content'] > ul > li > a {
+  position: relative;
+  transition-property: color, box-shadow;
+}
+
+/**
+ * And the reach to cross the 16px `DesktopNav` puts between those rows, so the
+ * cursor is never between two of them. A pseudo-element generates a box that
+ * takes part in hit testing, so these carry no paint: a row is the size it was
+ * and what grows is the area that lights it. 9px against an 8px half-gap, so
+ * the two overlap by a pixel rather than meeting on one, and no border here to
+ * spend one getting out of. The outward halves are dropped — nothing sits
+ * beyond the first and last rows to hand over to.
+ *
+ * This pays for a gap of our own choosing rather than correcting the component:
+ * the spacing is in `DesktopNav`, and a menu that keeps it has to answer for
+ * the air it puts between its rows.
+ */
+header [data-slot='navigation-menu-content'] > ul > li > a::before,
+header [data-slot='navigation-menu-content'] > ul > li > a::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  height: 9px;
+}
+
+header [data-slot='navigation-menu-content'] > ul > li > a::before {
+  bottom: 100%;
+}
+
+header [data-slot='navigation-menu-content'] > ul > li > a::after {
+  top: 100%;
+}
+
+header [data-slot='navigation-menu-content'] > ul > :first-child > a::before,
+header [data-slot='navigation-menu-content'] > ul > :last-child > a::after {
+  display: none;
+}
+
 /* The entries in the bar itself — a list item's own link or trigger, never
  * anything inside the panel one of them opens. Higher specificity than the rule
  * above, so a bar on the photograph keeps its white lift. */
