@@ -80,6 +80,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <Favicon />
         <ClubJsonLd />
+        {/**
+         * Whether the address names a section, answered while the head is still
+         * being parsed — before the first paint, and long before React has run.
+         *
+         * Landing on `/#agenda` from a bookmark, a reload or a shared link, the
+         * browser scrolls a long way down and the bar would sit there dressed
+         * for a photograph the reader is nowhere near, cream on ordinary page
+         * content, until hydration corrected it — measured at some 400ms, which
+         * is not a frame but a fifth of a second of the wrong header.
+         *
+         * The server cannot answer this: a fragment is never sent to it. So the
+         * mark goes on from here, `globals.css` holds the bar solid while it is
+         * there, and `HeaderClient` takes it off at hydration, having by then
+         * set `data-scrolled` from the same address.
+         */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if(location.hash)document.documentElement.setAttribute('data-at-section','')`,
+          }}
+        />
       </head>
       <body className="min-h-screen flex flex-col">
         {/**

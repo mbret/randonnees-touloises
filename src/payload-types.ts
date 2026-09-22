@@ -301,7 +301,7 @@ export interface Page {
    */
   navLabel?: string | null;
   /**
-   * Classement croissant sur l’ensemble du menu. Les entrées fixes occupent 0 Recherche, 10 Contact, 30 À propos, 50 Programme hebdomadaire, 60 Conseil d’administration, 70 Équipe d’animation, 80 Trombinoscope. Sans valeur, la page se place en 100, donc après elles. Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact et À propos — et à nombre égal la page passe devant l’entrée fixe.
+   * Classement croissant sur l’ensemble du menu. Les entrées fixes occupent 0 Recherche, 5 Programme hebdomadaire, 10 Contact, 30 À propos, 60 Conseil d’administration, 70 Équipe d’animation, 80 Trombinoscope. Sans valeur, la page se place en 100, donc après elles. Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact et À propos — et à nombre égal elle passe devant l’entrée fixe.
    */
   navOrder?: number | null;
   /**
@@ -785,6 +785,9 @@ export interface CallToActionBlock {
 export interface GlobalPage {
   id: number;
   name: string;
+  /**
+   * L’adresse de la page, sans le nom du site : « contact » pour /contact. Pour pointer vers une section de la page d’accueil, écrivez « #agenda ».
+   */
   slug: string;
   updatedAt: string;
   createdAt: string;
@@ -2922,6 +2925,9 @@ export interface Header {
           url?: string | null;
           label: string;
         };
+        /**
+         * Classement croissant sur l’ensemble du menu. Les entrées fixes occupent 0 Recherche, 5 Programme hebdomadaire, 10 Contact, 30 À propos, 60 Conseil d’administration, 70 Équipe d’animation, 80 Trombinoscope. Sans valeur, l’entrée se place en 100, donc après elles. Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact et À propos — et à nombre égal elle passe devant l’entrée fixe.
+         */
         navOrder?: number | null;
         id?: string | null;
       }[]

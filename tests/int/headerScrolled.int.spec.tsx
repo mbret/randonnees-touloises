@@ -52,6 +52,7 @@ const solid = (header: Element) => header.hasAttribute('data-scrolled')
 beforeEach(() => {
   document.body.innerHTML = ''
   window.location.hash = ''
+  document.documentElement.removeAttribute('data-at-section')
 })
 
 afterEach(cleanup)
@@ -73,6 +74,32 @@ describe('the header over a photograph', () => {
    * hero the reader has not scrolled yet. */
   it('stays at rest on a page that opens with no photograph', () => {
     expect(solid(bar({ hash: '#agenda', hero: false }))).toBe(false)
+  })
+
+  /* The layout's inline script answers for the stylesheet before React runs;
+   * the bar takes the question over the moment it is mounted, and leaving the
+   * mark on would hold it solid at the top of the page for good. */
+  it('takes the layout script\u2019s mark off the document once it is mounted', () => {
+    document.documentElement.setAttribute('data-at-section', '')
+
+    expect(solid(bar({ hash: '#agenda' }))).toBe(true)
+    expect(document.documentElement.hasAttribute('data-at-section')).toBe(false)
+  })
+
+  /* A jump is not a scroll: the change is painted in a step rather than faded
+   * over content the photograph has already left. */
+  it('arrives in one step when a fragment is followed within the page', () => {
+    const header = bar()
+
+    expect(solid(header)).toBe(false)
+
+    act(() => {
+      window.location.hash = '#agenda'
+      window.dispatchEvent(new HashChangeEvent('hashchange'))
+    })
+
+    expect(solid(header)).toBe(true)
+    expect(header.hasAttribute('data-jumped')).toBe(true)
   })
 
   it('hands the question back to the observer once it has an answer', () => {

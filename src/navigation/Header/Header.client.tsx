@@ -3,7 +3,7 @@
 import { useHeaderTheme } from '@/navigation/Header/HeaderThemeProvider'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React, { useEffect, useLayoutEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { OrderedNavItem } from './staticNavItems'
 import { Logo } from '@/components/Logo/Logo'
 import canUseDOM from '@/utilities/canUseDOM'
@@ -48,6 +48,7 @@ export function HeaderClient({ navItems }: HeaderClientProps) {
    * question is only whether it is still on screen.
    */
   const [scrolled, setScrolled] = useState(false)
+  const headerRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     setHeaderTheme(null)
@@ -87,6 +88,11 @@ export function HeaderClient({ navItems }: HeaderClientProps) {
      */
     setScrolled(Boolean(window.location.hash))
 
+    /* And the mark the layout's script left for the stylesheet comes off in the
+     * same breath, the answer having just been taken over by the state above:
+     * left on, the bar would stay solid at the top of the page. */
+    document.documentElement.removeAttribute('data-at-section')
+
     /* `isIntersecting` and nothing else. Re-deriving the answer from
      * `boundingClientRect` against a margin, as this first did, leaves the
      * boundary case to a floating-point comparison: creeping back up, the one
@@ -99,6 +105,45 @@ export function HeaderClient({ navItems }: HeaderClientProps) {
 
     return () => observer.disconnect()
   }, [pathname])
+
+  /**
+   * A jump is not a scroll.
+   *
+   * Following « Nos sorties du mois » from the top of the home page moves the
+   * reader past the photograph in one step, and the bar's cross-fade — written
+   * for a reader scrolling that photograph out from under it, where the fade
+   * tracks what is passing behind — then plays over ordinary content the
+   * photograph has already left. Measured, the bar spends about 170ms
+   * see-through above the agenda before it finishes arriving, which is the
+   * blink: the fade is right for the gesture it was written for and wrong for
+   * this one.
+   *
+   * `hashchange` is the event for that gesture and only that gesture: the
+   * browser fires it when a fragment is followed within a page, and not for the
+   * `replaceState` the agenda's own tabs do. The state is taken from the
+   * address, as on arrival, and the bar is marked for the one frame it takes to
+   * settle so the change lands in a step rather than a fade.
+   */
+  useEffect(() => {
+    const onHashChange = () => {
+      const header = headerRef.current
+
+      if (!header) return
+
+      header.setAttribute('data-jumped', '')
+      setScrolled(Boolean(window.location.hash))
+
+      /* Two frames: one for the change to be painted with no transition on it,
+       * and the next to hand the transition back for the scrolling to come. */
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => header.removeAttribute('data-jumped')),
+      )
+    }
+
+    window.addEventListener('hashchange', onHashChange)
+
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
 
   /**
    * Deferring to an effect is the point here, not an oversight, so the rule
@@ -123,6 +168,7 @@ export function HeaderClient({ navItems }: HeaderClientProps) {
 
   return (
     <header
+      ref={headerRef}
       /* A fixed height, not padding around whatever the logo happens to be: a
        * hero has to know how far to run up behind this bar, and a height set by
        * an editor's upload is not a number anything else can be written

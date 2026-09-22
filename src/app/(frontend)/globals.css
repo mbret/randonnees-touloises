@@ -649,7 +649,17 @@ main:has(> .band:last-child) + footer {
  * stopped being a filled one — nothing in the bar is filled now, so there is no
  * fill to invert.
  */
-body:has([data-hero-top]) header:not([data-scrolled]) {
+/**
+ * `html[data-at-section]` is the one thing the server cannot know: whether the
+ * address names a section. Landing on `/#agenda` — a bookmark, a reload, a
+ * shared link — the browser is scrolled a long way down before a line of React
+ * has run, and every rule below would otherwise dress the bar for a photograph
+ * the reader is nowhere near, until hydration says otherwise some 400ms later.
+ * An inline script in the layout sets the mark while the head is being parsed,
+ * and the header drops it at hydration, where its own `data-scrolled` takes the
+ * question over.
+ */
+html:not([data-at-section]) body:has([data-hero-top]) header:not([data-scrolled]) {
   --foreground: oklch(0.985 0.006 75);
 }
 
@@ -674,14 +684,22 @@ header :is([data-slot='navigation-menu-list'] > * > :is(a, button), [data-slot='
 /* The entries in the bar itself — a list item's own link or trigger, never
  * anything inside the panel one of them opens. Higher specificity than the rule
  * above, so a bar on the photograph keeps its white lift. */
-body:has([data-hero-top])
+html:not([data-at-section])
+  body:has([data-hero-top])
   header:not([data-scrolled])
   :is([data-slot='navigation-menu-list'] > * > :is(a, button), [data-slot='sheet-trigger']) {
   --accent: oklch(1 0 0 / 18%);
   --accent-foreground: oklch(0.985 0.006 75);
 }
 
-body:has([data-hero-top]) header:not([data-scrolled]) {
+/* The bar as it arrives from a jump rather than from a scroll: in a step, with
+ * no fade over content the photograph has already left. `HeaderClient` puts the
+ * mark on for the frame the change is painted in and takes it off again. */
+header[data-jumped] {
+  transition: none;
+}
+
+html:not([data-at-section]) body:has([data-hero-top]) header:not([data-scrolled]) {
   color: var(--foreground);
   background-color: transparent;
   border-bottom-color: transparent;
