@@ -3,11 +3,21 @@
 import { useHeaderTheme } from '@/navigation/Header/HeaderThemeProvider'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import type { OrderedNavItem } from './staticNavItems'
 import { Logo } from '@/components/Logo/Logo'
+import canUseDOM from '@/utilities/canUseDOM'
 import { DesktopNav } from './DesktopNav'
 import { MobileNav } from './MobileNav'
+
+/**
+ * `useLayoutEffect` where there is a layout to read and `useEffect` where there
+ * is not. The header is rendered on the server like every other client
+ * component, and React warns about the layout variant there — rightly, since it
+ * does nothing. In the browser it is the one that runs before the frame is
+ * painted, which is the whole of what it is wanted for below.
+ */
+const useBeforePaint = canUseDOM ? useLayoutEffect : useEffect
 
 interface HeaderClientProps {
   navItems: OrderedNavItem[]
@@ -44,7 +54,7 @@ export function HeaderClient({ navItems }: HeaderClientProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname])
 
-  useEffect(() => {
+  useBeforePaint(() => {
     const sentinel = document.querySelector('[data-hero-top]')
 
     if (!sentinel) {
@@ -52,10 +62,30 @@ export function HeaderClient({ navItems }: HeaderClientProps) {
        * the flag set on a page with no photograph would carry a stale
        * `data-scrolled` back to one that has, and show the bar solid for a frame
        * over a hero the reader has not scrolled yet. */
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setScrolled(false)
       return
     }
+
+    /**
+     * The address, before the observer has an answer of its own, because the
+     * observer's first answer arrives a frame too late.
+     *
+     * Following a menu entry to `/#agenda` from another page, the home page's
+     * markup is committed — `body:has([data-hero-top])` matches from that
+     * moment — while the bar still holds the `false` it was left with. So it
+     * paints cream on a photograph the reader is nowhere near, then fades back
+     * to solid over the 150ms its own transition takes: the blink this bar is
+     * otherwise careful never to do, and the one the CSS comment on those rules
+     * is about.
+     *
+     * A fragment in the address is the browser being sent to a section, and a
+     * section is never the top of the page. The router writes the new address
+     * in an insertion effect, before any layout effect runs, so it is already
+     * there to be read; the frame is not painted until this returns. Should the
+     * fragment somehow name something at the top after all, the observer says
+     * so a frame later and nothing has been lost.
+     */
+    setScrolled(Boolean(window.location.hash))
 
     /* `isIntersecting` and nothing else. Re-deriving the answer from
      * `boundingClientRect` against a margin, as this first did, leaves the
