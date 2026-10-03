@@ -6,6 +6,10 @@ import { adminOrLinkedUser } from '@/access/adminOrLinkedUser'
 
 import { normaliseLicence, validateLicence } from './licence'
 import { fillFullName } from './hooks/fillFullName'
+import {
+  revalidateAdherentPages,
+  revalidateAdherentPagesDelete,
+} from './hooks/revalidateAdherentPages'
 import { syncEndpoint } from './sync/endpoint'
 
 /**
@@ -546,6 +550,8 @@ export const Adherents: CollectionConfig<'adherents'> = {
     },
   ],
   hooks: {
+    afterChange: [revalidateAdherentPages],
+    afterDelete: [revalidateAdherentPagesDelete],
     beforeValidate: [fillFullName],
   },
   timestamps: true,
