@@ -123,6 +123,27 @@ const nextConfig = {
      */
     qualities: [75],
     /**
+     * How long an optimised image is kept before it is made again: a month,
+     * rather than Next's four hours.
+     *
+     * A variant past its TTL is not refreshed for free. Vercel serves the stale
+     * copy and transforms the source again behind it, and bills that as a
+     * transformation and a cache write, exactly like a miss. At four hours, on a
+     * site visited a few times a day, nearly every visit found the media page's
+     * album covers stale: those eight pictures were 304 of a week's 305
+     * transformations, made eight at a time. Google's own `max-age=86400` did
+     * not stretch it — the header is `private`, and the covers were served with
+     * Next's four hours regardless.
+     *
+     * A month is safe because what still passes through here does not change
+     * under an address it has already been served at. A Google Photos cover is
+     * addressed by its photo, so a new cover is a new address; a static import's
+     * name carries its hash; uploads skip the optimiser altogether. The
+     * exception is a YouTube still, derived from the video's id: a video given a
+     * new thumbnail keeps its old one on the card for up to a month.
+     */
+    minimumCacheTTL: 2_678_400, // 31 days
+    /**
      * Next 16 defaults to `[{ pathname: '**', search: '' }]`, which rejects any
      * local image carrying a query string. Payload media is served from our own
      * /api/media/file route and cache-busted with `?<updatedAt>`, so prerendering
