@@ -5,7 +5,7 @@ import type { Post } from '@/payload-types'
 import { Media } from '@/components/Media'
 import { formatAuthors } from '@/utilities/formatAuthors'
 import { formatSchedule } from '@/components/programs/formatSchedule'
-import { RegistrationStatus } from '@/components/programs/RegistrationStatus'
+import { RegistrationPills } from '@/components/programs/RegistrationPills'
 import { registrationStatus } from '@/components/programs/registrationStatus'
 import { dayInFrance } from '@/utilities/parisDay'
 import { getCachedMedias } from '@/metadata/getMedias'
@@ -44,7 +44,7 @@ function PostHeading({ authors, startDate, status, title, when }: HeadingProps) 
           that works on a card works here unchanged. */}
       {status && (
         <div className="mt-3">
-          <RegistrationStatus startDate={startDate} status={status} />
+          <RegistrationPills startDate={startDate} status={status} />
         </div>
       )}
     </div>

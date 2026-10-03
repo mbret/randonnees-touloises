@@ -33,7 +33,7 @@ const PILL = 'inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 te
  * (1.01:1 against it, so invisible) or an outline over nothing, which the wash
  * went straight through. See the `--pill-*` tokens in `globals.css`.
  */
-export function RegistrationStatus({
+export function RegistrationPills({
   className,
   startDate,
   status,
