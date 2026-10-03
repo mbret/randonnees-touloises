@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/item'
 import { formatBadge, formatSchedule } from './formatSchedule'
 import { PROGRAMS_BASE } from '@/utilities/postPath'
-import { RegistrationStatus } from './RegistrationStatus'
+import { RegistrationPills } from './RegistrationPills'
 import { registrationStatus } from './registrationStatus'
 
 /**
@@ -151,7 +151,7 @@ export function ProgramCard({
           <ItemDescription className="line-clamp-none">
             {formatSchedule(startDate, endDate)}
           </ItemDescription>
-          <RegistrationStatus startDate={startDate} status={status} />
+          <RegistrationPills startDate={startDate} status={status} />
           {summary && <ItemDescription className="line-clamp-2">{summary}</ItemDescription>}
         </ItemContent>
         <ItemActions>
