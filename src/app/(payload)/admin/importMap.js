@@ -14,6 +14,7 @@ import { LinkFeatureClient as LinkFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { IconFieldPreview as IconFieldPreview_003ff3d6d7c7d5930785e6148f64943e } from '@/blocks/IconCards/IconFieldPreview'
 import { RowLabel as RowLabel_f5d33f896537deccbef23761c1091fd6 } from '@/blocks/MediaLinks/RowLabel'
 import { RowLabel as RowLabel_d60eeb20aa5238f3745f5e43ce0da32a } from '@/blocks/MembershipTiers/RowLabel'
+import { AdminNote as AdminNote_2c6d860c961f0cdddd30cccec7f9be40 } from '@/blocks/Trombinoscope/AdminNote'
 import { OverviewComponent as OverviewComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { MetaTitleComponent as MetaTitleComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { MetaImageComponent as MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
@@ -54,6 +55,7 @@ export const importMap = {
   "@/blocks/IconCards/IconFieldPreview#IconFieldPreview": IconFieldPreview_003ff3d6d7c7d5930785e6148f64943e,
   "@/blocks/MediaLinks/RowLabel#RowLabel": RowLabel_f5d33f896537deccbef23761c1091fd6,
   "@/blocks/MembershipTiers/RowLabel#RowLabel": RowLabel_d60eeb20aa5238f3745f5e43ce0da32a,
+  "@/blocks/Trombinoscope/AdminNote#AdminNote": AdminNote_2c6d860c961f0cdddd30cccec7f9be40,
   "@payloadcms/plugin-seo/client#OverviewComponent": OverviewComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/plugin-seo/client#MetaTitleComponent": MetaTitleComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/plugin-seo/client#MetaImageComponent": MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860,

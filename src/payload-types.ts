@@ -282,6 +282,7 @@ export interface Page {
     | MediaLinksBlock
     | MembershipTiersBlock
     | ProfileCardsBlock
+    | TrombinoscopeBlock
   )[];
   meta?: {
     title?: string | null;
@@ -1392,6 +1393,15 @@ export interface ProfileCardsBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TrombinoscopeBlock".
+ */
+export interface TrombinoscopeBlock {
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'trombinoscope';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
  */
 export interface Event {
@@ -1924,6 +1934,7 @@ export interface PagesSelect<T extends boolean = true> {
         mediaLinks?: T | MediaLinksBlockSelect<T>;
         membershipTiers?: T | MembershipTiersBlockSelect<T>;
         profileCards?: T | ProfileCardsBlockSelect<T>;
+        trombinoscope?: T | TrombinoscopeBlockSelect<T>;
       };
   meta?:
     | T
@@ -2114,6 +2125,14 @@ export interface MembershipTiersBlockSelect<T extends boolean = true> {
  */
 export interface ProfileCardsBlockSelect<T extends boolean = true> {
   members?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TrombinoscopeBlock_select".
+ */
+export interface TrombinoscopeBlockSelect<T extends boolean = true> {
   id?: T;
   blockName?: T;
 }
