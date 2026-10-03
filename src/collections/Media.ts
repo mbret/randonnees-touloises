@@ -53,6 +53,29 @@ export const Media: CollectionConfig = {
         },
       }),
     },
+    /**
+     * The S3 adapter's own field, declared here so the schema does not depend
+     * on the environment.
+     *
+     * The adapter adds `_objectKey` to every collection it stores, but it is
+     * only enabled where the R2 variables are set — production, not a
+     * workstation. Left to the adapter, the column would exist in production's
+     * schema and not in the one `payload migrate:create` diffs on a laptop, so
+     * the next migration generated locally would drop it from production. The
+     * adapter replaces a field of this name with its own when it is enabled,
+     * and without it this is an unused column of nulls.
+     *
+     * Null on every file uploaded before it existed, which the adapter reads
+     * as no extra key segment — those files resolve where they always have.
+     */
+    {
+      name: '_objectKey',
+      type: 'text',
+      admin: {
+        hidden: true,
+        readOnly: true,
+      },
+    },
   ],
   upload: {
     // Upload to the public/media directory in Next.js making them publicly accessible even outside of Payload
