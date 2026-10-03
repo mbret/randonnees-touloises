@@ -294,7 +294,10 @@ const main = async () => {
   }
 
   for (const doc of stale) {
-    await payload.delete({ collection: 'media', id: doc.id })
+    // A pruned file can be somebody's portrait, and refreshing the pages that
+    // show it needs a Next request this command does not have — so, as the
+    // size backfill does, leave the refresh to the next deploy.
+    await payload.delete({ collection: 'media', context: { disableRevalidate: true }, id: doc.id })
     console.log(`  deleted ${doc.filename}`)
   }
 }
