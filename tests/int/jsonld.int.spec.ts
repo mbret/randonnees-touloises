@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest'
 
 import type { Page, Post } from '@/payload-types'
 
@@ -62,6 +62,16 @@ describe('club structured data', () => {
 })
 
 describe('programme event structured data', () => {
+  // `offers` checks deadlines against today; pin it between the 2020 and 2026 ones below.
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime('2026-09-10T10:00:00.000Z')
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('marks a dated post up as an event at its programme address', () => {
     const event = programEventJsonLd(post({ schedule: { startDate: '2026-09-11T22:00:00.000Z' } }))
 
