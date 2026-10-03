@@ -282,6 +282,7 @@ export interface Page {
     | MediaLinksBlock
     | MembershipTiersBlock
     | ProfileCardsBlock
+    | TrombinoscopeBlock
   )[];
   meta?: {
     title?: string | null;
@@ -301,7 +302,7 @@ export interface Page {
    */
   navLabel?: string | null;
   /**
-   * Classement croissant sur l’ensemble du menu. Les entrées fixes occupent 0 Recherche, 10 Contact, 30 À propos, 50 Programme hebdomadaire, 60 Conseil d’administration, 70 Équipe d’animation, 80 Trombinoscope. Sans valeur, la page se place en 100, donc après elles. Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact et À propos — et à nombre égal la page passe devant l’entrée fixe.
+   * Classement croissant sur l’ensemble du menu. Les entrées fixes occupent 0 Recherche, 5 Programme hebdomadaire, 10 Contact, 30 À propos, 60 Conseil d’administration, 70 Équipe d’animation, 80 Trombinoscope. Sans valeur, la page se place en 100, donc après elles. Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact et À propos — et à nombre égal elle passe devant l’entrée fixe.
    */
   navOrder?: number | null;
   /**
@@ -1390,6 +1391,15 @@ export interface ProfileCardsBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TrombinoscopeBlock".
+ */
+export interface TrombinoscopeBlock {
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'trombinoscope';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
  */
 export interface Event {
@@ -1922,6 +1932,7 @@ export interface PagesSelect<T extends boolean = true> {
         mediaLinks?: T | MediaLinksBlockSelect<T>;
         membershipTiers?: T | MembershipTiersBlockSelect<T>;
         profileCards?: T | ProfileCardsBlockSelect<T>;
+        trombinoscope?: T | TrombinoscopeBlockSelect<T>;
       };
   meta?:
     | T
@@ -2112,6 +2123,14 @@ export interface MembershipTiersBlockSelect<T extends boolean = true> {
  */
 export interface ProfileCardsBlockSelect<T extends boolean = true> {
   members?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TrombinoscopeBlock_select".
+ */
+export interface TrombinoscopeBlockSelect<T extends boolean = true> {
   id?: T;
   blockName?: T;
 }
@@ -2922,6 +2941,9 @@ export interface Header {
           url?: string | null;
           label: string;
         };
+        /**
+         * Classement croissant sur l’ensemble du menu. Les entrées fixes occupent 0 Recherche, 5 Programme hebdomadaire, 10 Contact, 30 À propos, 60 Conseil d’administration, 70 Équipe d’animation, 80 Trombinoscope. Sans valeur, l’entrée se place en 100, donc après elles. Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact et À propos — et à nombre égal elle passe devant l’entrée fixe.
+         */
         navOrder?: number | null;
         id?: string | null;
       }[]
