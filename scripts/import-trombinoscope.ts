@@ -132,7 +132,8 @@ const isLocal = (target: string) =>
  * Payload's getSafeFileName checks the local upload directory as well as the
  * database, so a file sitting in public/media makes it store `name-1.jpg` even
  * when the target is a remote bucket and another database entirely. Every name
- * would then drift from what src/data refers to, silently.
+ * would then drift from the one asked for, silently — and since a rerun knows
+ * its own work by filename, the next one would import the portraits again.
  */
 const assertLocalMediaCannotShadow = async (filenames: string[]) => {
   const { access } = await import('fs/promises')

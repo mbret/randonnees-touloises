@@ -74,6 +74,9 @@ export const staticNavItems: StaticNavItem[] = [
     navOrder: 70,
     link: { label: 'Équipe d’animation', type: 'custom', url: '/animation-team' },
   },
+  /* `/trombinoscope` likewise: a `pages` document carrying the `trombinoscope`
+   * block since its route file went, and in the menu from here for the same
+   * reasons as `/board` above. */
   {
     id: 'static-trombinoscope',
     navOrder: 80,

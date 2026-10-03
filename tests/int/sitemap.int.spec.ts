@@ -65,7 +65,6 @@ describe('sitemapEntries', () => {
       `${SITE}/programs`,
       `${SITE}/search`,
       `${SITE}/terms`,
-      `${SITE}/trombinoscope`,
     ])
   })
 

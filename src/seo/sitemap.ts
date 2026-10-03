@@ -30,7 +30,6 @@ export const STATIC_ROUTES = [
   '/programs',
   '/search',
   '/terms',
-  '/trombinoscope',
 ] as const
 
 /**
