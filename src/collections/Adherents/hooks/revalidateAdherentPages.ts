@@ -81,9 +81,10 @@ const affectsPages = (
  * trombinoscope, and under what slug, is the editor's choice.
  *
  * Inside the write's own transaction, through `req`, like every other Local API
- * call in a hook.
+ * call in a hook. Shared with the media hooks, which reach the same pages when
+ * a portrait's file is replaced or deleted.
  */
-const revalidatePagesShowingAdherents = async (req: PayloadRequest) => {
+export const revalidatePagesShowingAdherents = async (req: PayloadRequest) => {
   const { docs } = await req.payload.find({
     collection: 'pages',
     depth: 0,

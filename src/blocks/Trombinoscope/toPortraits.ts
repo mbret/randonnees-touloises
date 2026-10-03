@@ -60,9 +60,3 @@ export const toPortraits = (adherents: PortraitAdherent[]): Portrait[] =>
         collator.compare(a.firstName, b.firstName) ||
         a.id - b.id,
     )
-
-/** The line above the grid, counted from the grid itself so the two always agree. */
-export const portraitCount = (count: number) =>
-  count === 1
-    ? '1 portrait d’adhérente ou d’adhérent'
-    : `${count} portraits d’adhérentes et d’adhérents`

@@ -6,7 +6,7 @@ import React from 'react'
 
 import { Media } from '@/components/Media'
 
-import { portraitCount, toPortraits, type PortraitAdherent } from './toPortraits'
+import { toPortraits, type PortraitAdherent } from './toPortraits'
 
 /**
  * Two portraits to a row on a phone and six from `lg`, in the page container —
@@ -30,8 +30,10 @@ const IMAGE_SIZES =
  * roster's other rows are never read at all; `toPortraits` applies it again to
  * what comes back, which is what its tests hold it to.
  *
- * Nothing at all when nobody qualifies: an empty grid under « 0 portraits »
- * would read as a fault rather than as a page waiting for its first consent.
+ * Faces only, no count above them: a number set under the page's own
+ * strapline read as a second strapline, with a block's worth of space
+ * between the two. Nothing at all when nobody qualifies, rather than an empty
+ * grid holding its place on the page.
  */
 export const TrombinoscopeBlock: React.FC<TrombinoscopeBlockProps & { id?: string }> = async () => {
   const payload = await getPayload({ config: configPromise })
@@ -59,8 +61,6 @@ export const TrombinoscopeBlock: React.FC<TrombinoscopeBlockProps & { id?: strin
 
   return (
     <div className="container">
-      <p className="text-muted-foreground mb-8">{portraitCount(portraits.length)}</p>
-
       <ul className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
         {portraits.map(({ firstName, id, photo }) => (
           <li className="text-center" key={id}>
