@@ -2,11 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { Media } from '@/payload-types'
 
-import {
-  portraitCount,
-  toPortraits,
-  type PortraitAdherent,
-} from '@/blocks/Trombinoscope/toPortraits'
+import { toPortraits, type PortraitAdherent } from '@/blocks/Trombinoscope/toPortraits'
 
 const media = (id: number, overrides: Partial<Media> = {}): Media => ({
   alt: 'Pascal BRET, président',
@@ -171,15 +167,5 @@ describe('the order', () => {
       'Alain',
       '',
     ])
-  })
-})
-
-describe('the count', () => {
-  it('reads in the plural', () => {
-    expect(portraitCount(183)).toBe('183 portraits d’adhérentes et d’adhérents')
-  })
-
-  it('and in the singular', () => {
-    expect(portraitCount(1)).toBe('1 portrait d’adhérente ou d’adhérent')
   })
 })
