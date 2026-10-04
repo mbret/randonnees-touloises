@@ -58,6 +58,21 @@ export const EMAIL_PATTERN =
   /^(?!.*\.\.)[\w!#$%&'*+/=?^`{|}~-](?:[\w!#$%&'*+/=?^`{|}~.-]*[\w!#$%&'*+/=?^`{|}~-])?@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/i
 
 /**
+ * `agnès.mirault@outlook.fr` → `agnes.mirault@outlook.fr`: accents off the part
+ * before the last `@`, the domain left exactly as written. Letters with no
+ * unaccented form (`œ`, `ß`) stay, and the address then fails to validate.
+ */
+export const withoutMailboxAccents = (value: string): string => {
+  const at = value.lastIndexOf('@')
+
+  if (at === -1) return value
+
+  const mailbox = value.slice(0, at).normalize('NFD').replace(/\p{M}/gu, '')
+
+  return `${mailbox}${value.slice(at)}`
+}
+
+/**
  * An address, or nothing if what is in the cell is not one.
  *
  * Lower-cased, so the same mailbox typed two ways stops reading as a change on
@@ -69,9 +84,17 @@ export const EMAIL_PATTERN =
  * the gap turns that into `…@orange.fr???`, which is worse than what she wrote.
  * Anything that does not validate is left for `mapSheetRow` to report, rather
  * than repaired into something nobody meant.
+ *
+ * Accents before the `@` are taken off first: `agnès.…@outlook.fr` becomes
+ * `agnes.…@outlook.fr`. An accented mailbox is legal only under an extension
+ * (SMTPUTF8) that the providers the club's members use do not offer, and that
+ * Payload's validator does not accept — so as typed it is a typo, and the
+ * unaccented address is the one she almost certainly has. `mapSheetRow` reports
+ * the correction, so it is a guess somebody sees rather than one made silently.
+ * Only the mailbox: an accented domain is a different domain, not a typo of one.
  */
 export const sheetEmail = (value: string): string | undefined => {
-  const trimmed = value.trim().toLowerCase()
+  const trimmed = withoutMailboxAccents(value.trim().toLowerCase())
 
   if (trimmed === '') return undefined
   if (EMAIL_PATTERN.test(trimmed)) return trimmed

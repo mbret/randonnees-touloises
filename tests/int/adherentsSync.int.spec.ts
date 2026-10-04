@@ -455,6 +455,36 @@ describe('the write each plan carries', () => {
 
 describe('an address the collection would refuse', () => {
   /**
+   * Row 167 of the club's export reads `agnès.mirault@outlook.fr`. An accented
+   * mailbox is one Payload refuses and Outlook does not hand out, so the accent
+   * comes off — and the report says so, because it is a correction.
+   */
+  it('takes the accents off the mailbox and reports it', () => {
+    const mapped = mapSheetRow(sheetRow({ Mail: 'Agnès.Mirault@outlook.fr' }), 167)
+
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
+
+    expect(mapped.fields.email).toBe('agnes.mirault@outlook.fr')
+    expect(mapped.notes).toEqual([
+      'E-mail corrigé, accents retirés : Agnès.Mirault@outlook.fr → agnes.mirault@outlook.fr',
+    ])
+  })
+
+  it('does not remark on an address that needed no accents taken off', () => {
+    const mapped = mapSheetRow(sheetRow({ Mail: 'Agnes.Mirault@outlook.fr' }), 167)
+
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
+
+    expect(mapped.notes).toEqual([])
+  })
+
+  /** An accented domain is a different domain, not a typo of one. */
+  it('leaves the domain as written, and so refuses an accented one', () => {
+    expect(sheetEmail('agnes@outlöok.fr')).toBeUndefined()
+    expect(sheetEmail('élodie.bérard@example.net')).toBe('elodie.berard@example.net')
+  })
+
+  /**
    * What broke the first real import: one row of the club's export reads
    * « …@orange.fr    ??? ». Closing up the spaces made `…@orange.fr???`, which
    * Payload's `email` field rejected, and the whole import failed on it.

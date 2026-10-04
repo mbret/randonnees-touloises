@@ -9,6 +9,7 @@ import {
   sheetMoney,
   sheetPhone,
   sheetText,
+  withoutMailboxAccents,
 } from './values'
 
 /**
@@ -126,6 +127,10 @@ export const mapSheetRow = (row: Record<string, string>, line: number): MappedRo
    *   it would fail the collection's own validator and take the whole import
    *   down, which is what happened the first time this ran;
    *
+   *   an address whose accents were taken off — `agnès.…@outlook.fr` stored as
+   *   `agnes.…@outlook.fr`. Almost certainly right, but a correction rather than
+   *   a reading, so she is told which address was stored and can check it;
+   *
    *   a certificate date that is not a date — two cells where text has bled
    *   across, « PASS D. » and « à demander », so those certificates do not
    *   arrive. A third reads `20/09/2121`, which this cannot catch and does not
@@ -145,6 +150,12 @@ export const mapSheetRow = (row: Record<string, string>, line: number): MappedRo
 
   if (mail !== '' && fields.email === undefined) {
     notes.push(`E-mail non importé, illisible : ${mail}`)
+  } else if (fields.email !== undefined) {
+    const typed = mail.trim().toLowerCase()
+
+    if (withoutMailboxAccents(typed) !== typed) {
+      notes.push(`E-mail corrigé, accents retirés : ${mail.trim()} → ${fields.email}`)
+    }
   }
 
   if (certificate !== '' && !sheetDate(certificate)) {
