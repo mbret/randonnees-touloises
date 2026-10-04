@@ -542,6 +542,32 @@ describe('reading a telephone number', () => {
     expect(sheetPhone('')).toBeUndefined()
     expect(sheetPhone('   ')).toBeUndefined()
   })
+  /**
+   * A number stored with its spaces — from before the import took them out, or
+   * typed by the member — is the same number the sheet now gives without them.
+   */
+  it('does not call a number stored with spaces a change', () => {
+    const plan = buildPlan({
+      existing: [existing({ phone: '06 12 34 56 78' })],
+      rows: [sheetRow({ Téléphone: '06 12 34 56 78' })],
+      season: SEASON,
+    })
+
+    expect(plan.updates).toHaveLength(0)
+    expect(plan.unchanged).toBe(1)
+  })
+
+  it('still sees a different number stored with spaces as a change', () => {
+    const plan = buildPlan({
+      existing: [existing({ phone: '06 12 34 56 78' })],
+      rows: [sheetRow({ Téléphone: '07 99 88 77 66' })],
+      season: SEASON,
+    })
+
+    expect(plan.updates[0].changes).toEqual([
+      { field: 'phone', from: '06 12 34 56 78', to: '0799887766' },
+    ])
+  })
 })
 
 describe('the « no number » placeholder', () => {
