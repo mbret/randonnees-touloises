@@ -108,7 +108,8 @@ export const mapSheetRow = (row: Record<string, string>, line: number): MappedRo
   }
 
   /**
-   * Cells the import wanted and could not read.
+   * Cells the import wanted and could not read as written: left empty, or stored
+   * corrected. The sync screen lists them as « Cellules à vérifier ».
    *
    * Only that. An earlier version also reported the secretary's own annotations
    * from the columns this deliberately does not model — « A vérifier » in `Date

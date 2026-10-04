@@ -282,7 +282,7 @@ export const AdherentsSyncScreen: React.FC = () => {
                   ['Ignorés (sans licence)', plan.skipped.length],
                   ['Refusés', plan.rejected.length],
                   ['Absents du fichier', plan.absent.length],
-                  ['Cellules non importées', plan.remarks.length],
+                  ['Cellules à vérifier', plan.remarks.length],
                 ] as [string, number][]
               ).map(([text, count]) => (
                 <tr key={text}>
@@ -396,17 +396,18 @@ export const AdherentsSyncScreen: React.FC = () => {
             </Scroller>
           </Fold>
 
-          <Fold count={plan.remarks.length} open title="Cellules non importées">
+          <Fold count={plan.remarks.length} open title="Cellules à vérifier">
             <p style={{ color: 'var(--theme-elevation-600)' }}>
-              L’import n’a pas su lire ces cellules et a laissé le champ vide. Le reste de la ligne
-              est importé normalement.
+              L’import n’a pas lu ces cellules telles qu’elles sont écrites : soit il a laissé
+              le champ vide, soit il a enregistré une valeur corrigée, indiquée ici. Le reste de
+              la ligne est importé normalement.
             </p>
             <Scroller>
               <thead>
                 <tr>
                   <th style={th}>Ligne</th>
                   <th style={th}>Adhérent</th>
-                  <th style={th}>Ce qui n’a pas été lu</th>
+                  <th style={th}>Ce que l’import en a fait</th>
                 </tr>
               </thead>
               <tbody>
