@@ -5,6 +5,7 @@ import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
 import { adminOrLinkedUser } from '@/access/adminOrLinkedUser'
 
 import { normaliseLicence, validateLicence } from './licence'
+import { normalisePhone } from './phone'
 import { fillFullName } from './hooks/fillFullName'
 import {
   revalidateAdherentPages,
@@ -254,6 +255,9 @@ export const Adherents: CollectionConfig<'adherents'> = {
                   type: 'text',
                   label: 'Téléphone',
                   admin: { width: '50%' },
+                  hooks: {
+                    beforeValidate: [({ value }) => normalisePhone(value)],
+                  },
                 },
               ],
             },
