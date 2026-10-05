@@ -6,7 +6,7 @@ import React from 'react'
 
 import { Media } from '@/components/Media'
 
-import { toPortraits, type PortraitAdherent } from './toPortraits'
+import { shownOnTrombinoscope, toPortraits, type PortraitAdherent } from './toPortraits'
 
 /**
  * Two portraits to a row on a phone and six from `lg`, in the page container —
@@ -50,9 +50,7 @@ export const TrombinoscopeBlock: React.FC<TrombinoscopeBlockProps & { id?: strin
       photo: true,
       publicationConsent: true,
     },
-    where: {
-      and: [{ 'publicationConsent.photo': { equals: true } }, { photo: { exists: true } }],
-    },
+    where: shownOnTrombinoscope,
   })
 
   const portraits = toPortraits(docs as PortraitAdherent[])

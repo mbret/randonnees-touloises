@@ -1,3 +1,5 @@
+import type { Where } from 'payload'
+
 import type { Adherent, Media } from '@/payload-types'
 
 /** What the block reads off an adhérent, and no more than that: no surname. */
@@ -28,6 +30,14 @@ const portraitPhoto = (photo: Media, firstName: string): Media => ({
   url: photo.url,
   width: photo.width,
 })
+
+/**
+ * The rule below as a query, so the database leaves out everyone else: the
+ * block reads with it, and the adhérents list counts with it.
+ */
+export const shownOnTrombinoscope: { and: Where[] } = {
+  and: [{ 'publicationConsent.photo': { equals: true } }, { photo: { exists: true } }],
+}
 
 /**
  * Who is on the trombinoscope, in the order they are read.
