@@ -61,8 +61,12 @@ export const Adherents: CollectionConfig<'adherents'> = {
   },
   admin: {
     components: {
-      // The button that opens the CSV comparison, above the list it concerns.
-      beforeListTable: ['@/components/admin/AdherentsSyncLink#AdherentsSyncLink'],
+      // The button that opens the CSV comparison, above the list it concerns,
+      // and who the trombinoscope shows, with a way to the fiches it does not.
+      beforeListTable: [
+        '@/components/admin/AdherentsSyncLink#AdherentsSyncLink',
+        '@/components/admin/TrombinoscopeStatus#TrombinoscopeStatus',
+      ],
     },
     defaultColumns: ['fullName', 'status', 'licence', 'updatedAt'],
     group: 'Utilisateurs',
