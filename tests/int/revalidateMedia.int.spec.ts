@@ -61,6 +61,12 @@ const portrait = (overrides: Doc = {}): Doc => ({
   ...overrides,
 })
 
+const hero = (overrides: Doc = {}): Doc => ({
+  filename: 'optimized-image (1).webp',
+  id: 1230,
+  ...overrides,
+})
+
 beforeEach(() => {
   revalidatePath.mockClear()
   revalidateTag.mockClear()
@@ -180,12 +186,6 @@ describe('a portrait deleted from the media library', () => {
 })
 
 describe('the home page’s hero replaced in the media library', () => {
-  const hero = (overrides: Doc = {}): Doc => ({
-    filename: 'optimized-image (1).webp',
-    id: 1230,
-    ...overrides,
-  })
-
   beforeEach(() => {
     count.mockResolvedValue({ totalDocs: 0 })
     findGlobal.mockResolvedValue({ homeHeroImage: 1230 })
@@ -242,6 +242,85 @@ describe('the home page’s hero replaced in the media library', () => {
 
     await expect(change(doc, hero())).resolves.toBe(doc)
     expect(logError).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('the home page’s hero deleted from the media library', () => {
+  beforeEach(() => {
+    count.mockResolvedValue({ totalDocs: 0 })
+    findGlobal.mockResolvedValue({ homeHeroImage: 1230 })
+  })
+
+  /**
+   * The database clears `homeHeroImage` without running the settings' hook, so
+   * the cached copy would go on naming the deleted files until someone saved
+   * the settings by hand.
+   */
+  it('expires the settings the home page reads it through', async () => {
+    await remove(hero())
+
+    expect(revalidateTag).toHaveBeenCalledWith('global_general', { expire: 0 })
+  })
+
+  /** Asked before the row goes, while the settings still name it. */
+  it('asks before the delete rather than after', async () => {
+    const req = request()
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    await (notePortraitDelete as any)({ collection: {}, id: 1230, req } as any)
+    findGlobal.mockResolvedValue({ homeHeroImage: null })
+    await (revalidateMediaDelete as any)({ collection: {}, doc: hero(), id: 1230, req } as any)
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    expect(findGlobal).toHaveBeenCalledTimes(1)
+    expect(revalidateTag).toHaveBeenCalledWith('global_general', { expire: 0 })
+  })
+
+  it('leaves the settings alone when another picture is deleted', async () => {
+    await remove(portrait())
+
+    expect(revalidateTag).not.toHaveBeenCalledWith('global_general', expect.anything())
+  })
+
+  /* The REST API parses the id out of its URL; the local API passes on
+   * whatever its caller gave it. */
+  it('knows the hero by an id given as a string', async () => {
+    await remove(hero({ id: '1230' }))
+
+    expect(revalidateTag).toHaveBeenCalledWith('global_general', { expire: 0 })
+  })
+
+  /** Several uploads deleted at once share one request. */
+  it('keeps each upload’s answer to itself when several go together', async () => {
+    const req = request()
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    await (notePortraitDelete as any)({ collection: {}, id: 1230, req } as any)
+    await (notePortraitDelete as any)({ collection: {}, id: 7, req } as any)
+    await (revalidateMediaDelete as any)({ collection: {}, doc: portrait(), id: 7, req } as any)
+    expect(revalidateTag).not.toHaveBeenCalledWith('global_general', expect.anything())
+
+    await (revalidateMediaDelete as any)({ collection: {}, doc: hero(), id: 1230, req } as any)
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    expect(revalidateTag).toHaveBeenCalledWith('global_general', { expire: 0 })
+  })
+
+  it('declines when the caller asked for no revalidation', async () => {
+    await remove(hero(), { disableRevalidate: true })
+
+    expect(findGlobal).not.toHaveBeenCalled()
+    expect(revalidateTag).not.toHaveBeenCalled()
+  })
+
+  /* A lookup that fails is logged rather than allowed to stop a delete the
+   * club asked for. */
+  it('keeps the delete when the settings cannot be read', async () => {
+    findGlobal.mockRejectedValue(new Error('connection reset'))
+
+    await expect(remove(hero())).resolves.toBeUndefined()
+    expect(logError).toHaveBeenCalledTimes(1)
+    expect(revalidateTag).not.toHaveBeenCalledWith('global_general', expect.anything())
   })
 })
 
