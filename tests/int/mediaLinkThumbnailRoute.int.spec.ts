@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { GET } from '@/app/(frontend)/media-links/thumbnail/route'
+import { isAllowedThumbnailHost } from '@/blocks/MediaLinks/thumbnailHosts'
 import { proxiedThumbnail } from '@/blocks/MediaLinks/thumbnailProxy'
 
 /** What the three kinds of `og:image` look like, as the resolver hands them over. */
@@ -41,6 +42,30 @@ const ask = (url: URL) => GET(new Request(url))
 
 /** What the route asked Google for. */
 const askedOf = (fetch: ReturnType<typeof google>) => String(fetch.mock.calls[0][0])
+
+describe('the hosts a thumbnail may come from', () => {
+  it.each(['https://lh3.googleusercontent.com/pw/x=w600', COVER, AVATAR, STILL])(
+    'takes %s',
+    (src) => {
+      expect(isAllowedThumbnailHost(src)).toBe(true)
+    },
+  )
+
+  /* A wildcard is matched on a label boundary: what ends in the domain's name
+   * without being under it is somebody else's. */
+  it.each([
+    'https://notgoogleusercontent.com/image',
+    'https://googleusercontent.com/image',
+    'https://lh3.googleusercontent.com.example.net/image',
+    'https://lh3.googleusercontent.com@example.net/image',
+    'https://example.net/#.googleusercontent.com',
+    'https://evil-i.ytimg.com/image.jpg',
+    'http://lh3.googleusercontent.com/pw/x=w600',
+    'not an address',
+  ])('refuses %s', (src) => {
+    expect(isAllowedThumbnailHost(src)).toBe(false)
+  })
+})
 
 describe('what a card offers', () => {
   /*
@@ -167,6 +192,75 @@ describe('the route that serves a media link’s picture', () => {
       expect((await ask(url)).status).toBe(404)
       expect(fetch).not.toHaveBeenCalled()
     })
+
+    /* A cover always comes at one of the widths on offer; asked for with none,
+     * it is an address no page wrote. */
+    it('a cover asked for at no width', async () => {
+      const fetch = google()
+
+      expect((await ask(tampered((p) => p.delete('w')))).status).toBe(404)
+      expect(fetch).not.toHaveBeenCalled()
+    })
+  })
+
+  /*
+   * The edge caches on the query string as sent, so any other spelling of a
+   * signed address would be a cache entry of its own: a function run and a
+   * fetch from Google for each, without end, from one signature on the page.
+   */
+  describe('refuses any spelling of a signed address but the page’s own:', () => {
+    /** The address the page wrote, with its query rewritten by hand. */
+    const respelled = (rewrite: (search: string) => string) => {
+      const url = offered(COVER, 640)
+
+      url.search = rewrite(url.search)
+
+      return url
+    }
+
+    it.each<[string, (search: string) => string]>([
+      ['a parameter added', (search) => `${search}&nonce=1`],
+      ['a parameter repeated', (search) => `${search}&w=640`],
+      [
+        'the same parameters in another order',
+        (search) => `?${new URLSearchParams(search).toString().split('&').reverse().join('&')}`,
+      ],
+      ['a character escaped that the page left bare', (search) => search.replace('lh3', '%6Ch3')],
+      ['a width written another way', (search) => search.replace('w=640', 'w=0640')],
+    ])('%s', async (_case, rewrite) => {
+      const fetch = google()
+      const url = respelled(rewrite)
+
+      /* Each would still carry a valid signature for the same picture. */
+      expect(url.searchParams.get('src')).toBe(COVER)
+
+      expect((await ask(url)).status).toBe(404)
+      expect(fetch).not.toHaveBeenCalled()
+    })
+
+    it('while the page’s own spelling is served', async () => {
+      google()
+
+      expect((await ask(respelled((search) => search))).status).toBe(200)
+    })
+  })
+
+  /*
+   * The list is checked on the address asked for; where a redirect would lead
+   * is not, so none is followed. Google's image servers answer a sized picture
+   * directly.
+   */
+  it('follows no redirect', async () => {
+    const fetch = vi.fn(async (_url: URL, init?: RequestInit) => {
+      if (init?.redirect === 'error') throw new TypeError('fetch failed: unexpected redirect')
+
+      return new Response('inner-bytes', { headers: { 'content-type': 'image/png' } })
+    })
+
+    vi.stubGlobal('fetch', fetch)
+
+    expect((await ask(offered(COVER, 640))).status).toBe(502)
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 
   it('answers Google being down with a bad gateway rather than a stack trace', async () => {

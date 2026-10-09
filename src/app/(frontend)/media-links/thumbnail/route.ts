@@ -30,7 +30,7 @@ const TIMEOUT_MS = 10_000
 const IMAGE_TYPES = new Set(['image/avif', 'image/gif', 'image/jpeg', 'image/png', 'image/webp'])
 
 export const GET = async (request: Request): Promise<Response> => {
-  const upstreamUrl = upstreamFor(new URL(request.url).searchParams)
+  const upstreamUrl = upstreamFor(new URL(request.url))
 
   /* Not « bad request »: an address no page of this site would have asked for
    * is one that does not exist, which is also what a guessed URL should hear. */
@@ -39,7 +39,13 @@ export const GET = async (request: Request): Promise<Response> => {
   let upstream: Response
 
   try {
-    upstream = await fetch(upstreamUrl, { signal: AbortSignal.timeout(TIMEOUT_MS) })
+    /* No redirect is followed. The host was checked against the list; where a
+     * redirect would lead was not, and Google's image servers answer a sized
+     * picture directly — a redirect is refused here like any other failure. */
+    upstream = await fetch(upstreamUrl, {
+      redirect: 'error',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    })
   } catch {
     /* The card keeps its muted band behind a missing picture, so Google being
      * slow or down costs an empty band and no stack trace. */

@@ -89,12 +89,15 @@ const sized = (src: URL, width: number): URL | null => {
   return url
 }
 
-const routeUrl = (src: string, width?: number) =>
-  `${THUMBNAIL_PATH}?${new URLSearchParams({
+/** The query a page of this site writes for `src` at `width`, and the only one the route answers. */
+const query = (src: string, width?: number) =>
+  `?${new URLSearchParams({
     src,
     ...(width ? { w: String(width) } : {}),
     sig: signature(src),
   })}`
+
+const routeUrl = (src: string, width?: number) => `${THUMBNAIL_PATH}${query(src, width)}`
 
 /** What a card's `<img>` is given: one address, and a `srcset` when Google can size it. */
 export const proxiedThumbnail = ({ src }: Thumbnail): { src: string; srcSet?: string } => {
@@ -109,19 +112,29 @@ export const proxiedThumbnail = ({ src }: Thumbnail): { src: string; srcSet?: st
 /**
  * The address the route should fetch for a request, or `null` for anything a
  * page of this site would not have asked for: an unsigned or altered address,
- * a host off the list, a width that is not offered, or a width asked of a
- * picture that comes in one size.
+ * a host off the list, a width that is not offered, a width asked of a picture
+ * that comes in one size or none asked of one that comes in several — and any
+ * spelling of the address but the page's own.
+ *
+ * That last is what the edge's cache is keyed on: the query string, as sent.
+ * An extra parameter, a repeated one, the same ones in another order, or a
+ * character escaped differently would each still carry a valid signature, and
+ * each be a cache entry of its own — a function run and a fetch from Google
+ * per variant, without end, from one signature found on a page. Answering only
+ * the spelling the page wrote leaves one entry per picture and width.
  */
-export const upstreamFor = (params: URLSearchParams): URL | null => {
-  const src = params.get('src')
-  const sig = params.get('sig')
-  const w = params.get('w')
+export const upstreamFor = ({ search, searchParams }: URL): URL | null => {
+  const src = searchParams.get('src')
+  const sig = searchParams.get('sig')
+  const w = searchParams.get('w')
 
   if (!src || !sig || !isAllowedThumbnailHost(src) || !isSigned(src, sig)) return null
 
-  if (w === null) return new URL(src)
+  const width = w === null ? undefined : Number(w)
 
-  const width = Number(w)
+  if (search !== query(src, width)) return null
+
+  if (width === undefined) return sized(new URL(src), FALLBACK_WIDTH) ? null : new URL(src)
 
   if (!(THUMBNAIL_WIDTHS as readonly number[]).includes(width)) return null
 

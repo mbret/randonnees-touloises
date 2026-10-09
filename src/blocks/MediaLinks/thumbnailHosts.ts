@@ -30,6 +30,9 @@ export const isAllowedThumbnailHost = (src: string): boolean => {
 
   if (url.protocol !== 'https:') return false
 
+  /* `slice(2)` keeps the dot — `.googleusercontent.com` — so the match falls on
+   * a label boundary: `notgoogleusercontent.com`, somebody else's domain, does
+   * not end with it, and neither does the bare domain. */
   return THUMBNAIL_HOSTS.some((host) =>
     host.startsWith('**.') ? url.hostname.endsWith(host.slice(2)) : url.hostname === host,
   )
