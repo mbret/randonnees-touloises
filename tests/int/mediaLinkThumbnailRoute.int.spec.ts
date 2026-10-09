@@ -5,7 +5,7 @@ import { proxiedThumbnail } from '@/blocks/MediaLinks/thumbnailProxy'
 
 /** What the three kinds of `og:image` look like, as the resolver hands them over. */
 const COVER = 'https://lh3.googleusercontent.com/pw/AP1GczCover=w600-h315-p-k'
-const AVATAR = 'https://yt3.googleusercontent.com/AvatarToken=s900-c-k-c0x00ffffff-no-rj'
+const AVATAR = 'https://yt3.googleusercontent.com/channel-avatar=s900-c-k-c0x00ffffff-no-rj'
 const STILL = 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg'
 
 beforeEach(() => {
@@ -84,7 +84,7 @@ describe('the route that serves a media link’s picture', () => {
 
     await ask(offered(AVATAR, 384))
 
-    expect(askedOf(fetch)).toBe('https://yt3.googleusercontent.com/AvatarToken=s384-rw')
+    expect(askedOf(fetch)).toBe('https://yt3.googleusercontent.com/channel-avatar=s384-rw')
   })
 
   it('fetches a video still as it is', async () => {
