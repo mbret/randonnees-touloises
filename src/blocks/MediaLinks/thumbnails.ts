@@ -1,6 +1,6 @@
 import { unstable_cache } from 'next/cache'
 
-import { isAllowedThumbnailHost } from './thumbnailHosts.js'
+import { isAllowedThumbnailHost } from './thumbnailHosts'
 
 /**
  * The picture a link shows of itself, read from the page it points at.
@@ -14,8 +14,8 @@ import { isAllowedThumbnailHost } from './thumbnailHosts.js'
  * This has to happen on the server. A browser cannot read another origin's
  * `<head>` — neither Google nor YouTube sends `Access-Control-Allow-Origin`, so
  * a client-side version of this would be blocked by CORS no matter how it were
- * written. Fetching here also means the visitor's browser never talks to
- * Google: `next/image` re-serves the picture from our own origin.
+ * written. The picture itself is fetched by this site too, so the visitor's
+ * browser never talks to Google — see `thumbnailProxy.ts`.
  */
 export type Thumbnail = {
   src: string
@@ -287,11 +287,10 @@ const fetchThumbnail = async (link: string): Promise<Thumbnail | null> => {
 
     const resolved = new URL(src, response.url)
 
-    /* Dropped rather than returned. `next/image` throws on a host missing from
-     * `remotePatterns`, and it throws while a server component renders — so a
-     * page carrying one link to an unlisted host would not show a broken card,
-     * it would fail to render at all. Refusing here is what makes the documented
-     * fallback to the platform icon true. */
+    /* Dropped rather than returned: the thumbnail route fetches from the listed
+     * hosts only, so a picture anywhere else would be a card with a broken
+     * image. Refusing here is what makes the documented fallback to the
+     * platform icon true. */
     if (!isAllowedThumbnailHost(resolved.toString())) return null
 
     const width = Number(metaContent(html, 'og:image:width'))
