@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url'
 
 import { authenticated } from '../access/authenticated'
 import { publicAccess } from '@/access/publicAccess'
+import { neverBiggerThanUpload, noteUpload } from '@/hooks/neverBiggerThanUpload'
 import { notePortraitDelete, revalidateMedia, revalidateMediaDelete } from '@/hooks/revalidateMedia'
 
 const filename = fileURLToPath(import.meta.url)
@@ -30,7 +31,9 @@ export const Media: CollectionConfig = {
   hooks: {
     afterChange: [revalidateMedia],
     afterDelete: [revalidateMediaDelete],
+    beforeChange: [neverBiggerThanUpload],
     beforeDelete: [notePortraitDelete],
+    beforeOperation: [noteUpload],
   },
   fields: [
     {
