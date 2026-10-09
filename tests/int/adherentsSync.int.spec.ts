@@ -455,6 +455,36 @@ describe('the write each plan carries', () => {
 
 describe('an address the collection would refuse', () => {
   /**
+   * Row 167 of the club's export reads `agnès.mirault@outlook.fr`. An accented
+   * mailbox is one Payload refuses and Outlook does not hand out, so the accent
+   * comes off — and the report says so, because it is a correction.
+   */
+  it('takes the accents off the mailbox and reports it', () => {
+    const mapped = mapSheetRow(sheetRow({ Mail: 'Agnès.Mirault@outlook.fr' }), 167)
+
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
+
+    expect(mapped.fields.email).toBe('agnes.mirault@outlook.fr')
+    expect(mapped.notes).toEqual([
+      'E-mail corrigé, accents retirés : Agnès.Mirault@outlook.fr → agnes.mirault@outlook.fr',
+    ])
+  })
+
+  it('does not remark on an address that needed no accents taken off', () => {
+    const mapped = mapSheetRow(sheetRow({ Mail: 'Agnes.Mirault@outlook.fr' }), 167)
+
+    if (mapped.outcome !== 'mapped') throw new Error('expected a mapped row')
+
+    expect(mapped.notes).toEqual([])
+  })
+
+  /** An accented domain is a different domain, not a typo of one. */
+  it('leaves the domain as written, and so refuses an accented one', () => {
+    expect(sheetEmail('agnes@outlöok.fr')).toBeUndefined()
+    expect(sheetEmail('élodie.bérard@example.net')).toBe('elodie.berard@example.net')
+  })
+
+  /**
    * What broke the first real import: one row of the club's export reads
    * « …@orange.fr    ??? ». Closing up the spaces made `…@orange.fr???`, which
    * Payload's `email` field rejected, and the whole import failed on it.
@@ -541,6 +571,32 @@ describe('reading a telephone number', () => {
   it('reads an empty cell as nothing', () => {
     expect(sheetPhone('')).toBeUndefined()
     expect(sheetPhone('   ')).toBeUndefined()
+  })
+  /**
+   * A number stored with its spaces — from before the import took them out, or
+   * typed by the member — is the same number the sheet now gives without them.
+   */
+  it('does not call a number stored with spaces a change', () => {
+    const plan = buildPlan({
+      existing: [existing({ phone: '06 12 34 56 78' })],
+      rows: [sheetRow({ Téléphone: '06 12 34 56 78' })],
+      season: SEASON,
+    })
+
+    expect(plan.updates).toHaveLength(0)
+    expect(plan.unchanged).toBe(1)
+  })
+
+  it('still sees a different number stored with spaces as a change', () => {
+    const plan = buildPlan({
+      existing: [existing({ phone: '06 12 34 56 78' })],
+      rows: [sheetRow({ Téléphone: '07 99 88 77 66' })],
+      season: SEASON,
+    })
+
+    expect(plan.updates[0].changes).toEqual([
+      { field: 'phone', from: '06 12 34 56 78', to: '0799887766' },
+    ])
   })
 })
 

@@ -25,6 +25,7 @@ import {
 } from '@payloadcms/plugin-seo/fields'
 import { adminOnly } from '@/access/adminOnly'
 import { ProfileCardsBlockConfig } from '@/blocks/ProfileCards/config'
+import { TrombinoscopeBlockConfig } from '@/blocks/Trombinoscope/config'
 import { navOrderDescription } from '@/navigation/Header/navOrderDescription'
 
 export const Pages: CollectionConfig<'pages'> = {
@@ -116,6 +117,7 @@ export const Pages: CollectionConfig<'pages'> = {
                 MediaLinks,
                 MembershipTiers,
                 ProfileCardsBlockConfig,
+                TrombinoscopeBlockConfig,
               ],
               required: true,
               admin: {

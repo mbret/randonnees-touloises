@@ -5,7 +5,12 @@ import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
 import { adminOrLinkedUser } from '@/access/adminOrLinkedUser'
 
 import { normaliseLicence, validateLicence } from './licence'
+import { normalisePhone } from './phone'
 import { fillFullName } from './hooks/fillFullName'
+import {
+  revalidateAdherentPages,
+  revalidateAdherentPagesDelete,
+} from './hooks/revalidateAdherentPages'
 import { syncEndpoint } from './sync/endpoint'
 
 /**
@@ -56,8 +61,12 @@ export const Adherents: CollectionConfig<'adherents'> = {
   },
   admin: {
     components: {
-      // The button that opens the CSV comparison, above the list it concerns.
-      beforeListTable: ['@/components/admin/AdherentsSyncLink#AdherentsSyncLink'],
+      // The button that opens the CSV comparison, above the list it concerns,
+      // and who the trombinoscope shows, with a way to the fiches it does not.
+      beforeListTable: [
+        '@/components/admin/AdherentsSyncLink#AdherentsSyncLink',
+        '@/components/admin/TrombinoscopeStatus#TrombinoscopeStatus',
+      ],
     },
     defaultColumns: ['fullName', 'status', 'licence', 'updatedAt'],
     group: 'Utilisateurs',
@@ -250,6 +259,9 @@ export const Adherents: CollectionConfig<'adherents'> = {
                   type: 'text',
                   label: 'Téléphone',
                   admin: { width: '50%' },
+                  hooks: {
+                    beforeValidate: [({ value }) => normalisePhone(value)],
+                  },
                 },
               ],
             },
@@ -546,6 +558,8 @@ export const Adherents: CollectionConfig<'adherents'> = {
     },
   ],
   hooks: {
+    afterChange: [revalidateAdherentPages],
+    afterDelete: [revalidateAdherentPagesDelete],
     beforeValidate: [fillFullName],
   },
   timestamps: true,

@@ -282,6 +282,7 @@ export interface Page {
     | MediaLinksBlock
     | MembershipTiersBlock
     | ProfileCardsBlock
+    | TrombinoscopeBlock
   )[];
   meta?: {
     title?: string | null;
@@ -301,7 +302,7 @@ export interface Page {
    */
   navLabel?: string | null;
   /**
-   * Classement croissant sur l’ensemble du menu. Les entrées fixes occupent 0 Recherche, 10 Contact, 30 À propos, 50 Programme hebdomadaire, 60 Conseil d’administration, 70 Équipe d’animation, 80 Trombinoscope. Sans valeur, la page se place en 100, donc après elles. Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact et À propos — et à nombre égal la page passe devant l’entrée fixe.
+   * Classement croissant sur l’ensemble du menu. Les entrées fixes occupent 0 Recherche, 5 Programme hebdomadaire, 10 Contact, 30 À propos, 60 Conseil d’administration, 70 Équipe d’animation, 80 Trombinoscope. Sans valeur, la page se place en 100, donc après elles. Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact et À propos — et à nombre égal elle passe devant l’entrée fixe.
    */
   navOrder?: number | null;
   /**
@@ -410,6 +411,7 @@ export interface Media {
     };
     [k: string]: unknown;
   } | null;
+  _objectKey?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -515,6 +517,7 @@ export interface User {
   resetPasswordExpiration?: string | null;
   salt?: string | null;
   hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
   sessions?:
@@ -927,7 +930,7 @@ export interface Transaction {
     country?: string | null;
     phone?: string | null;
   };
-  status: 'pending' | 'succeeded' | 'failed' | 'cancelled' | 'expired' | 'refunded';
+  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'cancelled' | 'expired' | 'refunded';
   customer?: (number | null) | User;
   customerEmail?: string | null;
   order?: (number | null) | Order;
@@ -1387,6 +1390,15 @@ export interface ProfileCardsBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'profileCards';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TrombinoscopeBlock".
+ */
+export interface TrombinoscopeBlock {
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'trombinoscope';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1922,6 +1934,7 @@ export interface PagesSelect<T extends boolean = true> {
         mediaLinks?: T | MediaLinksBlockSelect<T>;
         membershipTiers?: T | MembershipTiersBlockSelect<T>;
         profileCards?: T | ProfileCardsBlockSelect<T>;
+        trombinoscope?: T | TrombinoscopeBlockSelect<T>;
       };
   meta?:
     | T
@@ -2117,6 +2130,14 @@ export interface ProfileCardsBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TrombinoscopeBlock_select".
+ */
+export interface TrombinoscopeBlockSelect<T extends boolean = true> {
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
@@ -2208,6 +2229,7 @@ export interface LocationsSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
+  _objectKey?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -2332,6 +2354,7 @@ export interface UsersSelect<T extends boolean = true> {
   resetPasswordExpiration?: T;
   salt?: T;
   hash?: T;
+  resetPasswordRequestedAt?: T;
   loginAttempts?: T;
   lockUntil?: T;
   sessions?:
@@ -2922,6 +2945,9 @@ export interface Header {
           url?: string | null;
           label: string;
         };
+        /**
+         * Classement croissant sur l’ensemble du menu. Les entrées fixes occupent 0 Recherche, 5 Programme hebdomadaire, 10 Contact, 30 À propos, 60 Conseil d’administration, 70 Équipe d’animation, 80 Trombinoscope. Sans valeur, l’entrée se place en 100, donc après elles. Un nombre intermédiaire l’insère entre deux entrées fixes — 15 la place entre Contact et À propos — et à nombre égal elle passe devant l’entrée fixe.
+         */
         navOrder?: number | null;
         id?: string | null;
       }[]
@@ -3075,7 +3101,10 @@ export interface TaskSchedulePublish {
           value: number | Event;
         } | null);
     global?: string | null;
-    user?: (number | null) | User;
+    user?: {
+      relationTo: 'users';
+      value: number | User;
+    } | null;
   };
   output?: unknown;
 }

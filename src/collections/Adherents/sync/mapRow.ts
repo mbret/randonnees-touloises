@@ -9,6 +9,7 @@ import {
   sheetMoney,
   sheetPhone,
   sheetText,
+  withoutMailboxAccents,
 } from './values'
 
 /**
@@ -107,7 +108,8 @@ export const mapSheetRow = (row: Record<string, string>, line: number): MappedRo
   }
 
   /**
-   * Cells the import wanted and could not read.
+   * Cells the import wanted and could not read as written: left empty, or stored
+   * corrected. The sync screen lists them as « Cellules à vérifier ».
    *
    * Only that. An earlier version also reported the secretary's own annotations
    * from the columns this deliberately does not model — « A vérifier » in `Date
@@ -125,6 +127,10 @@ export const mapSheetRow = (row: Record<string, string>, line: number): MappedRo
    *   « …@orange.fr ??? », her querying it rather than mistyping it, and sending
    *   it would fail the collection's own validator and take the whole import
    *   down, which is what happened the first time this ran;
+   *
+   *   an address whose accents were taken off — `agnès.…@outlook.fr` stored as
+   *   `agnes.…@outlook.fr`. Almost certainly right, but a correction rather than
+   *   a reading, so she is told which address was stored and can check it;
    *
    *   a certificate date that is not a date — two cells where text has bled
    *   across, « PASS D. » and « à demander », so those certificates do not
@@ -145,6 +151,12 @@ export const mapSheetRow = (row: Record<string, string>, line: number): MappedRo
 
   if (mail !== '' && fields.email === undefined) {
     notes.push(`E-mail non importé, illisible : ${mail}`)
+  } else if (fields.email !== undefined) {
+    const typed = mail.trim().toLowerCase()
+
+    if (withoutMailboxAccents(typed) !== typed) {
+      notes.push(`E-mail corrigé, accents retirés : ${mail.trim()} → ${fields.email}`)
+    }
   }
 
   if (certificate !== '' && !sheetDate(certificate)) {

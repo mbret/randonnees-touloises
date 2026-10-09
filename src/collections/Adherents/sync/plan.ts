@@ -1,7 +1,7 @@
 import { adherentName } from '../adherentName'
 import { cell } from './columns'
 import { mapSheetRow, sheetRenewed, type SheetAdhesion, type SheetFields } from './mapRow'
-import { sheetLicence } from './values'
+import { sheetLicence, sheetPhone } from './values'
 
 /**
  * An adhérent as the plan needs to see one: the fields the sheet owns, plus the
@@ -84,8 +84,23 @@ const SHEET_OWNED: (keyof SheetFields)[] = [
   'medicalCertificateDate',
 ]
 
-/** Dates are stored as timestamps, so compare the day rather than the string. */
+/**
+ * Dates are stored as timestamps, so compare the day rather than the string.
+ *
+ * Telephone numbers are compared once both sides are read the way the import
+ * reads them. Numbers stored before the import took separators out — or typed in
+ * by a member — still read `06 15 10 59 93`, and calling that a change from
+ * `0615105993` lists every adhérent as « à mettre à jour » for a number that has
+ * not moved.
+ */
 const sameValue = (field: keyof SheetFields, before: unknown, after: unknown): boolean => {
+  if (field === 'phone') {
+    const read = (value: unknown) =>
+      typeof value === 'string' ? (sheetPhone(value) ?? null) : (value ?? null)
+
+    return read(before) === read(after)
+  }
+
   if (field === 'birthDate' || field === 'medicalCertificateDate') {
     const day = (value: unknown) =>
       typeof value === 'string' && value !== '' ? value.slice(0, 10) : null

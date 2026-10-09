@@ -14,6 +14,7 @@ import { LinkFeatureClient as LinkFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { IconFieldPreview as IconFieldPreview_003ff3d6d7c7d5930785e6148f64943e } from '@/blocks/IconCards/IconFieldPreview'
 import { RowLabel as RowLabel_f5d33f896537deccbef23761c1091fd6 } from '@/blocks/MediaLinks/RowLabel'
 import { RowLabel as RowLabel_d60eeb20aa5238f3745f5e43ce0da32a } from '@/blocks/MembershipTiers/RowLabel'
+import { AdminNote as AdminNote_2c6d860c961f0cdddd30cccec7f9be40 } from '@/blocks/Trombinoscope/AdminNote'
 import { OverviewComponent as OverviewComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { MetaTitleComponent as MetaTitleComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { MetaImageComponent as MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
@@ -23,6 +24,7 @@ import { SlugField as SlugField_2b8867833a34864a02ddf429b0728a40 } from '@payloa
 import { HorizontalRuleFeatureClient as HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { BlocksFeatureClient as BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { AdherentsSyncLink as AdherentsSyncLink_15f8ed0214062b5218941aa818f1758d } from '@/components/admin/AdherentsSyncLink'
+import { TrombinoscopeStatus as TrombinoscopeStatus_bee5d5ddff55aff0c266fe5bf77147e6 } from '@/components/admin/TrombinoscopeStatus'
 import { LinkToDoc as LinkToDoc_aead06e4cbf6b2620c5c51c9ab283634 } from '@payloadcms/plugin-search/client'
 import { ReindexButton as ReindexButton_aead06e4cbf6b2620c5c51c9ab283634 } from '@payloadcms/plugin-search/client'
 import { VariantOptionsSelector as VariantOptionsSelector_b91672ccd6e8b071c11142ab941fedfb } from '@payloadcms/plugin-ecommerce/rsc'
@@ -54,6 +56,7 @@ export const importMap = {
   "@/blocks/IconCards/IconFieldPreview#IconFieldPreview": IconFieldPreview_003ff3d6d7c7d5930785e6148f64943e,
   "@/blocks/MediaLinks/RowLabel#RowLabel": RowLabel_f5d33f896537deccbef23761c1091fd6,
   "@/blocks/MembershipTiers/RowLabel#RowLabel": RowLabel_d60eeb20aa5238f3745f5e43ce0da32a,
+  "@/blocks/Trombinoscope/AdminNote#AdminNote": AdminNote_2c6d860c961f0cdddd30cccec7f9be40,
   "@payloadcms/plugin-seo/client#OverviewComponent": OverviewComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/plugin-seo/client#MetaTitleComponent": MetaTitleComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/plugin-seo/client#MetaImageComponent": MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860,
@@ -63,6 +66,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#HorizontalRuleFeatureClient": HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#BlocksFeatureClient": BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@/components/admin/AdherentsSyncLink#AdherentsSyncLink": AdherentsSyncLink_15f8ed0214062b5218941aa818f1758d,
+  "@/components/admin/TrombinoscopeStatus#TrombinoscopeStatus": TrombinoscopeStatus_bee5d5ddff55aff0c266fe5bf77147e6,
   "@payloadcms/plugin-search/client#LinkToDoc": LinkToDoc_aead06e4cbf6b2620c5c51c9ab283634,
   "@payloadcms/plugin-search/client#ReindexButton": ReindexButton_aead06e4cbf6b2620c5c51c9ab283634,
   "@payloadcms/plugin-ecommerce/rsc#VariantOptionsSelector": VariantOptionsSelector_b91672ccd6e8b071c11142ab941fedfb,

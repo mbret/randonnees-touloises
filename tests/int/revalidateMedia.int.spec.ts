@@ -1,68 +1,203 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+const revalidatePath = vi.fn()
 const revalidateTag = vi.fn()
 
 vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn(),
+  revalidatePath: (...args: unknown[]) => revalidatePath(...args),
   revalidateTag: (...args: unknown[]) => revalidateTag(...args),
 }))
 
-const { revalidateMedia } = await import('@/hooks/revalidateMedia')
+const { notePortraitDelete, revalidateMedia, revalidateMediaDelete } =
+  await import('@/hooks/revalidateMedia')
 
-/** The document the home page's settings name as their hero. */
-const HERO = 1230
+type Doc = { [k: string]: unknown }
 
-type Save = {
-  context?: object
-  /** What the `general` global answers, or the error it throws. */
-  general?: Error | { homeHeroImage: null | number }
-  id?: number
-  operation?: 'create' | 'update'
-}
+/** How many adhérents show the upload as their portrait, with permission. */
+const count = vi.fn(async () => ({ totalDocs: 1 }))
 
-/* The hook wants a full Payload request; this gives it the fields it actually
- * reads, and remembers what it was asked. */
+/** The pages the database would say carry a trombinoscope or profile cards. */
+const find = vi.fn(async () => ({ docs: [{ slug: 'trombinoscope' }, { slug: 'board' }] }))
+
+/** The home page's settings: no hero, unless a test sets one. */
+const findGlobal = vi.fn(async () => ({ homeHeroImage: null as null | number }))
+
+const logError = vi.fn()
+
+/* One request per operation, as Payload runs them: the delete's two hooks share
+ * it, which is how the first leaves word for the second. */
+const request = (context: object = {}) => ({
+  context: { ...context },
+  payload: { count, find, findGlobal, logger: { error: logError, info: () => {} } },
+})
+
+/* The hooks want full Payload arguments; these tests give them the fields they
+ * actually read. */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const save = async ({
-  context = {},
-  general = { homeHeroImage: HERO },
-  id = HERO,
-  operation = 'update',
-}: Save = {}) => {
-  const findGlobal = vi.fn(async () => {
-    if (general instanceof Error) throw general
-
-    return general
-  })
-  const logger = { error: vi.fn(), info: vi.fn() }
-  const doc = { id, filename: 'ezgif-54afd13ceb7dfbf9.webp' }
-
-  const returned = await (revalidateMedia as any)({
+const change = (
+  doc: Doc,
+  previousDoc: Doc,
+  { context = {}, operation = 'update' }: { context?: object; operation?: string } = {},
+) =>
+  (revalidateMedia as any)({
     collection: {},
-    context,
     doc,
     operation,
-    previousDoc: { id, filename: 'optimized-image (1).webp' },
-    req: { context, payload: { findGlobal, logger } },
-  })
+    previousDoc,
+    req: request(context),
+  } as any)
 
-  return { doc, findGlobal, logger, returned }
+const remove = async (doc: Doc, context: object = {}) => {
+  const req = request(context)
+
+  await (notePortraitDelete as any)({ collection: {}, id: doc.id, req } as any)
+  await (revalidateMediaDelete as any)({ collection: {}, doc, id: doc.id, req } as any)
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-beforeEach(() => {
-  revalidateTag.mockClear()
+const portrait = (overrides: Doc = {}): Doc => ({
+  filename: 'trombinoscope-brigitte-5b1ead1292f66.jpg',
+  id: 7,
+  ...overrides,
 })
 
-describe('revalidateMedia, for the home page’s hero', () => {
-  /*
-   * The hero is read through the cached `general` global, which holds a copy of
-   * this document. Replacing the file leaves the global's own fields as they
-   * were, so nothing else expires that copy — and the replacement deletes the
-   * files it names.
+beforeEach(() => {
+  revalidatePath.mockClear()
+  revalidateTag.mockClear()
+  count.mockClear()
+  count.mockResolvedValue({ totalDocs: 1 })
+  find.mockClear()
+  findGlobal.mockClear()
+  findGlobal.mockResolvedValue({ homeHeroImage: null })
+  logError.mockClear()
+})
+
+describe('a portrait replaced in the media library', () => {
+  /** The case nothing caught: the fiche still points at the same document. */
+  it('refreshes the pages that show it', async () => {
+    await change(portrait({ filename: 'brigitte-2026.jpg' }), portrait())
+
+    expect(revalidatePath).toHaveBeenCalledWith('/trombinoscope')
+    expect(revalidatePath).toHaveBeenCalledWith('/board')
+  })
+
+  it('asks only about adhérents who let it be shown', async () => {
+    await change(portrait(), portrait())
+
+    expect(count).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'adherents',
+        req: expect.anything(),
+        where: {
+          and: [{ photo: { equals: 7 } }, { 'publicationConsent.photo': { equals: true } }],
+        },
+      }),
+    )
+  })
+
+  it('leaves the pages alone for an upload no page shows as a portrait', async () => {
+    count.mockResolvedValueOnce({ totalDocs: 0 })
+
+    await change(portrait({ filename: 'affiche-2026.jpg' }), portrait())
+
+    expect(find).not.toHaveBeenCalled()
+    expect(revalidatePath).not.toHaveBeenCalled()
+  })
+
+  /** A new upload cannot be anybody's portrait yet. */
+  it('does not ask at all when the upload is new', async () => {
+    await change(portrait(), {}, { operation: 'create' })
+
+    expect(count).not.toHaveBeenCalled()
+    expect(revalidatePath).not.toHaveBeenCalled()
+  })
+
+  /** What the size backfill sets, from a command with no Next to refresh. */
+  it('declines when the caller asked for no revalidation', async () => {
+    await change(portrait({ filename: 'brigitte-2026.jpg' }), portrait(), {
+      context: { disableRevalidate: true },
+    })
+
+    expect(count).not.toHaveBeenCalled()
+    expect(revalidatePath).not.toHaveBeenCalled()
+  })
+})
+
+describe('a portrait deleted from the media library', () => {
+  /**
+   * The database clears the fiche's `photo` without running a single adhérent
+   * hook, so the media delete is the only place left to notice.
    */
-  it('expires the settings when the file behind the hero is replaced', async () => {
-    await save()
+  it('refreshes the pages that showed it', async () => {
+    await remove(portrait())
+
+    expect(revalidatePath).toHaveBeenCalledWith('/trombinoscope')
+    expect(revalidatePath).toHaveBeenCalledWith('/board')
+  })
+
+  /** Asked before the row goes, while the reference still exists. */
+  it('asks before the delete rather than after', async () => {
+    const req = request()
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    await (notePortraitDelete as any)({ collection: {}, id: 7, req } as any)
+    count.mockResolvedValue({ totalDocs: 0 })
+    await (revalidateMediaDelete as any)({ collection: {}, doc: portrait(), id: 7, req } as any)
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    expect(count).toHaveBeenCalledTimes(1)
+    expect(revalidatePath).toHaveBeenCalledWith('/trombinoscope')
+  })
+
+  it('leaves the pages alone for an upload no page showed as a portrait', async () => {
+    count.mockResolvedValueOnce({ totalDocs: 0 })
+
+    await remove(portrait({ filename: 'affiche-2026.jpg' }))
+
+    expect(revalidatePath).not.toHaveBeenCalled()
+  })
+
+  /** Several uploads deleted at once share one request. */
+  it('keeps each upload’s answer to itself when several go together', async () => {
+    const req = request()
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    count.mockResolvedValueOnce({ totalDocs: 1 }).mockResolvedValueOnce({ totalDocs: 0 })
+    await (notePortraitDelete as any)({ collection: {}, id: 7, req } as any)
+    await (notePortraitDelete as any)({ collection: {}, id: 8, req } as any)
+    await (revalidateMediaDelete as any)({ collection: {}, doc: { id: 8 }, id: 8, req } as any)
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    expect(revalidatePath).not.toHaveBeenCalled()
+  })
+
+  it('declines when the caller asked for no revalidation', async () => {
+    await remove(portrait(), { disableRevalidate: true })
+
+    expect(count).not.toHaveBeenCalled()
+    expect(revalidatePath).not.toHaveBeenCalled()
+  })
+})
+
+describe('the home page’s hero replaced in the media library', () => {
+  const hero = (overrides: Doc = {}): Doc => ({
+    filename: 'optimized-image (1).webp',
+    id: 1230,
+    ...overrides,
+  })
+
+  beforeEach(() => {
+    count.mockResolvedValue({ totalDocs: 0 })
+    findGlobal.mockResolvedValue({ homeHeroImage: 1230 })
+  })
+
+  /**
+   * The case that reached the live site. The settings still name the same
+   * document, so their own hook never ran, and the cached copy of it went on
+   * naming files the replacement had deleted.
+   */
+  it('expires the settings the home page reads it through', async () => {
+    await change(hero({ filename: 'ezgif-54afd13ceb7dfbf9.webp' }), hero())
 
     expect(revalidateTag).toHaveBeenCalledWith('global_general', { expire: 0 })
   })
@@ -70,46 +205,60 @@ describe('revalidateMedia, for the home page’s hero', () => {
   /* Expiring the settings re-renders the home page and every gated post, which
    * is not a price to pay for a picture the hero does not show. */
   it('leaves the settings alone for any other picture', async () => {
-    await save({ id: 7 })
+    await change(portrait({ filename: 'brigitte-2026.jpg' }), portrait())
 
     expect(revalidateTag).not.toHaveBeenCalledWith('global_general', expect.anything())
   })
 
-  it('leaves them alone while the hero is unset', async () => {
-    await save({ general: { homeHeroImage: null } })
+  it('leaves them alone while no hero is set', async () => {
+    findGlobal.mockResolvedValue({ homeHeroImage: null })
+
+    await change(hero(), hero())
 
     expect(revalidateTag).not.toHaveBeenCalledWith('global_general', expect.anything())
   })
 
-  /* Nothing can name a document that is only now being created. */
-  it('does not ask about an upload that is being created', async () => {
-    const { findGlobal } = await save({ operation: 'create' })
+  /** A new upload cannot be the hero yet. */
+  it('does not ask at all when the upload is new', async () => {
+    await change(hero(), {}, { operation: 'create' })
 
     expect(findGlobal).not.toHaveBeenCalled()
   })
 
-  /* What lets the import scripts write outside a Next request, where the call
-   * throws. */
-  it('stands down when the write asks it to', async () => {
-    const { findGlobal } = await save({ context: { disableRevalidate: true } })
+  it('declines when the caller asked for no revalidation', async () => {
+    await change(hero({ filename: 'ezgif-54afd13ceb7dfbf9.webp' }), hero(), {
+      context: { disableRevalidate: true },
+    })
 
     expect(findGlobal).not.toHaveBeenCalled()
     expect(revalidateTag).not.toHaveBeenCalled()
   })
 
-  /* The upload has been saved by the time this runs; a failed lookup is logged
-   * rather than turned into an error on a save that worked. */
+  /* The upload has been saved by the time this runs; a lookup that fails is
+   * logged rather than turned into an error on a save that worked. */
   it('keeps the save when the settings cannot be read', async () => {
-    const { doc, logger, returned } = await save({ general: new Error('connection reset') })
+    findGlobal.mockRejectedValue(new Error('connection reset'))
+    const doc = hero({ filename: 'ezgif-54afd13ceb7dfbf9.webp' })
 
-    expect(returned).toBe(doc)
-    expect(logger.error).toHaveBeenCalledTimes(1)
-    expect(revalidateTag).not.toHaveBeenCalledWith('global_general', expect.anything())
+    await expect(change(doc, hero())).resolves.toBe(doc)
+    expect(logError).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('the site assets', () => {
+  it('still expire when the logo is replaced', async () => {
+    count.mockResolvedValue({ totalDocs: 0 })
+
+    await change({ filename: 'logo.webp', id: 1 }, { filename: 'logo.webp', id: 1 })
+
+    expect(revalidateTag).toHaveBeenCalledWith('medias', { expire: 0 })
   })
 
-  it('hands the document back', async () => {
-    const { doc, returned } = await save()
+  it('still expire when the logo is deleted', async () => {
+    count.mockResolvedValue({ totalDocs: 0 })
 
-    expect(returned).toBe(doc)
+    await remove({ filename: 'logo.webp', id: 1 })
+
+    expect(revalidateTag).toHaveBeenCalledWith('medias', { expire: 0 })
   })
 })
