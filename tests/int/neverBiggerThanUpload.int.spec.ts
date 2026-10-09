@@ -9,16 +9,40 @@ const HEIGHT = 360
 type Sent = { data: Buffer; mimetype: string; name: string; size: number }
 
 /**
- * A photograph's worth of detail — a gradient under noise, which no encoder
- * gets for free. Seeded, so that every run compresses the same.
+ * A photograph's worth of detail: noise at every scale from 32-pixel blotches
+ * down to single pixels, over a gradient brightening to the right. Squeezed
+ * hard, the coarser of it is left as blocks that every later encode pays for,
+ * as the converter left the hero; grain alone would be smoothed flat, and cost
+ * nothing to encode again. Seeded, so that every run compresses the same.
  */
-const photo = () => {
-  const pixels = Buffer.alloc(WIDTH * HEIGHT * 3)
+const photo = async () => {
+  const total = new Float32Array(WIDTH * HEIGHT * 3)
   let seed = 7
 
+  for (const scale of [32, 16, 8, 4, 2, 1]) {
+    const width = Math.ceil(WIDTH / scale)
+    const height = Math.ceil(HEIGHT / scale)
+    const noise = Buffer.alloc(width * height * 3)
+
+    for (let i = 0; i < noise.length; i++) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff
+      noise[i] = seed % 256
+    }
+
+    const layer = await sharp(noise, { raw: { channels: 3, height, width } })
+      .resize(WIDTH, HEIGHT, { fit: 'fill', kernel: 'cubic' })
+      .raw()
+      .toBuffer()
+
+    for (let i = 0; i < total.length; i++) total[i] += (layer[i] - 128) / scale
+  }
+
+  const pixels = Buffer.alloc(total.length)
+
   for (let i = 0; i < pixels.length; i++) {
-    seed = (seed * 1103515245 + 12345) & 0x7fffffff
-    pixels[i] = Math.min(255, ((Math.floor(i / 3) % WIDTH) / WIDTH) * 200 + (seed % 56))
+    const across = (Math.floor(i / 3) % WIDTH) / WIDTH
+
+    pixels[i] = Math.max(0, Math.min(255, 128 + total[i] / 2 + (across - 0.5) * 80))
   }
 
   return sharp(pixels, { raw: { channels: 3, height: HEIGHT, width: WIDTH } })
@@ -32,15 +56,47 @@ const sent = (data: Buffer, mimetype: string): Sent => ({
 })
 
 /** A WebP compressed before it arrived, the way an online converter leaves one. */
-const squeezedWebp = async () => sent(await photo().webp({ quality: 40 }).toBuffer(), 'image/webp')
+const squeezedWebp = async (quality = 40) =>
+  sent(await (await photo()).webp({ quality }).toBuffer(), 'image/webp')
 
 /** A photograph straight off a phone. */
-const cameraJpeg = async () => sent(await photo().jpeg({ quality: 95 }).toBuffer(), 'image/jpeg')
+const cameraJpeg = async () =>
+  sent(await (await photo()).jpeg({ quality: 95 }).toBuffer(), 'image/jpeg')
+
+const webp75 = { format: 'webp', options: { quality: 75 } } as const
+
+/**
+ * The collection's sizes, in miniature: a thumbnail, the top of the ladder —
+ * as wide as the upload, as `xlarge` is for one narrower than 1920 — and a
+ * crop in the upload's own format, as `og` and `square` are.
+ */
+const IMAGE_SIZES = [
+  { formatOptions: webp75, name: 'thumbnail', width: 160 },
+  { formatOptions: webp75, name: 'xlarge', width: WIDTH, withoutEnlargement: true },
+  { height: HEIGHT, name: 'crop', width: 480 },
+]
+
+const collection = { upload: { imageSizes: IMAGE_SIZES } }
+
+/** How far apart two pictures of the same dimensions are, pixel by pixel. */
+const difference = async (a: Buffer, b: Buffer) => {
+  const [x, y] = await Promise.all([a, b].map((image) => sharp(image).greyscale().raw().toBuffer()))
+  let total = 0
+
+  for (let i = 0; i < x.length; i++) total += Math.abs(x[i] - y[i])
+
+  return total / x.length
+}
+
+/** The whole upload squashed to `width` × `height`: what a size cut from the wrong picture would be. */
+const squashed = (upload: Sent, width: number, height: number) =>
+  sharp(upload.data).resize(width, height, { fit: 'fill' }).toBuffer()
 
 /**
  * The two hooks around what Payload does between them: the original re-encoded
  * at sharp's defaults when it is a WebP, kept as sent otherwise, unless the
- * admin cropped it — and the ladder cut from the upload at quality 75.
+ * admin cropped it — and the sizes cut from the crop if there is one and from
+ * the upload as sent if not.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const save = async (upload: Sent, { cropTo }: { cropTo?: number } = {}) => {
@@ -55,26 +111,46 @@ const save = async (upload: Sent, { cropTo }: { cropTo?: number } = {}) => {
     : upload.mimetype === 'image/webp'
       ? await sharp(upload.data, { animated: true }).rotate().toBuffer()
       : upload.data
-  const xlarge = await sharp(upload.data).webp({ quality: 75 }).toBuffer()
-  const thumbnail = await sharp(upload.data).resize({ width: 160 }).webp({ quality: 75 }).toBuffer()
+  const source = cropTo ? original : upload.data
+
+  const cuts: Record<string, Buffer> = {}
+  const sizes: Record<string, any> = {}
+
+  for (const { formatOptions, height, name, width, withoutEnlargement } of IMAGE_SIZES as any[]) {
+    let cut = sharp(source).rotate().resize(width, height, { withoutEnlargement })
+
+    if (formatOptions) cut = cut.toFormat(formatOptions.format, formatOptions.options)
+
+    const { data, info } = await cut.toBuffer({ resolveWithObject: true })
+
+    cuts[name] = data
+    sizes[name] = {
+      filesize: data.length,
+      height: info.height,
+      mimeType: `image/${info.format}`,
+      width: info.width,
+    }
+  }
 
   req.file = { ...upload, data: original, size: original.length }
-  req.payloadUploadSizes = { thumbnail, xlarge }
+  req.payloadUploadSizes = { ...cuts }
 
   const data = {
     filesize: original.length,
     height: HEIGHT,
     mimeType: upload.mimetype,
-    sizes: {
-      thumbnail: { filesize: thumbnail.length, mimeType: 'image/webp', width: 160 },
-      xlarge: { filesize: xlarge.length, mimeType: 'image/webp', width: WIDTH },
-    },
+    sizes,
     width: cropTo ?? WIDTH,
   }
 
-  const returned = await (neverBiggerThanUpload as any)({ data, operation: 'create', req })
+  const returned = await (neverBiggerThanUpload as any)({
+    collection,
+    data,
+    operation: 'create',
+    req,
+  })
 
-  return { data, original, req, returned, thumbnail, xlarge }
+  return { cuts, data, original, req, returned }
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
@@ -83,10 +159,10 @@ describe('an upload that was compressed before it arrived', () => {
    * would be stored heavier than the file that was sent. */
   it('is one Payload would store heavier than it was sent', async () => {
     const upload = await squeezedWebp()
-    const { original, xlarge } = await save(upload)
+    const { cuts, original } = await save(upload)
 
     expect(original.length).toBeGreaterThan(upload.size)
-    expect(xlarge.length).toBeGreaterThan(upload.size)
+    expect(cuts.xlarge.length).toBeGreaterThan(upload.size)
   })
 
   it('is stored as it was sent rather than as a heavier re-encode of itself', async () => {
@@ -98,25 +174,47 @@ describe('an upload that was compressed before it arrived', () => {
     expect(data.filesize).toBe(upload.size)
   })
 
-  it('has every rung that came out heavier squeezed until it is not', async () => {
+  it('has every size that came out heavier made again until it is not', async () => {
     const upload = await squeezedWebp()
     const { data, req } = await save(upload)
-    const rung = req.payloadUploadSizes.xlarge
+    const size = req.payloadUploadSizes.xlarge
 
-    expect(rung.length).toBeLessThanOrEqual(upload.size)
-    expect(data.sizes.xlarge.filesize).toBe(rung.length)
+    expect(size.length).toBeLessThanOrEqual(upload.size)
+    expect(data.sizes.xlarge.filesize).toBe(size.length)
 
-    /* Still the rung it was: the same format, at the same width. */
-    const { format, width } = await sharp(rung).metadata()
+    /* Still the size it was: the same format, at the same dimensions. */
+    const { format, height, width } = await sharp(size).metadata()
 
     expect(format).toBe('webp')
     expect(width).toBe(WIDTH)
+    expect(height).toBe(HEIGHT)
   })
 
-  it('leaves a rung that was already lighter exactly as it was', async () => {
-    const { req, thumbnail } = await save(await squeezedWebp())
+  /* The home page's hero was squeezed to about quality 20, and squeezing
+   * Payload's own cut of it — down to quality 30 and no further — left its 1920
+   * size at 281 KB against the upload's 244. */
+  it('gets no size heavier than itself however hard it was squeezed', async () => {
+    const upload = await squeezedWebp(10)
+    const { cuts, req } = await save(upload)
+    const cutSqueezed = await sharp(cuts.xlarge).webp({ quality: 30 }).toBuffer()
 
-    expect(req.payloadUploadSizes.thumbnail).toBe(thumbnail)
+    expect(cutSqueezed.length).toBeGreaterThan(upload.size)
+    expect(req.payloadUploadSizes.xlarge.length).toBeLessThanOrEqual(upload.size)
+  })
+
+  /* The highest quality that fits, not the first that does: a size squeezed
+   * further than its limit would be worse than it had to be. */
+  it('has a size squeezed no further than it has to be', async () => {
+    const upload = await squeezedWebp()
+    const { req } = await save(upload)
+
+    expect(req.payloadUploadSizes.xlarge.length).toBeGreaterThan(upload.size * 0.8)
+  })
+
+  it('leaves a size that was already lighter exactly as it was', async () => {
+    const { cuts, req } = await save(await squeezedWebp())
+
+    expect(req.payloadUploadSizes.thumbnail).toBe(cuts.thumbnail)
   })
 
   /* A crop made in the admin changes what the original is, so the upload
@@ -126,18 +224,53 @@ describe('an upload that was compressed before it arrived', () => {
 
     expect(req.file.data).toBe(original)
   })
+
+  /* Made again from the upload, a cropped picture's sizes would be the whole
+   * of it squashed into the crop's dimensions. */
+  it('has a cropped upload’s sizes made again from the crop', async () => {
+    const upload = await squeezedWebp(10)
+    const { cuts, original, req } = await save(upload, { cropTo: 600 })
+    const size = req.payloadUploadSizes.xlarge
+
+    expect(cuts.xlarge.length).toBeGreaterThan(upload.size)
+    expect(size.length).toBeLessThanOrEqual(upload.size)
+    expect(await difference(size, original)).toBeLessThan(
+      await difference(size, await squashed(upload, 600, HEIGHT)),
+    )
+  })
+
+  /* A crop is cut around a focal point the hook does not repeat, so it is
+   * squeezed from Payload's cut: the same picture, in fewer bytes. */
+  it('has a crop that came out heavier squeezed without being cut again', async () => {
+    const upload = await squeezedWebp(20)
+    const { cuts, data, req } = await save(upload)
+    const size = req.payloadUploadSizes.crop
+
+    expect(cuts.crop.length).toBeGreaterThan(upload.size)
+    expect(size.length).toBeLessThanOrEqual(upload.size)
+    expect(data.sizes.crop.filesize).toBe(size.length)
+    expect(await difference(size, cuts.crop)).toBeLessThan(
+      await difference(size, await squashed(upload, 480, HEIGHT)),
+    )
+
+    const { height, width } = await sharp(size).metadata()
+
+    expect([width, height]).toEqual([480, HEIGHT])
+  })
 })
 
 describe('a photograph uploaded as it came', () => {
   /* What nearly all of the library is, and what never needed this. */
   it('is stored and cut exactly as Payload made it', async () => {
     const upload = await cameraJpeg()
-    const { data, req, thumbnail, xlarge } = await save(upload)
+    const { cuts, data, req } = await save(upload)
 
     expect(req.file.data).toBe(upload.data)
     expect(data.filesize).toBe(upload.size)
-    expect(req.payloadUploadSizes.xlarge).toBe(xlarge)
-    expect(req.payloadUploadSizes.thumbnail).toBe(thumbnail)
+
+    for (const name of Object.keys(cuts)) {
+      expect(req.payloadUploadSizes[name]).toBe(cuts[name])
+    }
   })
 })
 
@@ -149,7 +282,12 @@ describe('a save without a file', () => {
     const data = { alt: 'Sur le sentier', filesize: 1234 }
 
     await (noteUpload as any)({ args: {}, operation: 'update', req })
-    const returned = await (neverBiggerThanUpload as any)({ data, operation: 'update', req })
+    const returned = await (neverBiggerThanUpload as any)({
+      collection,
+      data,
+      operation: 'update',
+      req,
+    })
     /* eslint-enable @typescript-eslint/no-explicit-any */
 
     expect(returned).toEqual({ alt: 'Sur le sentier', filesize: 1234 })
@@ -161,5 +299,31 @@ describe('a save without a file', () => {
     const { req } = await save(await squeezedWebp())
 
     expect(req.context).toEqual({})
+  })
+})
+
+describe('a file that is not a picture', () => {
+  /* The library takes PDFs too. Payload stores one as sent and cuts no sizes
+   * from it — and sharp cannot read one, so nothing may ask it to. */
+  it('is stored as it was sent, without being read as a picture', async () => {
+    const pdf = sent(
+      Buffer.from('%PDF-1.4\n%âãÏÓ\n1 0 obj\n<<>>\nendobj\n%%EOF\n'),
+      'application/pdf',
+    )
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const req: any = { context: {}, file: pdf }
+    const data = { filesize: pdf.size, mimeType: 'application/pdf' }
+
+    await (noteUpload as any)({ args: {}, operation: 'create', req })
+    const returned = await (neverBiggerThanUpload as any)({
+      collection,
+      data,
+      operation: 'create',
+      req,
+    })
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    expect(returned).toEqual({ filesize: pdf.size, mimeType: 'application/pdf' })
+    expect(req.file.data).toBe(pdf.data)
   })
 })
