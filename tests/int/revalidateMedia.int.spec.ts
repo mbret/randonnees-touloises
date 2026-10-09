@@ -19,11 +19,16 @@ const count = vi.fn(async () => ({ totalDocs: 1 }))
 /** The pages the database would say carry a trombinoscope or profile cards. */
 const find = vi.fn(async () => ({ docs: [{ slug: 'trombinoscope' }, { slug: 'board' }] }))
 
+/** The home page's settings: no hero, unless a test sets one. */
+const findGlobal = vi.fn(async () => ({ homeHeroImage: null as null | number }))
+
+const logError = vi.fn()
+
 /* One request per operation, as Payload runs them: the delete's two hooks share
  * it, which is how the first leaves word for the second. */
 const request = (context: object = {}) => ({
   context: { ...context },
-  payload: { count, find, logger: { info: () => {} } },
+  payload: { count, find, findGlobal, logger: { error: logError, info: () => {} } },
 })
 
 /* The hooks want full Payload arguments; these tests give them the fields they
@@ -56,12 +61,21 @@ const portrait = (overrides: Doc = {}): Doc => ({
   ...overrides,
 })
 
+const hero = (overrides: Doc = {}): Doc => ({
+  filename: 'optimized-image (1).webp',
+  id: 1230,
+  ...overrides,
+})
+
 beforeEach(() => {
   revalidatePath.mockClear()
   revalidateTag.mockClear()
   count.mockClear()
   count.mockResolvedValue({ totalDocs: 1 })
   find.mockClear()
+  findGlobal.mockClear()
+  findGlobal.mockResolvedValue({ homeHeroImage: null })
+  logError.mockClear()
 })
 
 describe('a portrait replaced in the media library', () => {
@@ -168,6 +182,145 @@ describe('a portrait deleted from the media library', () => {
 
     expect(count).not.toHaveBeenCalled()
     expect(revalidatePath).not.toHaveBeenCalled()
+  })
+})
+
+describe('the home page’s hero replaced in the media library', () => {
+  beforeEach(() => {
+    count.mockResolvedValue({ totalDocs: 0 })
+    findGlobal.mockResolvedValue({ homeHeroImage: 1230 })
+  })
+
+  /**
+   * The case that reached the live site. The settings still name the same
+   * document, so their own hook never ran, and the cached copy of it went on
+   * naming files the replacement had deleted.
+   */
+  it('expires the settings the home page reads it through', async () => {
+    await change(hero({ filename: 'ezgif-54afd13ceb7dfbf9.webp' }), hero())
+
+    expect(revalidateTag).toHaveBeenCalledWith('global_general', { expire: 0 })
+  })
+
+  /* Expiring the settings re-renders the home page and every gated post, which
+   * is not a price to pay for a picture the hero does not show. */
+  it('leaves the settings alone for any other picture', async () => {
+    await change(portrait({ filename: 'brigitte-2026.jpg' }), portrait())
+
+    expect(revalidateTag).not.toHaveBeenCalledWith('global_general', expect.anything())
+  })
+
+  it('leaves them alone while no hero is set', async () => {
+    findGlobal.mockResolvedValue({ homeHeroImage: null })
+
+    await change(hero(), hero())
+
+    expect(revalidateTag).not.toHaveBeenCalledWith('global_general', expect.anything())
+  })
+
+  /** A new upload cannot be the hero yet. */
+  it('does not ask at all when the upload is new', async () => {
+    await change(hero(), {}, { operation: 'create' })
+
+    expect(findGlobal).not.toHaveBeenCalled()
+  })
+
+  it('declines when the caller asked for no revalidation', async () => {
+    await change(hero({ filename: 'ezgif-54afd13ceb7dfbf9.webp' }), hero(), {
+      context: { disableRevalidate: true },
+    })
+
+    expect(findGlobal).not.toHaveBeenCalled()
+    expect(revalidateTag).not.toHaveBeenCalled()
+  })
+
+  /* The upload has been saved by the time this runs; a lookup that fails is
+   * logged rather than turned into an error on a save that worked. */
+  it('keeps the save when the settings cannot be read', async () => {
+    findGlobal.mockRejectedValue(new Error('connection reset'))
+    const doc = hero({ filename: 'ezgif-54afd13ceb7dfbf9.webp' })
+
+    await expect(change(doc, hero())).resolves.toBe(doc)
+    expect(logError).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('the home page’s hero deleted from the media library', () => {
+  beforeEach(() => {
+    count.mockResolvedValue({ totalDocs: 0 })
+    findGlobal.mockResolvedValue({ homeHeroImage: 1230 })
+  })
+
+  /**
+   * The database clears `homeHeroImage` without running the settings' hook, so
+   * the cached copy would go on naming the deleted files until someone saved
+   * the settings by hand.
+   */
+  it('expires the settings the home page reads it through', async () => {
+    await remove(hero())
+
+    expect(revalidateTag).toHaveBeenCalledWith('global_general', { expire: 0 })
+  })
+
+  /** Asked before the row goes, while the settings still name it. */
+  it('asks before the delete rather than after', async () => {
+    const req = request()
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    await (notePortraitDelete as any)({ collection: {}, id: 1230, req } as any)
+    findGlobal.mockResolvedValue({ homeHeroImage: null })
+    await (revalidateMediaDelete as any)({ collection: {}, doc: hero(), id: 1230, req } as any)
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    expect(findGlobal).toHaveBeenCalledTimes(1)
+    expect(revalidateTag).toHaveBeenCalledWith('global_general', { expire: 0 })
+  })
+
+  it('leaves the settings alone when another picture is deleted', async () => {
+    await remove(portrait())
+
+    expect(revalidateTag).not.toHaveBeenCalledWith('global_general', expect.anything())
+  })
+
+  /* The REST API parses the id out of its URL; the local API passes on
+   * whatever its caller gave it. */
+  it('knows the hero by an id given as a string', async () => {
+    await remove(hero({ id: '1230' }))
+
+    expect(revalidateTag).toHaveBeenCalledWith('global_general', { expire: 0 })
+  })
+
+  /** Several uploads deleted at once share one request. */
+  it('keeps each upload’s answer to itself when several go together', async () => {
+    const req = request()
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    await (notePortraitDelete as any)({ collection: {}, id: 1230, req } as any)
+    await (notePortraitDelete as any)({ collection: {}, id: 7, req } as any)
+    await (revalidateMediaDelete as any)({ collection: {}, doc: portrait(), id: 7, req } as any)
+    expect(revalidateTag).not.toHaveBeenCalledWith('global_general', expect.anything())
+
+    await (revalidateMediaDelete as any)({ collection: {}, doc: hero(), id: 1230, req } as any)
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    expect(revalidateTag).toHaveBeenCalledWith('global_general', { expire: 0 })
+  })
+
+  it('declines when the caller asked for no revalidation', async () => {
+    await remove(hero(), { disableRevalidate: true })
+
+    expect(findGlobal).not.toHaveBeenCalled()
+    expect(revalidateTag).not.toHaveBeenCalled()
+  })
+
+  /* A lookup that fails is logged rather than allowed to stop a delete the
+   * club asked for. */
+  it('keeps the delete when the settings cannot be read', async () => {
+    findGlobal.mockRejectedValue(new Error('connection reset'))
+
+    await expect(remove(hero())).resolves.toBeUndefined()
+    expect(logError).toHaveBeenCalledTimes(1)
+    expect(revalidateTag).not.toHaveBeenCalledWith('global_general', expect.anything())
   })
 })
 
