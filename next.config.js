@@ -1,7 +1,6 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 
 import redirects from './redirects.js'
-import { THUMBNAIL_REMOTE_PATTERNS } from './src/blocks/MediaLinks/thumbnailHosts.js'
 
 /**
  * The addresses Vercel gives a deployment of its own accord: the project's
@@ -85,12 +84,11 @@ const nextConfig = {
           protocol: url.protocol.replace(':', ''),
         }
       }),
-      /**
-       * Where the `mediaLinks` block's automatic thumbnails come from. Defined
-       * beside the block, because the resolver has to refuse exactly what this
-       * list refuses — see the note in `thumbnailHosts.js`.
-       */
-      ...THUMBNAIL_REMOTE_PATTERNS,
+      /* No Google hosts. The `mediaLinks` block's thumbnails used to come
+       * through here, and `**.googleusercontent.com` let anyone have this site
+       * fetch and resize any picture Google hosts. They come through their own
+       * route now, sized by Google and signed by this site — see
+       * `src/blocks/MediaLinks/thumbnailProxy.ts`. */
     ],
     /**
      * The widths a transformation may be asked for, and so — multiplied by the
@@ -129,18 +127,14 @@ const nextConfig = {
      * A variant past its TTL is not refreshed for free. Vercel serves the stale
      * copy and transforms the source again behind it, and bills that as a
      * transformation and a cache write, exactly like a miss. At four hours, on a
-     * site visited a few times a day, nearly every visit found the media page's
-     * album covers stale: those eight pictures were 304 of a week's 305
-     * transformations, made eight at a time. Google's own `max-age=86400` did
-     * not stretch it — the header is `private`, and the covers were served with
-     * Next's four hours regardless.
+     * site visited a few times a day, nearly every visit found what it served
+     * stale: the media page's album covers, while they came through here, were
+     * 304 of a week's 305 transformations, the same eight pictures made again
+     * and again.
      *
      * A month is safe because what still passes through here does not change
-     * under an address it has already been served at. A Google Photos cover is
-     * addressed by its photo, so a new cover is a new address; a static import's
-     * name carries its hash; uploads skip the optimiser altogether. The
-     * exception is a YouTube still, derived from the video's id: a video given a
-     * new thumbnail keeps its old one on the card for up to a month.
+     * under an address it has already been served at: a static import's name
+     * carries its hash, and uploads skip the optimiser altogether.
      */
     minimumCacheTTL: 2_678_400, // 31 days
     /**

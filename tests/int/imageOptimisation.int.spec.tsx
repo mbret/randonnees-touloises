@@ -1,7 +1,5 @@
-import { describe, it, expect, afterEach, vi } from 'vitest'
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { render, cleanup } from '@testing-library/react'
-import { imageConfigDefault } from 'next/dist/shared/lib/image-config'
-import { ImageConfigContext } from 'next/dist/shared/lib/image-config-context.shared-runtime'
 
 import type { Thumbnail } from '@/blocks/MediaLinks/thumbnails'
 import type { Media } from '@/payload-types'
@@ -278,11 +276,9 @@ describe('what is no longer asked of the optimiser', () => {
   })
 
   /**
-   * `next/image` is still what serves the `mediaLinks` block's remote
-   * thumbnails and the few static assets imported directly, so these bounds
-   * still hold. With the uploads on their ladder, the thumbnails are most of
-   * what is left to bound: the media page's eight album covers were 304 of the
-   * 305 transformations in the week before the cases below were written.
+   * `next/image` is still what serves the few static assets imported directly,
+   * so these bounds still hold. The `mediaLinks` block's thumbnails no longer
+   * go through it — see below.
    */
   it('keeps the remaining optimiser usage bounded', () => {
     const { deviceSizes = [], imageSizes = [], qualities } = nextConfig.images ?? {}
@@ -292,18 +288,28 @@ describe('what is no longer asked of the optimiser', () => {
     expect(imageSizes).toEqual([48, 96, 192, 384])
     expect(Math.max(...imageSizes)).toBeLessThan(Math.min(...deviceSizes))
   })
+
+  /**
+   * Past its TTL a variant is served stale and made again behind it, billed
+   * like a miss. At Next's four hours, on a site visited a few times a day,
+   * nearly every visit found what it served stale.
+   */
+  it('keeps what it does make for a month', () => {
+    expect(nextConfig.images?.minimumCacheTTL).toBe(31 * 24 * 60 * 60)
+  })
 })
 
 describe('what a media link’s own picture costs', () => {
   const COVER = 'https://lh3.googleusercontent.com/pw/AP1GczCover=w600-h315-p-k'
 
-  /**
-   * `next/image` reads its widths from a config Next compiles into the page.
-   * Nothing is compiled here, so the config is handed over the other way the
-   * component reads it, through the context: the project's sizes over Next's
-   * defaults, as a build would merge them.
-   */
-  const imageConfig = { ...imageConfigDefault, ...nextConfig.images }
+  /* The route's addresses are signed with the secret every environment has. */
+  beforeEach(() => {
+    vi.stubEnv('PAYLOAD_SECRET', 'a-secret-for-tests')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
 
   const renderCover = async (cover: Thumbnail) => {
     thumbnail = cover
@@ -313,38 +319,37 @@ describe('what a media link’s own picture costs', () => {
       items: [{ platform: 'googlePhotos', title: 'Raquettes', url: 'https://photos.app.goo.gl/x' }],
     })
 
-    return renderMedia(
-      <ImageConfigContext.Provider value={imageConfig}>{block}</ImageConfigContext.Provider>,
-    ).img
+    return renderMedia(<>{block}</>)
   }
 
-  /** The width each `srcset` candidate asks the optimiser for, in offered order. */
-  const widthsAskedFor = (img: HTMLImageElement) =>
-    (img.getAttribute('srcset') ?? '')
-      .split(', ')
-      .map((candidate) => new URL(candidate.split(' ')[0], 'https://example.test'))
-      .map((url) => Number(url.searchParams.get('w')))
-
   /**
-   * A cover is a social card 600 pixels wide, and the optimiser does not
-   * enlarge. Offered at every width from 384 to 1920, it came back at 828, 1200
-   * and 1920 as the 640 variant over again: the same bytes, each billed as a
-   * transformation of its own. Only two widths differ — one for a standard
-   * screen, and the whole picture for anything denser.
+   * The album covers were 304 of a week's 305 transformations, and every width
+   * the optimiser was asked for Google cuts for nothing.
    */
-  it('offers a cover at two widths, the second already the whole picture', async () => {
-    const img = await renderCover({ src: COVER, width: 600, height: 315 })
+  it('asks the optimiser for nothing', async () => {
+    const { html } = await renderCover({ src: COVER, width: 600, height: 315 })
 
-    expect(widthsAskedFor(img)).toEqual([384, 640])
+    expect(html).not.toContain('/_next/image')
+  })
+
+  it('offers a cover at Google’s own sizes, through this site', async () => {
+    const { img } = await renderCover({ src: COVER, width: 600, height: 315 })
+    const candidates = (img.getAttribute('srcset') ?? '').split(', ')
+
+    expect(candidates.map((candidate) => candidate.split(' ')[1])).toEqual(['384w', '640w', '960w'])
+    expect(candidates.every((candidate) => candidate.startsWith('/media-links/thumbnail?'))).toBe(
+      true,
+    )
   })
 
   /**
-   * Past its TTL a variant is served stale and made again behind it, billed
-   * like a miss. At Next's four hours, on a site visited a few times a day,
-   * the covers were made again on nearly every visit.
+   * `**.googleusercontent.com` let anyone have this site fetch and resize any
+   * picture Google hosts, each of them a transformation billed here.
    */
-  it('keeps what it made for a month', () => {
-    expect(nextConfig.images?.minimumCacheTTL).toBe(31 * 24 * 60 * 60)
+  it('no longer lets the optimiser fetch from Google', () => {
+    const hosts = (nextConfig.images?.remotePatterns ?? []).map((pattern) => pattern.hostname)
+
+    expect(hosts.filter((host) => /googleusercontent|ytimg/.test(host))).toEqual([])
   })
 })
 

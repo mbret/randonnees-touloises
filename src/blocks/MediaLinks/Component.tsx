@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { ExternalLinkIcon } from 'lucide-react'
-import NextImage from 'next/image'
 
 import type { MediaLinksBlock as MediaLinksBlockProps } from '@/payload-types'
 
@@ -12,6 +11,7 @@ import { dayInFrance } from '@/utilities/parisDay'
 
 import { mediaPlatformIcons } from './platformIcons'
 import { mediaPlatformActions, mediaPlatformLabels } from './platforms'
+import { proxiedThumbnail } from './thumbnailProxy'
 import { isSquarish, resolveThumbnail } from './thumbnails'
 
 /**
@@ -35,29 +35,6 @@ const formatDate = (value: string) =>
  * on a tablet — what `sizes` tells the browser to fetch.
  */
 const IMAGE_SIZES = '(min-width: 1024px) 300px, (min-width: 640px) 50vw, 100vw'
-
-/**
- * The size an automatic thumbnail is declared at, which is what decides the
- * widths the optimiser is asked for — not the size it is drawn at, which the
- * band decides.
- *
- * Declared rather than `fill`, because `fill` with `IMAGE_SIZES` offered every
- * width from 384 to 1920, and the picture behind it is a social card: 600
- * pixels wide for a Google Photos cover, 480 for a video still. The optimiser
- * does not enlarge, so the 828, 1200 and 1920 variants were the 640 one over
- * again, each billed as a transformation of its own — four in ten of the
- * covers' transformations, the week this was measured. A declared width yields
- * a `1x, 2x` pair instead, here 384 for a standard screen and 640, the whole
- * picture, for anything denser.
- *
- * Any width from 193 to 320 gives that pair. This one, at the band's 16:9, is
- * narrower than any band is drawn: in development Next warns about an image
- * drawn at its declared width but not its declared height, or the reverse, and
- * a desktop band — about 302 by 170 — could set that off against 300 by 169.
- * The picture is laid over a band that already has its shape, so the size
- * reserves nothing either way.
- */
-const THUMBNAIL_SIZE = { width: 256, height: 144 }
 
 export const MediaLinksBlock: React.FC<MediaLinksBlockProps> = async ({ items }) => {
   if (!items?.length) return null
@@ -112,18 +89,21 @@ export const MediaLinksBlock: React.FC<MediaLinksBlockProps> = async ({ items })
                          A near-square picture is a channel avatar or a logo, so
                          it is fitted whole rather than cropped to the band.
 
-                         Laid over the band by hand rather than with `fill`,
-                         which would ask for widths the picture does not have —
-                         see `THUMBNAIL_SIZE`. */
-                      <NextImage
+                         A plain `img`, not `next/image`: Google cuts every
+                         width on offer itself, through the thumbnail route, so
+                         all the optimiser could add is a bill for cutting them
+                         again. */
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
                         alt=""
                         className={cn(
                           'absolute inset-0 size-full',
                           isSquarish(thumbnail) ? 'object-contain p-6' : 'object-cover',
                         )}
-                        height={THUMBNAIL_SIZE.height}
-                        src={thumbnail.src}
-                        width={THUMBNAIL_SIZE.width}
+                        decoding="async"
+                        loading="lazy"
+                        sizes={IMAGE_SIZES}
+                        {...proxiedThumbnail(thumbnail)}
                       />
                     ) : (
                       /* Neither a chosen picture nor one to be had: the
