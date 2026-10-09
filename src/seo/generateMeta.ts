@@ -7,6 +7,7 @@ import { getImageURL } from './imageUrl'
 import { servedAt } from './servedAt'
 import { pagePath } from '../utilities/pagePath'
 import { postPath } from '../utilities/postPath'
+import { publicDescription } from './publicText'
 
 /**
  * The document a page's metadata describes, tagged with the collection it came
@@ -39,6 +40,10 @@ export const generateMeta = async (args: MetaSource): Promise<Metadata> => {
   const ogImage = getImageURL(doc?.meta?.image)
   const title = doc?.meta?.title
 
+  // Read through `publicDescription` rather than off the document: this runs
+  // outside the password gate and for rows written long before the guard existed.
+  const description = publicDescription(doc?.meta)
+
   /**
    * A document reachable at an address of its own points both its canonical and
    * its `og:url` at it, so the two cannot name different pages.
@@ -50,7 +55,7 @@ export const generateMeta = async (args: MetaSource): Promise<Metadata> => {
    */
   const url = getDocumentURL(args)
   const address = servedAt(url ?? absoluteUrl('/'), {
-    description: doc?.meta?.description || '',
+    description: description || '',
     images: ogImage
       ? [
           {
@@ -61,7 +66,7 @@ export const generateMeta = async (args: MetaSource): Promise<Metadata> => {
   })
 
   return {
-    description: doc?.meta?.description,
+    description,
     ...(url ? address : { openGraph: address.openGraph }),
     // Bare on purpose: the root layout's title template appends the site name.
     // A document with no title of its own leaves the key out altogether rather
