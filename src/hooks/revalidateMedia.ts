@@ -31,7 +31,8 @@ import { SITE_ASSET_FILENAMES } from '@/metadata/siteAssets'
  * `medias` for those would be 249 pointless invalidations during a backfill —
  * which is also why the backfill ends by asking for a redeploy rather than
  * relying on this. A cached page embeds the same rung URLs, and the only pages
- * a media hook reaches are the ones drawing adhérents' portraits, below.
+ * a media hook reaches are the ones drawing adhérents' portraits and the home
+ * page's hero, below.
  */
 const revalidateSiteAssets = (filename?: null | string) => {
   if (!filename || !SITE_ASSET_FILENAMES.includes(filename)) return
@@ -59,10 +60,41 @@ const isShownPortrait = async (id: number | string, req: PayloadRequest) => {
 }
 
 /**
+ * Expire the home page's settings when the document behind its hero changes.
+ *
+ * The hero is read through the `general` global at depth 1, so the cached
+ * global holds a copy of this document — filename, rungs, and the `updatedAt`
+ * its URLs are tagged with — as it stood when the global was cached. Replacing
+ * the file here changes none of the global's own fields, so the global's hook
+ * never runs, and that copy goes on naming files the replacement has deleted
+ * from the bucket. It shipped that way: a club member replaced the hero's file,
+ * the home page kept rendering the old one, and those URLs answered 404 to
+ * anyone the CDN had no copy for.
+ *
+ * Asked of the global rather than done on every save: expiring its tag
+ * re-renders the home page and every gated post, a price worth paying for the
+ * one picture the hero shows and not for each of the others.
+ */
+const revalidateHomeHero = async (id: number | string, req: PayloadRequest) => {
+  try {
+    const { homeHeroImage } = await req.payload.findGlobal({ slug: 'general', depth: 0, req })
+    const heroId = typeof homeHeroImage === 'object' ? homeHeroImage?.id : homeHeroImage
+
+    if (heroId === id) revalidateTag('global_general', { expire: 0 })
+  } catch (error) {
+    /* The save has happened by now; a lookup that fails should cost the club a
+     * stale hero, which saving the settings fixes, rather than an error on an
+     * upload that worked. */
+    req.payload.logger.error({ err: error, msg: 'Could not check whether the home hero changed' })
+  }
+}
+
+/**
  * Any write to a portrait's document refreshes the pages that draw it: a new
  * file renames the rungs out from under the cached `srcset`, and even an
- * edited alt text or crop reaches a profile card. A new upload cannot be
- * anybody's portrait yet, so a creation is left alone.
+ * edited alt text or crop reaches a profile card. The same goes for the home
+ * page's hero. A new upload cannot be anybody's portrait or the hero yet, so a
+ * creation is left alone.
  */
 export const revalidateMedia: CollectionAfterChangeHook = async ({
   doc,
@@ -80,6 +112,8 @@ export const revalidateMedia: CollectionAfterChangeHook = async ({
     if (operation === 'update' && (await isShownPortrait(doc.id, req))) {
       await revalidatePagesShowingAdherents(req)
     }
+
+    if (operation === 'update') await revalidateHomeHero(doc.id, req)
   }
 
   return doc
