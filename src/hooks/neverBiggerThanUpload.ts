@@ -38,6 +38,14 @@ import sharp from 'sharp'
  * - a crop (`og`, `square`) is re-encoded from Payload's own cut, when it is a
  *   WebP, and no further than quality 30: a crop can hold more pixels than a
  *   small upload — both enlarge one — and then outweighs it honestly.
+ *
+ * Left untreated: a crop of a JPEG or PNG upload. `og` and `square` keep the
+ * format they were uploaded in and the hook only encodes WebP, so from a JPEG
+ * squeezed hard, or a picture smaller than the crop, they can come out heavier
+ * than the upload and are stored as Payload made them. No visitor downloads
+ * either — `og` is fetched by social sites when a page is shared, `square` by
+ * nothing — so what it costs is a heavier file in the admin and the bucket,
+ * and none of the library's JPEG or PNG uploads has one.
  */
 
 type Upload = NonNullable<PayloadRequest['file']>
@@ -194,6 +202,10 @@ export const neverBiggerThanUpload: CollectionBeforeChangeHook = async ({
   for (const [name, cut] of Object.entries(req.payloadUploadSizes ?? {})) {
     const size = data.sizes?.[name]
 
+    /* TODO: a crop of a JPEG or PNG upload is skipped here however heavy it
+     * came out — see "Left untreated" above. Treating it means `squeeze`
+     * encoding in the crop's own format: mozjpeg for a JPEG, a palette for a
+     * PNG. */
     if (!size || cut.length <= limit || size.mimeType !== 'image/webp') continue
 
     const config = collection.upload.imageSizes?.find((imageSize) => imageSize.name === name)
