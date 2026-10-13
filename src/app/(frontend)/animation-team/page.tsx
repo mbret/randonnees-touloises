@@ -8,10 +8,11 @@ import Link from 'next/link'
 import React from 'react'
 
 /**
- * Prerendered, then refreshed on a schedule: the portraits come from the media
- * collection, so a page baked at build time keeps whatever the collection held
- * then — an empty one renders every member as initials until the next deploy.
- * Ten minutes, matching the posts and events listings.
+ * Prerendered, then refreshed: the portraits come from the adhérents' fiches,
+ * so a page baked at build time would keep whatever they held then. An edit to
+ * a fiche or to a portrait's file refreshes it straight away, through the hooks
+ * that refresh /board and /trombinoscope; the ten minutes, matching the posts
+ * and events listings, catch whatever reaches the database around them.
  */
 export const dynamic = 'force-static'
 

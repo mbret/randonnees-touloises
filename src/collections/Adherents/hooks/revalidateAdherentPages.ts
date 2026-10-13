@@ -25,6 +25,13 @@ import { pagePath } from '@/utilities/pagePath'
 export const BLOCKS_SHOWING_ADHERENTS = ['profileCards', 'trombinoscope'] as const
 
 /**
+ * And the route file that does: /animation-team lists its people in
+ * `src/data/teams.ts` but draws each portrait from the person's fiche. Named,
+ * since a route has its address in the code and no page document to be found by.
+ */
+const ROUTES_SHOWING_ADHERENTS = ['/animation-team'] as const
+
+/**
  * Every page carrying one of them. An `or` of equalities rather than one `in`:
  * on Postgres an `in` over two block types matches no page at all, while each
  * equality finds its own.
@@ -63,12 +70,13 @@ const onTrombinoscope = (adherent: Partial<Adherent>) =>
 /**
  * Whether this write can have changed a page.
  *
- * A new adhérent can only be on the trombinoscope — a list of profile cards
- * names its people, and cannot name someone who did not exist yet — so a
- * creation counts only when it qualifies for that. Which is also why the CSV
- * import's new members, who arrive with neither a portrait nor a permission,
- * refresh nothing. An edit counts when it moves anything a card draws: an
- * address, a licence or a certificate date does not.
+ * A new adhérent can only reach a page through a portrait they may show — on
+ * the trombinoscope, or on /animation-team if its list names them; a list of
+ * profile cards names its people, and cannot name someone who did not exist
+ * yet — so a creation counts only when it qualifies for that. Which is also
+ * why the CSV import's new members, who arrive with neither a portrait nor a
+ * permission, refresh nothing. An edit counts when it moves anything a card
+ * draws: an address, a licence or a certificate date does not.
  */
 const affectsPages = (
   doc: Adherent,
@@ -78,7 +86,8 @@ const affectsPages = (
 
 /**
  * Found when needed rather than named here: which page carries the
- * trombinoscope, and under what slug, is the editor's choice.
+ * trombinoscope, and under what slug, is the editor's choice. The route files
+ * above are the exception, and follow the pages.
  *
  * Inside the write's own transaction, through `req`, like every other Local API
  * call in a hook. Shared with the media hooks, which reach the same pages when
@@ -94,11 +103,9 @@ export const revalidatePagesShowingAdherents = async (req: PayloadRequest) => {
     where: showingAdherents,
   })
 
-  for (const page of docs) {
-    if (!page.slug) continue
+  const pagePaths = docs.flatMap((page) => (page.slug ? [pagePath(page)] : []))
 
-    const path = pagePath(page)
-
+  for (const path of [...pagePaths, ...ROUTES_SHOWING_ADHERENTS]) {
     req.payload.logger.info(`Revalidating page at path: ${path}`)
 
     revalidatePath(path)

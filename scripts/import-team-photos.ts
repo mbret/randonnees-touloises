@@ -8,10 +8,10 @@
  *     pnpm payload run scripts/import-team-photos.ts
  *
  * Unlike the trombinoscope, these pages caption every portrait with the member's
- * full name, so the file can be keyed on it — `conseil-pascal-bret.png` — and
- * src/data/teams.ts refers to that filename. The pages then resolve it by
- * filename rather than by id, because local and production ids are independent
- * sequences.
+ * full name, so the file can be keyed on it — `conseil-pascal-bret.png`. Nothing
+ * resolves that filename any more: the pages draw each portrait from the
+ * adhérent's fiche, which points at whichever upload is theirs — one of these
+ * for many of the conseil and the animateurs.
  *
  * USE_REMOTE_STORAGE=1 matters for a production run: without it the config leaves
  * the remote adapter out and the files would be written to this machine's disk

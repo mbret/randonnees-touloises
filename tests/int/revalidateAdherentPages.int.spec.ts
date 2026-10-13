@@ -100,7 +100,7 @@ describe('an edited fiche', () => {
     await change(fiche({ photo: 8 }), fiche())
     await change(fiche({ photo: null }), fiche())
 
-    expect(revalidatePath).toHaveBeenCalledTimes(4)
+    expect(revalidatePath).toHaveBeenCalledTimes(6)
   })
 
   it('refreshes them when a name the cards print is corrected', async () => {
@@ -185,7 +185,19 @@ describe('which pages', () => {
 
     await remove(fiche())
 
-    expect(revalidatePath).toHaveBeenCalledTimes(1)
-    expect(revalidatePath).toHaveBeenCalledWith('/board')
+    expect(revalidatePath.mock.calls).toEqual([['/board'], ['/animation-team']])
+  })
+
+  /**
+   * A route file rather than a page, so no block finds it — but it draws its
+   * portraits from the fiches all the same, and a withdrawn permission must
+   * leave it as promptly as it leaves the others.
+   */
+  it('refreshes the animation team, whatever the pages carry', async () => {
+    find.mockResolvedValueOnce({ docs: [] })
+
+    await change(fiche({ publicationConsent: { photo: false } }), fiche())
+
+    expect(revalidatePath.mock.calls).toEqual([['/animation-team']])
   })
 })
