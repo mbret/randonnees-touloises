@@ -65,6 +65,17 @@ describe('a new adhérent', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/board')
   })
 
+  /** The animation team lists them by name, portrait or not. */
+  it('refreshes the pages when they arrive ticked as an animateur', async () => {
+    await change(
+      fiche({ isAnimateur: true, photo: null, publicationConsent: { photo: false } }),
+      undefined,
+      { operation: 'create' },
+    )
+
+    expect(revalidatePath).toHaveBeenCalledWith('/animation-team')
+  })
+
   /**
    * What the CSV import creates: a person with neither a portrait nor a
    * permission, whom no page can show yet.
@@ -117,6 +128,14 @@ describe('an edited fiche', () => {
     await change(fiche({ publicationConsent: { phone: true, photo: true } }), fiche())
 
     expect(find).toHaveBeenCalledTimes(4)
+  })
+
+  /** Ticking the box is what puts someone on the animation team, or takes them off. */
+  it('refreshes them when « Animateur ou animatrice » is ticked or unticked', async () => {
+    await change(fiche({ isAnimateur: true }), fiche())
+    await change(fiche(), fiche({ isAnimateur: true }))
+
+    expect(revalidatePath.mock.calls.filter(([path]) => path === '/animation-team')).toHaveLength(2)
   })
 
   it('leaves the pages alone for what no card draws', async () => {

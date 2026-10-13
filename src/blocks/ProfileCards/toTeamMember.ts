@@ -8,6 +8,15 @@ export type PublishableAdherent = Pick<
 >
 
 /**
+ * A French number in pairs, « 06 15 10 59 93 », the way the club prints one:
+ * the fiche stores it with nothing between the digits. Anything else, an
+ * international number among them, is printed as stored. `TeamSection` takes
+ * the spaces out again for the link.
+ */
+const readablePhone = (phone: string) =>
+  /^0\d{9}$/.test(phone) ? phone.replace(/(\d{2})(?=\d)/g, '$1 ') : phone
+
+/**
  * An adhérent as a card, with the two consents doing their work.
  *
  * Name and function are shown for anyone in the list. An association declares
@@ -36,7 +45,7 @@ export const toTeamMember = (adherent: PublishableAdherent): TeamMember => {
   const phone = consent?.phone && adherent.phone ? adherent.phone : undefined
 
   return {
-    contactLinks: phone ? [{ id: 'phone', type: 'phone', value: phone }] : undefined,
+    contactLinks: phone ? [{ id: 'phone', type: 'phone', value: readablePhone(phone) }] : undefined,
     media,
     name: [adherent.firstName, adherent.lastName].filter(Boolean).join(' '),
     role: adherent.boardRole ?? undefined,

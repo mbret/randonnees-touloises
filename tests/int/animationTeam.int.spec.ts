@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { StaticTeamMember } from '@/data/teams'
 import type { Media } from '@/payload-types'
 
 const find = vi.fn()
@@ -8,7 +7,7 @@ const find = vi.fn()
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: async () => ({ find }) }))
 
-const { resolveTeamPhotos } = await import('@/utilities/resolveTeamPhotos')
+const { getAnimationTeam } = await import('@/app/(frontend)/animation-team/getAnimationTeam')
 
 type Doc = Record<string, unknown>
 
@@ -26,7 +25,7 @@ const media = (id: number): Media => ({
 
 let nextId = 1
 
-/** A fiche as the query hands it back: the four fields it selects, and its id. */
+/** A fiche as the query hands it back: the fields it selects, and its id. */
 const fiche = (firstName: string, lastName: string, overrides: Doc = {}): Doc => {
   const id = nextId++
 
@@ -34,145 +33,111 @@ const fiche = (firstName: string, lastName: string, overrides: Doc = {}): Doc =>
     firstName,
     id,
     lastName,
+    phone: '0610538781',
     photo: media(100 + id),
-    publicationConsent: { email: false, phone: false, photo: true },
+    publicationConsent: { email: false, phone: true, photo: true },
     ...overrides,
   }
 }
 
 const database = (fiches: Doc[]) => find.mockResolvedValue({ docs: fiches })
 
-const member = (name: string, overrides: Partial<StaticTeamMember> = {}): StaticTeamMember => ({
-  contactLinks: [{ id: 'phone', type: 'phone', value: '06 10 53 87 81' }],
-  name,
-  ...overrides,
-})
-
 beforeEach(() => {
   find.mockReset()
 })
 
-describe('the portraits on the animation team', () => {
+describe('who is on the animation team', () => {
   /**
-   * What the club ran into: the page drew the photograph copied off the old
-   * website, while the fiche had been given a newer one.
+   * The list is the box on each fiche, read past the access check since
+   * `adherents` is closed to public reads — so the fields are named, and the
+   * conseil's function is not among them.
    */
-  it('takes each portrait from the person’s fiche', async () => {
-    const pierre = fiche('Pierre', 'LAURENT')
-
-    database([fiche('Paulette', 'LAURENT'), pierre])
-
-    const [card] = await resolveTeamPhotos([member('Pierre LAURENT')])
-
-    expect(card?.media).toEqual(pierre.photo)
-  })
-
-  /** How the list in code and the fiches actually differ today. */
-  it('finds the fiche however either side typed the name', async () => {
-    const fiches = [
-      fiche('Gerald', 'SABOT'),
-      fiche('Jean-Luc', 'STEPHAN'),
-      fiche('Roger', 'FRANCOIS'),
-    ]
-
-    database(fiches)
-
-    const cards = await resolveTeamPhotos([
-      member('Gérald SABOT'),
-      member('Jean-luc STEPHAN'),
-      member('Roger FRANÇOIS'),
-    ])
-
-    expect(cards.map((card) => card.media)).toEqual(fiches.map((doc) => doc.photo))
-  })
-
-  it('follows a member to a fiche kept under another name', async () => {
-    const daniel = fiche('Daniel', 'ROCHEFOLLE')
-
-    database([daniel])
-
-    const [card] = await resolveTeamPhotos([
-      member('Dany ROCHEFOLLE', { ficheName: 'Daniel ROCHEFOLLE' }),
-    ])
-
-    expect(card?.media).toEqual(daniel.photo)
-    expect(card?.name).toBe('Dany ROCHEFOLLE')
-    expect(card).not.toHaveProperty('ficheName')
-  })
-
-  /** The rest of the card is the list's, in the list's order. */
-  it('keeps the name, the number and the order the list gives', async () => {
-    database([fiche('Bernard', 'TUAILLON'), fiche('Bernard', 'ATTENOT')])
-
-    const cards = await resolveTeamPhotos([member('Bernard ATTENOT'), member('Bernard TUAILLON')])
-
-    expect(cards.map(({ contactLinks, name }) => ({ contactLinks, name }))).toEqual([
-      { contactLinks: member('').contactLinks, name: 'Bernard ATTENOT' },
-      { contactLinks: member('').contactLinks, name: 'Bernard TUAILLON' },
-    ])
-  })
-})
-
-describe('when there is no portrait to show', () => {
-  /** A portrait on file is not consent, whatever the query let through. */
-  it('draws initials when « Portrait » is not ticked on the fiche', async () => {
-    database([fiche('Pierre', 'LAURENT', { publicationConsent: { photo: false } })])
-
-    const [card] = await resolveTeamPhotos([member('Pierre LAURENT')])
-
-    expect(card?.media).toBeUndefined()
-  })
-
-  it('draws initials when no fiche carries the name', async () => {
-    database([fiche('Pierre', 'REVEST')])
-
-    const [card] = await resolveTeamPhotos([member('Pierre LAURENT')])
-
-    expect(card?.media).toBeUndefined()
-  })
-
-  /** Two fiches answering to one name leave no saying whose face it is. */
-  it('draws initials when two fiches carry the name', async () => {
-    database([fiche('Pierre', 'LAURENT'), fiche('Pierre', 'LAURENT')])
-
-    const [card] = await resolveTeamPhotos([member('Pierre LAURENT')])
-
-    expect(card?.media).toBeUndefined()
-  })
-
-  /**
-   * An unpopulated relationship arrives as an id. Rendering that would put a
-   * number where the portrait goes, so it counts as no portrait.
-   */
-  it('ignores a portrait that came back as an id rather than a document', async () => {
-    database([fiche('Pierre', 'LAURENT', { photo: 7 })])
-
-    const [card] = await resolveTeamPhotos([member('Pierre LAURENT')])
-
-    expect(card?.media).toBeUndefined()
-  })
-})
-
-describe('what it reads', () => {
-  /**
-   * Past the access check, since `adherents` is closed to public reads — so
-   * the fields are named, and the fiches with nothing to show are left in the
-   * database.
-   */
-  it('asks only for fiches with a portrait to show, and only the fields it needs', async () => {
+  it('asks for everyone ticked as an animateur, and only what a card shows', async () => {
     database([])
 
-    await resolveTeamPhotos([member('Pierre LAURENT')])
+    await getAnimationTeam()
 
     expect(find).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: 'adherents',
         overrideAccess: true,
-        select: { firstName: true, lastName: true, photo: true, publicationConsent: true },
-        where: {
-          and: [{ 'publicationConsent.photo': { equals: true } }, { photo: { exists: true } }],
+        select: {
+          firstName: true,
+          lastName: true,
+          phone: true,
+          photo: true,
+          publicationConsent: true,
         },
+        where: { isAnimateur: { equals: true } },
       }),
     )
+  })
+
+  it('names each card the way the fiche writes it', async () => {
+    database([fiche('Pierre', 'LAURENT')])
+
+    const [card] = await getAnimationTeam()
+
+    expect(card?.name).toBe('Pierre LAURENT')
+    expect(card?.role).toBeUndefined()
+  })
+
+  /** « ÉTIENNE » among the E, not after the Z where a byte order puts it. */
+  it('orders them by surname, then first name, the way French reads', async () => {
+    database([
+      fiche('Suzanne', 'ROCHEFOLLE'),
+      fiche('Roland', 'FERRARI'),
+      fiche('Paul', 'ÉTIENNE'),
+      fiche('Daniel', 'ROCHEFOLLE'),
+      fiche('Isabelle', 'ANDERLINI'),
+    ])
+
+    const cards = await getAnimationTeam()
+
+    expect(cards.map((card) => card.name)).toEqual([
+      'Isabelle ANDERLINI',
+      'Paul ÉTIENNE',
+      'Roland FERRARI',
+      'Daniel ROCHEFOLLE',
+      'Suzanne ROCHEFOLLE',
+    ])
+  })
+})
+
+describe('what each card shows', () => {
+  /**
+   * What the club ran into: the page drew the photograph copied off the old
+   * website, while the fiche had been given a newer one.
+   */
+  it('takes the portrait from the fiche', async () => {
+    const pierre = fiche('Pierre', 'LAURENT')
+
+    database([pierre])
+
+    const [card] = await getAnimationTeam()
+
+    expect(card?.media).toEqual(pierre.photo)
+  })
+
+  it('shows the portrait only with « Portrait » ticked', async () => {
+    database([fiche('Pierre', 'LAURENT', { publicationConsent: { phone: true, photo: false } })])
+
+    const [card] = await getAnimationTeam()
+
+    expect(card?.media).toBeUndefined()
+    expect(card?.name).toBe('Pierre LAURENT')
+  })
+
+  it('shows the telephone only with « Téléphone » ticked', async () => {
+    database([
+      fiche('Pierre', 'LAURENT'),
+      fiche('Bernard', 'TUAILLON', { publicationConsent: { phone: false, photo: true } }),
+    ])
+
+    const [laurent, tuaillon] = await getAnimationTeam()
+
+    expect(laurent?.contactLinks).toEqual([{ id: 'phone', type: 'phone', value: '06 10 53 87 81' }])
+    expect(tuaillon?.contactLinks).toBeUndefined()
+    expect(tuaillon?.media).toBeDefined()
   })
 })
