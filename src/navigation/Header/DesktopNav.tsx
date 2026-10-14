@@ -113,6 +113,15 @@ export const DesktopNav: React.FC<{ navItems: OrderedNavItem[] }> = ({ navItems 
         <NavigationMenuItem>
           <NavigationMenuTrigger>Plus</NavigationMenuTrigger>
           <NavigationMenuContent>
+            {/* The 16px between rows is deliberate — a menu of six entries reads
+              * better spaced than tiled, and 80px of panel height is what it buys.
+              *
+              * It does mean the gap belongs to no row, so `globals.css` gives the
+              * rows either side the reach to cover it: without that, a cursor
+              * crossing it is on neither, and 13 of 21 positions across one gap
+              * light nothing. The spacing is a design choice and the reach is what
+              * pays for it; `DropdownMenuContent` next door takes the other option
+              * and tiles its items with `p-1` and no gap at all. */}
             <ul className="grid w-[200px] gap-4">
               {menuItems.map(({ link, visibility }, i) => {
                 return (
