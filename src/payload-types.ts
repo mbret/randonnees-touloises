@@ -581,6 +581,9 @@ export interface Adherent {
    * La fonction, si l’adhérent siège au conseil.
    */
   boardRole?: string | null;
+  /**
+   * Fait paraître l’adhérent sur la page « Équipe d’animation ». Portrait et téléphone n’y figurent qu’avec les autorisations de l’onglet « Publication ».
+   */
   isAnimateur?: boolean | null;
   adhesions?:
     | {

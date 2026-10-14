@@ -85,6 +85,7 @@ describe('a portrait replaced in the media library', () => {
 
     expect(revalidatePath).toHaveBeenCalledWith('/trombinoscope')
     expect(revalidatePath).toHaveBeenCalledWith('/board')
+    expect(revalidatePath).toHaveBeenCalledWith('/animation-team')
   })
 
   it('asks only about adhérents who let it be shown', async () => {

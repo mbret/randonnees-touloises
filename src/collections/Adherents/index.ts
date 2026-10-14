@@ -434,7 +434,7 @@ export const Adherents: CollectionConfig<'adherents'> = {
                 placeholder: 'Trésorier',
               },
             },
-            /** Nothing reads this yet either. */
+            /** Who /animation-team lists: everyone with this ticked. */
             {
               name: 'isAnimateur',
               type: 'checkbox',
@@ -443,6 +443,11 @@ export const Adherents: CollectionConfig<'adherents'> = {
               access: {
                 create: adminOnlyFieldAccess,
                 update: adminOnlyFieldAccess,
+              },
+              admin: {
+                description:
+                  'Fait paraître l’adhérent sur la page « Équipe d’animation ». Portrait et ' +
+                  'téléphone n’y figurent qu’avec les autorisations de l’onglet « Publication ».',
               },
               defaultValue: false,
             },

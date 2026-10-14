@@ -25,6 +25,13 @@ import { pagePath } from '@/utilities/pagePath'
 export const BLOCKS_SHOWING_ADHERENTS = ['profileCards', 'trombinoscope'] as const
 
 /**
+ * And the route file that does: /animation-team lists everyone with « Animateur
+ * ou animatrice » ticked. Named, since a route has its address in the code and
+ * no page document to be found by.
+ */
+const ROUTES_SHOWING_ADHERENTS = ['/animation-team'] as const
+
+/**
  * Every page carrying one of them. An `or` of equalities rather than one `in`:
  * on Postgres an `in` over two block types matches no page at all, while each
  * equality finds its own.
@@ -38,12 +45,13 @@ const idOf = (value: Adherent['photo'] | undefined) =>
   value && typeof value === 'object' ? value.id : (value ?? null)
 
 /**
- * Everything those blocks can draw from one fiche, in one comparable value.
+ * Everything those pages can draw from one fiche, in one comparable value.
  *
  * The trombinoscope reads the first name and the portrait; the profile cards
- * add the surname, the function and the telephone. Each consent is in it,
- * because ticking or unticking one is what puts a portrait or a number on a
- * page, or takes it off again.
+ * add the surname, the function and the telephone; the animation team, whether
+ * the person is an animateur at all. Each consent is in it, because ticking or
+ * unticking one is what puts a portrait or a number on a page, or takes it off
+ * again.
  */
 const shown = (adherent: Partial<Adherent> | undefined) =>
   JSON.stringify([
@@ -54,6 +62,7 @@ const shown = (adherent: Partial<Adherent> | undefined) =>
     idOf(adherent?.photo),
     Boolean(adherent?.publicationConsent?.photo),
     Boolean(adherent?.publicationConsent?.phone),
+    Boolean(adherent?.isAnimateur),
   ])
 
 /** On the trombinoscope from the moment they exist, nobody having added them. */
@@ -63,22 +72,27 @@ const onTrombinoscope = (adherent: Partial<Adherent>) =>
 /**
  * Whether this write can have changed a page.
  *
- * A new adhérent can only be on the trombinoscope — a list of profile cards
- * names its people, and cannot name someone who did not exist yet — so a
- * creation counts only when it qualifies for that. Which is also why the CSV
- * import's new members, who arrive with neither a portrait nor a permission,
- * refresh nothing. An edit counts when it moves anything a card draws: an
- * address, a licence or a certificate date does not.
+ * A new adhérent can only be on the trombinoscope, or on the animation team if
+ * « Animateur ou animatrice » is ticked from the start — a list of profile
+ * cards names its people, and cannot name someone who did not exist yet — so a
+ * creation counts only when it qualifies for one of those. Which is also why
+ * the CSV import's new members, who arrive with no portrait, no permission and
+ * that box unticked, refresh nothing. An edit counts when it moves anything a
+ * card draws: an address, a licence or a certificate date does not.
  */
 const affectsPages = (
   doc: Adherent,
   previousDoc: Adherent | undefined,
   operation: 'create' | 'update',
-) => (operation === 'create' ? onTrombinoscope(doc) : shown(doc) !== shown(previousDoc))
+) =>
+  operation === 'create'
+    ? onTrombinoscope(doc) || Boolean(doc.isAnimateur)
+    : shown(doc) !== shown(previousDoc)
 
 /**
  * Found when needed rather than named here: which page carries the
- * trombinoscope, and under what slug, is the editor's choice.
+ * trombinoscope, and under what slug, is the editor's choice. The route files
+ * above are the exception, and follow the pages.
  *
  * Inside the write's own transaction, through `req`, like every other Local API
  * call in a hook. Shared with the media hooks, which reach the same pages when
@@ -94,11 +108,9 @@ export const revalidatePagesShowingAdherents = async (req: PayloadRequest) => {
     where: showingAdherents,
   })
 
-  for (const page of docs) {
-    if (!page.slug) continue
+  const pagePaths = docs.flatMap((page) => (page.slug ? [pagePath(page)] : []))
 
-    const path = pagePath(page)
-
+  for (const path of [...pagePaths, ...ROUTES_SHOWING_ADHERENTS]) {
     req.payload.logger.info(`Revalidating page at path: ${path}`)
 
     revalidatePath(path)
