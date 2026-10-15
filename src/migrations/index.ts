@@ -24,6 +24,7 @@ import * as migration_20260921_094500_header_nav_item_order from './20260921_094
 import * as migration_20261003_102651_trombinoscope_block from './20261003_102651_trombinoscope_block';
 import * as migration_20261003_105129_payload_3_90_upgrade from './20261003_105129_payload_3_90_upgrade';
 import * as migration_20261004_120000_normalise_adherent_phones from './20261004_120000_normalise_adherent_phones';
+import * as migration_20261015_144900_contact_form_global from './20261015_144900_contact_form_global';
 
 export const migrations = [
   {
@@ -144,16 +145,21 @@ export const migrations = [
   {
     up: migration_20261003_102651_trombinoscope_block.up,
     down: migration_20261003_102651_trombinoscope_block.down,
-    name: '20261003_102651_trombinoscope_block'
+    name: '20261003_102651_trombinoscope_block',
   },
   {
     up: migration_20261003_105129_payload_3_90_upgrade.up,
     down: migration_20261003_105129_payload_3_90_upgrade.down,
-    name: '20261003_105129_payload_3_90_upgrade'
+    name: '20261003_105129_payload_3_90_upgrade',
   },
   {
     up: migration_20261004_120000_normalise_adherent_phones.up,
     down: migration_20261004_120000_normalise_adherent_phones.down,
-    name: '20261004_120000_normalise_adherent_phones'
+    name: '20261004_120000_normalise_adherent_phones',
+  },
+  {
+    up: migration_20261015_144900_contact_form_global.up,
+    down: migration_20261015_144900_contact_form_global.down,
+    name: '20261015_144900_contact_form_global'
   },
 ];

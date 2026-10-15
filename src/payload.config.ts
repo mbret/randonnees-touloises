@@ -1,3 +1,4 @@
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { fr } from '@payloadcms/translations/languages/fr'
 import { postgresAdapter } from '@payloadcms/db-postgres'
@@ -25,6 +26,7 @@ import { Events } from './collections/Events'
 import { General } from './cms/globals/general/config'
 import { GalleriesConfig } from './collections/Galleries/Gallery'
 import { ContactSubmissions } from './collections/ContactSubmissions'
+import { ContactForm, DEFAULT_SENDER } from './cms/globals/contactForm/config'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -85,6 +87,29 @@ const wantsRemoteStorage =
  * S3 client that has nothing to talk to.
  */
 const useRemoteStorage = wantsRemoteStorage && Boolean(process.env.R2_BUCKET)
+
+/**
+ * Mail goes out through Amazon SES's SMTP interface. Without the variables —
+ * every local run — Payload has no adapter and writes each email to the
+ * console instead of sending it.
+ *
+ * `skipVerify`, because verifying opens an SMTP connection while Payload
+ * starts, which every cold function would wait on before serving anything.
+ */
+const email =
+  process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS
+    ? nodemailerAdapter({
+        defaultFromAddress: DEFAULT_SENDER,
+        defaultFromName: 'Randonnées Touloises',
+        skipVerify: true,
+        transportOptions: {
+          auth: { pass: process.env.SMTP_PASS, user: process.env.SMTP_USER },
+          host: process.env.SMTP_HOST,
+          port: 587,
+          requireTLS: true,
+        },
+      })
+    : undefined
 
 export default buildConfig({
   admin: {
@@ -174,7 +199,8 @@ export default buildConfig({
     ContactSubmissions,
   ],
   cors: [getServerSideURL()].filter(Boolean),
-  globals: [Header, Footer, General],
+  email,
+  globals: [Header, Footer, General, ContactForm],
   plugins: [
     ...plugins,
     // Registered either way so the generated admin import map does not depend on

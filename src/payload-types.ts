@@ -155,11 +155,13 @@ export interface Config {
     header: Header;
     footer: Footer;
     general: General;
+    contactForm: ContactForm;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     general: GeneralSelect<false> | GeneralSelect<true>;
+    contactForm: ContactFormSelect<false> | ContactFormSelect<true>;
   };
   locale: null;
   widgets: {
@@ -3007,6 +3009,23 @@ export interface General {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contactForm".
+ */
+export interface ContactForm {
+  id: number;
+  /**
+   * Chaque message envoyé depuis la page Contact est transmis à cette adresse. Laissez vide pour ne rien envoyer : les messages restent consultables dans « Messages de contact ».
+   */
+  recipient?: string | null;
+  /**
+   * L’adresse qui apparaît comme expéditeur, sur le domaine randonnees-touloises.net. Elle n’a pas besoin d’exister : répondre à l’e-mail écrit directement à la personne qui a envoyé le message.
+   */
+  sender: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -3065,6 +3084,17 @@ export interface FooterSelect<T extends boolean = true> {
 export interface GeneralSelect<T extends boolean = true> {
   contentPassword?: T;
   homeHeroImage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contactForm_select".
+ */
+export interface ContactFormSelect<T extends boolean = true> {
+  recipient?: T;
+  sender?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
