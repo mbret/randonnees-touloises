@@ -1,14 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+const count = vi.fn()
 const create = vi.fn()
 const findGlobal = vi.fn()
 const sendEmail = vi.fn()
 const logError = vi.fn()
+const logWarn = vi.fn()
 const pending: Promise<unknown>[] = []
 
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({
-  getPayload: async () => ({ create, findGlobal, logger: { error: logError }, sendEmail }),
+  getPayload: async () => ({
+    count,
+    create,
+    findGlobal,
+    logger: { error: logError, warn: logWarn },
+    sendEmail,
+  }),
 }))
 /* Outside a request `after` throws; here it runs the work and keeps it to await. */
 vi.mock('next/server', () => ({
@@ -32,6 +40,7 @@ const submit = async (overrides: object = {}) => {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  count.mockResolvedValue({ totalDocs: 1 })
   create.mockImplementation(async ({ data }) => ({ id: 42, ...data }))
   findGlobal.mockResolvedValue({
     recipient: 'bureau@example.net',
@@ -72,6 +81,25 @@ describe('emailing a contact message', () => {
     expect(await submit()).toEqual({ success: true })
     expect(create).toHaveBeenCalledOnce()
     expect(sendEmail).not.toHaveBeenCalled()
+  })
+
+  /* The action is public: a bot could otherwise fill the mailbox and spend the SES quota. */
+  it('stops emailing past 50 messages in the last hour, and still stores them', async () => {
+    count.mockResolvedValue({ totalDocs: 50 })
+    await submit()
+    expect(sendEmail).toHaveBeenCalledOnce()
+
+    const before = Date.now()
+    count.mockResolvedValue({ totalDocs: 51 })
+    expect(await submit()).toEqual({ success: true })
+    const after = Date.now()
+    expect(create).toHaveBeenCalledTimes(2)
+    expect(sendEmail).toHaveBeenCalledOnce()
+    expect(logWarn).toHaveBeenCalledOnce()
+
+    const since = Date.parse(count.mock.calls[1][0].where.createdAt.greater_than) + 3_600_000
+    expect(since).toBeGreaterThanOrEqual(before)
+    expect(since).toBeLessThanOrEqual(after)
   })
 
   /* The message is saved by then; a mail outage must not tell the visitor it failed. */

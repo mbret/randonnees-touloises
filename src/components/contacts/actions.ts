@@ -22,6 +22,13 @@ const LIMITS = { email: 320, message: 5000, nom: 200, telephone: 50 }
 
 const clean = (value: string | undefined, max: number) => (value ?? '').trim().slice(0, max)
 
+/**
+ * Messages emailed per hour at most. The action is public and unthrottled, so
+ * a bot could otherwise flood the recipient's mailbox and spend the SES
+ * quota. Past the cap, messages are still stored, just not emailed.
+ */
+const HOURLY_EMAIL_CAP = 50
+
 /** A display name in quotes, so a comma or bracket in it stays part of the name. */
 const quoted = (name: string) => `"${name.replace(/[\\"]/g, '\\$&')}"`
 
@@ -34,6 +41,16 @@ async function notifyRecipient(payload: Payload, submission: StoredSubmission) {
   try {
     const settings = await payload.findGlobal({ slug: 'contactForm' })
     if (!settings.recipient) return
+
+    // Counts this message too, which is already stored.
+    const { totalDocs: lastHour } = await payload.count({
+      collection: 'contactSubmissions',
+      where: { createdAt: { greater_than: new Date(Date.now() - 3_600_000).toISOString() } },
+    })
+    if (lastHour > HOURLY_EMAIL_CAP) {
+      payload.logger.warn(`[submitContact] ${lastHour} messages in the last hour, not emailing`)
+      return
+    }
 
     // One line, since it goes into the From and Subject headers.
     const nom = submission.nom.replace(/\s+/g, ' ')
