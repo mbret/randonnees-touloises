@@ -5,8 +5,8 @@
  *   pnpm seed:local
  *
  * It runs the migrations, creates an admin user, then runs the import scripts
- * in an order that makes sense — portraits before the pages that resolve them
- * by filename, events and posts before the pages that link to them.
+ * in an order that makes sense — events and posts before the pages that link
+ * to them.
  *
  * Nothing here is local-only in principle: production is seeded by running the
  * same scripts, one at a time and deliberately, which is why this wrapper

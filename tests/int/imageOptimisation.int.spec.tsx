@@ -1,12 +1,23 @@
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { render, cleanup } from '@testing-library/react'
 
+import type { Thumbnail } from '@/blocks/MediaLinks/thumbnails'
 import type { Media } from '@/payload-types'
 
 import nextConfig from '../../next.config.js'
 
 import { ImageMedia } from '@/components/Media/ImageMedia'
 import { MEDIA_CACHE_TAG_PARAM } from '@/utilities/mediaCacheTag'
+
+/** What the next media link's page declares as its picture. */
+let thumbnail: Thumbnail | null = null
+
+vi.mock('@/blocks/MediaLinks/thumbnails', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/blocks/MediaLinks/thumbnails')>()),
+  resolveThumbnail: async () => thumbnail,
+}))
+
+const { MediaLinksBlock } = await import('@/blocks/MediaLinks/Component')
 
 /**
  * Every assertion here is about money.
@@ -265,9 +276,9 @@ describe('what is no longer asked of the optimiser', () => {
   })
 
   /**
-   * `next/image` is still what serves the `mediaLinks` block's remote
-   * thumbnails and the few static assets imported directly, so these bounds
-   * still hold — they are simply no longer what decides the bill.
+   * `next/image` is still what serves the few static assets imported directly,
+   * so these bounds still hold. The `mediaLinks` block's thumbnails no longer
+   * go through it — see below.
    */
   it('keeps the remaining optimiser usage bounded', () => {
     const { deviceSizes = [], imageSizes = [], qualities } = nextConfig.images ?? {}
@@ -276,6 +287,69 @@ describe('what is no longer asked of the optimiser', () => {
     expect(deviceSizes).toEqual([640, 828, 1200, 1920])
     expect(imageSizes).toEqual([48, 96, 192, 384])
     expect(Math.max(...imageSizes)).toBeLessThan(Math.min(...deviceSizes))
+  })
+
+  /**
+   * Past its TTL a variant is served stale and made again behind it, billed
+   * like a miss. At Next's four hours, on a site visited a few times a day,
+   * nearly every visit found what it served stale.
+   */
+  it('keeps what it does make for a month', () => {
+    expect(nextConfig.images?.minimumCacheTTL).toBe(31 * 24 * 60 * 60)
+  })
+})
+
+describe('what a media link’s own picture costs', () => {
+  const COVER = 'https://lh3.googleusercontent.com/pw/AP1GczCover=w600-h315-p-k'
+
+  /* The route's addresses are signed with the secret every environment has. */
+  beforeEach(() => {
+    vi.stubEnv('PAYLOAD_SECRET', 'a-secret-for-tests')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  const renderCover = async (cover: Thumbnail) => {
+    thumbnail = cover
+
+    const block = await MediaLinksBlock({
+      blockType: 'mediaLinks',
+      items: [{ platform: 'googlePhotos', title: 'Raquettes', url: 'https://photos.app.goo.gl/x' }],
+    })
+
+    return renderMedia(<>{block}</>)
+  }
+
+  /**
+   * The album covers were 304 of a week's 305 transformations, and every width
+   * the optimiser was asked for Google cuts for nothing.
+   */
+  it('asks the optimiser for nothing', async () => {
+    const { html } = await renderCover({ src: COVER, width: 600, height: 315 })
+
+    expect(html).not.toContain('/_next/image')
+  })
+
+  it('offers a cover at Google’s own sizes, through this site', async () => {
+    const { img } = await renderCover({ src: COVER, width: 600, height: 315 })
+    const candidates = (img.getAttribute('srcset') ?? '').split(', ')
+
+    expect(candidates.map((candidate) => candidate.split(' ')[1])).toEqual(['384w', '640w', '960w'])
+    expect(candidates.every((candidate) => candidate.startsWith('/media-links/thumbnail?'))).toBe(
+      true,
+    )
+  })
+
+  /**
+   * `**.googleusercontent.com` let anyone have this site fetch and resize any
+   * picture Google hosts, each of them a transformation billed here.
+   */
+  it('no longer lets the optimiser fetch from Google', () => {
+    const hosts = (nextConfig.images?.remotePatterns ?? []).map((pattern) => pattern.hostname)
+
+    expect(hosts.filter((host) => /googleusercontent|ytimg/.test(host))).toEqual([])
   })
 })
 

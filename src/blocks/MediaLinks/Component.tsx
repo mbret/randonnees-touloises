@@ -1,16 +1,17 @@
 import React from 'react'
 
 import { ExternalLinkIcon } from 'lucide-react'
-import NextImage from 'next/image'
 
 import type { MediaLinksBlock as MediaLinksBlockProps } from '@/payload-types'
 
+import { cn } from '@/components/ui'
 import { Card, CardContent } from '@/components/ui/card'
 import { Media } from '@/components/Media'
 import { dayInFrance } from '@/utilities/parisDay'
 
 import { mediaPlatformIcons } from './platformIcons'
 import { mediaPlatformActions, mediaPlatformLabels } from './platforms'
+import { proxiedThumbnail } from './thumbnailProxy'
 import { isSquarish, resolveThumbnail } from './thumbnails'
 
 /**
@@ -86,13 +87,23 @@ export const MediaLinksBlock: React.FC<MediaLinksBlockProps> = async ({ items })
                          it opens — announcing it twice helps nobody.
 
                          A near-square picture is a channel avatar or a logo, so
-                         it is fitted whole rather than cropped to the band. */
-                      <NextImage
+                         it is fitted whole rather than cropped to the band.
+
+                         A plain `img`, not `next/image`: Google cuts every
+                         width on offer itself, through the thumbnail route, so
+                         all the optimiser could add is a bill for cutting them
+                         again. */
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
                         alt=""
-                        className={isSquarish(thumbnail) ? 'object-contain p-6' : 'object-cover'}
-                        fill
+                        className={cn(
+                          'absolute inset-0 size-full',
+                          isSquarish(thumbnail) ? 'object-contain p-6' : 'object-cover',
+                        )}
+                        decoding="async"
+                        loading="lazy"
                         sizes={IMAGE_SIZES}
-                        src={thumbnail.src}
+                        {...proxiedThumbnail(thumbnail)}
                       />
                     ) : (
                       /* Neither a chosen picture nor one to be had: the

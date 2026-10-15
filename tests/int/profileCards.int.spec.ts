@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  toTeamMember,
-  type PublishableAdherent,
-} from '@/blocks/ProfileCards/toTeamMember'
+import { toTeamMember, type PublishableAdherent } from '@/blocks/ProfileCards/toTeamMember'
 
 const media = { alt: 'Portrait', id: 7, url: '/media/conseil-pascal-bret.png' }
 
@@ -58,7 +55,20 @@ describe('the two consents', () => {
       adherent({ publicationConsent: { email: false, phone: true, photo: false } }),
     )
 
-    expect(card.contactLinks).toEqual([{ id: 'phone', type: 'phone', value: '0612345678' }])
+    expect(card.contactLinks).toEqual([{ id: 'phone', type: 'phone', value: '06 12 34 56 78' }])
+  })
+
+  /**
+   * The fiche stores a number with nothing between the digits; the card prints
+   * a French one in pairs, and leaves any other as it was stored.
+   */
+  it('prints a French number in pairs', () => {
+    const consent = { email: false, phone: true, photo: false }
+    const numberOf = (phone: string) =>
+      toTeamMember(adherent({ phone, publicationConsent: consent })).contactLinks?.[0]?.value
+
+    expect(numberOf('0612345678')).toBe('06 12 34 56 78')
+    expect(numberOf('+33612345678')).toBe('+33612345678')
   })
 
   /** Neither permission implies the other. */

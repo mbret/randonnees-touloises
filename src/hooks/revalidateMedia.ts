@@ -31,7 +31,8 @@ import { SITE_ASSET_FILENAMES } from '@/metadata/siteAssets'
  * `medias` for those would be 249 pointless invalidations during a backfill —
  * which is also why the backfill ends by asking for a redeploy rather than
  * relying on this. A cached page embeds the same rung URLs, and the only pages
- * a media hook reaches are the ones drawing adhérents' portraits, below.
+ * a media hook reaches are the ones drawing adhérents' portraits and the home
+ * page's hero, below.
  */
 const revalidateSiteAssets = (filename?: null | string) => {
   if (!filename || !SITE_ASSET_FILENAMES.includes(filename)) return
@@ -59,10 +60,48 @@ const isShownPortrait = async (id: number | string, req: PayloadRequest) => {
 }
 
 /**
+ * Whether this upload is the home page's hero.
+ *
+ * The hero is read through the `general` global at depth 1, so the cached
+ * global holds a copy of this document — filename, rungs, and the `updatedAt`
+ * its URLs are tagged with — as it stood when the global was cached. Replacing
+ * the file here changes none of the global's own fields, so the global's hook
+ * never runs, and that copy goes on naming files the replacement has deleted
+ * from the bucket. It shipped that way: a club member replaced the hero's file,
+ * the home page kept rendering the old one, and those URLs answered 404 to
+ * anyone the CDN had no copy for.
+ *
+ * Asked of the global rather than expired on every save: expiring its tag
+ * re-renders the home page and every gated post, a price worth paying for the
+ * one picture the hero shows and not for each of the others.
+ */
+const isHomeHero = async (id: number | string, req: PayloadRequest) => {
+  try {
+    const { homeHeroImage } = await req.payload.findGlobal({ slug: 'general', depth: 0, req })
+    const heroId = typeof homeHeroImage === 'object' ? homeHeroImage?.id : homeHeroImage
+
+    /* As strings: the REST API parses an id from its URL, but the local API
+     * hands a hook whichever kind its caller passed. */
+    return heroId != null && String(heroId) === String(id)
+  } catch (error) {
+    /* A lookup that fails should cost the club a stale hero, which saving the
+     * settings fixes, rather than an error on a save or a delete that would
+     * otherwise have worked. */
+    req.payload.logger.error({ err: error, msg: 'Could not check whether the home hero changed' })
+
+    return false
+  }
+}
+
+/** Expire the cached settings the home page reads its hero through. */
+const revalidateHomeHero = () => revalidateTag('global_general', { expire: 0 })
+
+/**
  * Any write to a portrait's document refreshes the pages that draw it: a new
  * file renames the rungs out from under the cached `srcset`, and even an
- * edited alt text or crop reaches a profile card. A new upload cannot be
- * anybody's portrait yet, so a creation is left alone.
+ * edited alt text or crop reaches a profile card. The same goes for the home
+ * page's hero. A new upload cannot be anybody's portrait or the hero yet, so a
+ * creation is left alone.
  */
 export const revalidateMedia: CollectionAfterChangeHook = async ({
   doc,
@@ -80,6 +119,8 @@ export const revalidateMedia: CollectionAfterChangeHook = async ({
     if (operation === 'update' && (await isShownPortrait(doc.id, req))) {
       await revalidatePagesShowingAdherents(req)
     }
+
+    if (operation === 'update' && (await isHomeHero(doc.id, req))) revalidateHomeHero()
   }
 
   return doc
@@ -87,6 +128,9 @@ export const revalidateMedia: CollectionAfterChangeHook = async ({
 
 /** Where `notePortraitDelete` leaves word for `revalidateMediaDelete`. */
 const PORTRAITS_BEING_DELETED = 'portraitsBeingDeleted'
+
+/** Where it leaves the id of the home page's hero, when that is going too. */
+const HERO_BEING_DELETED = 'homeHeroBeingDeleted'
 
 const portraitsBeingDeleted = (req: PayloadRequest) =>
   (req.context[PORTRAITS_BEING_DELETED] ??= new Set<number | string>()) as Set<number | string>
@@ -99,11 +143,17 @@ const portraitsBeingDeleted = (req: PayloadRequest) =>
  * the reference it would look for is already gone. A set rather than a flag,
  * since deleting several uploads at once runs these hooks per document on one
  * request.
+ *
+ * The home page's hero goes the same way — `general.homeHeroImage` is cleared
+ * by the same rule, and the global's hook never hears of it — so this notes
+ * that too: the hook is named for the portraits it was written for.
  */
 export const notePortraitDelete: CollectionBeforeDeleteHook = async ({ id, req }) => {
-  if (!req.context.disableRevalidate && (await isShownPortrait(id, req))) {
-    portraitsBeingDeleted(req).add(id)
-  }
+  if (req.context.disableRevalidate) return
+
+  if (await isShownPortrait(id, req)) portraitsBeingDeleted(req).add(id)
+
+  if (await isHomeHero(id, req)) req.context[HERO_BEING_DELETED] = id
 }
 
 export const revalidateMediaDelete: CollectionAfterDeleteHook = async ({ doc, id, req }) => {
@@ -113,6 +163,10 @@ export const revalidateMediaDelete: CollectionAfterDeleteHook = async ({ doc, id
     /* The person drops off the trombinoscope, and a profile card falls back to
      * initials, rather than either keeping a picture that no longer exists. */
     if (portraitsBeingDeleted(req).has(id)) await revalidatePagesShowingAdherents(req)
+
+    /* Likewise the home page draws its stand-in, as it does with no hero
+     * chosen, rather than go on naming files the delete took away. */
+    if (req.context[HERO_BEING_DELETED] === id) revalidateHomeHero()
   }
 
   return doc
