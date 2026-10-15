@@ -1,9 +1,13 @@
 'use server'
 
 import configPromise from '@payload-config'
-import { getPayload } from 'payload'
+import { after } from 'next/server'
+import { getPayload, type Payload } from 'payload'
 
+import { DEFAULT_SENDER } from '@/cms/globals/contactForm/config'
 import { emailPattern } from '@/components/form/messages'
+import type { ContactSubmission as StoredSubmission } from '@/payload-types'
+import { getServerSideURL } from '@/utilities/getURL'
 
 export type ContactSubmission = {
   email: string
@@ -18,8 +22,49 @@ const LIMITS = { email: 320, message: 5000, nom: 200, telephone: 50 }
 
 const clean = (value: string | undefined, max: number) => (value ?? '').trim().slice(0, max)
 
+/** A display name in quotes, so a comma or bracket in it stays part of the name. */
+const quoted = (name: string) => `"${name.replace(/[\\"]/g, '\\$&')}"`
+
 /**
- * Stores a contact message so it shows up in the admin.
+ * Emails a stored message to the address set in « Formulaire de contact ».
+ * Replying to it writes to the visitor. Never throws: the message is already
+ * saved, and the admin is where it is kept either way.
+ */
+async function notifyRecipient(payload: Payload, submission: StoredSubmission) {
+  try {
+    const settings = await payload.findGlobal({ slug: 'contactForm' })
+    if (!settings.recipient) return
+
+    // One line, since it goes into the From and Subject headers.
+    const nom = submission.nom.replace(/\s+/g, ' ')
+
+    await payload.sendEmail({
+      from: `${quoted(`${nom} via le site`)} <${settings.sender || DEFAULT_SENDER}>`,
+      replyTo: submission.email,
+      subject: `Nouveau message de ${nom}`,
+      text: [
+        `${nom} a écrit depuis la page Contact du site.`,
+        '',
+        `E-mail : ${submission.email}`,
+        `Téléphone : ${submission.telephone || 'non renseigné'}`,
+        '',
+        submission.message || '(pas de message)',
+        '',
+        '—',
+        'Répondez à cet e-mail pour écrire directement à cette personne.',
+        `Le message dans l’administration : ${getServerSideURL()}/admin/collections/contactSubmissions/${submission.id}`,
+      ].join('\n'),
+      to: settings.recipient,
+    })
+  } catch (err) {
+    payload.logger.error({ err, msg: '[submitContact] failed to email contact message' })
+  }
+}
+
+/**
+ * Stores a contact message so it shows up in the admin, then emails it once
+ * the visitor has their answer — the SMTP exchange with SES is a few round
+ * trips across the Atlantic they need not wait on.
  *
  * The collection denies `create` to everyone, so this writes with
  * `overrideAccess` — keeping the write path to this action alone rather than
@@ -39,7 +84,7 @@ export async function submitContact(data: ContactSubmission): Promise<ContactSub
   try {
     const payload = await getPayload({ config: configPromise })
 
-    await payload.create({
+    const submission = await payload.create({
       collection: 'contactSubmissions',
       data: {
         email,
@@ -50,6 +95,8 @@ export async function submitContact(data: ContactSubmission): Promise<ContactSub
       },
       overrideAccess: true,
     })
+
+    after(() => notifyRecipient(payload, submission))
 
     return { success: true }
   } catch (err) {

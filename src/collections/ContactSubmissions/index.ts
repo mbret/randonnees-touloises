@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { authenticated } from '@/access/authenticated'
+import { adminOnly } from '@/access/adminOnly'
 
 /**
  * Messages sent through the contact page.
@@ -9,14 +9,17 @@ import { authenticated } from '@/access/authenticated'
  * server action that writes with the Local API, so there is no public write
  * endpoint. The submitted fields are read-only in the admin — only `status`
  * is meant to be edited, to track what has been dealt with.
+ *
+ * Admins only: members log in as users too, and the messages carry visitors'
+ * emails and phone numbers.
  */
 export const ContactSubmissions: CollectionConfig = {
   slug: 'contactSubmissions',
   access: {
     create: () => false,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    delete: adminOnly,
+    read: adminOnly,
+    update: adminOnly,
   },
   admin: {
     defaultColumns: ['nom', 'email', 'status', 'createdAt'],

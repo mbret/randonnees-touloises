@@ -55,6 +55,8 @@ PAYLOAD_SECRET - used by Payload to sign secrets like JWT tokens
 
 PREVIEW_SECRET - used by Payload for secured live previews of your content
 
+SMTP_HOST, SMTP_USER, SMTP_PASS - the Amazon SES SMTP endpoint and the IAM SMTP credentials created under *SES → SMTP settings*. They send the contact page's messages to the address set in « Formulaire de contact » in the admin, from an address on `randonnees-touloises.net`, the domain verified in SES. Without them nothing is sent and emails are written to the logs instead.
+
 ## Quick Start - local setup
 
 To spin up this template locally, follow these steps:

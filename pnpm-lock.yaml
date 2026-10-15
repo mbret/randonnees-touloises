@@ -20,6 +20,9 @@ importers:
       '@payloadcms/db-vercel-postgres':
         specifier: 3.90.2
         version: 3.90.2(@types/pg@8.20.0)(payload@3.90.2(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.3)(utf-8-validate@6.0.5))(utf-8-validate@6.0.5)
+      '@payloadcms/email-nodemailer':
+        specifier: 3.90.2
+        version: 3.90.2(payload@3.90.2(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.3)(utf-8-validate@6.0.5))
       '@payloadcms/live-preview-react':
         specifier: 3.90.2
         version: 3.90.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
