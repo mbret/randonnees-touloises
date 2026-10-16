@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_URL: postgres://postgres:postgres@localhost:5432/postgres
+      PAYLOAD_SECRET: ci-payload-secret
+      CRON_SECRET: ci-cron-secret
+      PREVIEW_SECRET: ci-preview-secret
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Lint, migrate and build, as Vercel does
+        run: pnpm run ci
+      - run: pnpm test:int
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Test end to end against the production build
+        # Playwright reuses a server already listening on port 3000 rather than starting `pnpm dev`.
+        run: |
+          pnpm start &
+          for attempt in $(seq 1 60); do
+            curl --silent --fail --output /dev/null http://localhost:3000 && break
+            sleep 1
+          done
+          curl --silent --fail --output /dev/null http://localhost:3000
+          pnpm test:e2e --reporter=list
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-results
+          path: test-results/
+          if-no-files-found: ignore

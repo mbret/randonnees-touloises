@@ -6,5 +6,11 @@
     }
   ],
   "regions": ["fra1"],
-  "buildCommand": "pnpm run ci"
+  "buildCommand": "pnpm run ci",
+  "git": {
+    "deploymentEnabled": {
+      "**": false,
+      "main": true
+    }
+  }
 }
