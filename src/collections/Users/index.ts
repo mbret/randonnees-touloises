@@ -5,6 +5,7 @@ import { adminOnly } from '@/access/adminOnly'
 import { adminOrSelf } from '@/access/adminOrSelf'
 import { checkRole } from '@/access/utilities'
 import { roleField } from '@/fields/role'
+import { expireSignedInCookie, setSignedInCookie } from './hooks/signedInCookie'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -25,6 +26,11 @@ export const Users: CollectionConfig = {
     useAsTitle: 'name',
   },
   auth: true,
+  hooks: {
+    afterLogin: [setSignedInCookie],
+    afterLogout: [expireSignedInCookie],
+    afterRefresh: [setSignedInCookie],
+  },
   fields: [
     {
       name: 'name',
