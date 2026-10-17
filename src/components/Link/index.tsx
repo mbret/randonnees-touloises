@@ -8,6 +8,7 @@ import React, { ComponentProps } from 'react'
 import type { Page, Post, GlobalPage } from '@/payload-types'
 import { useAuth } from '@/providers/auth'
 import { linkHref } from '@/utilities/linkHref'
+import { sitePathOf } from '@/utilities/sitePath'
 import { ExternalLinkIcon } from 'lucide-react'
 
 type RelationTo = 'pages' | 'posts' | 'globalPages'
@@ -52,11 +53,13 @@ const neverPrefetched = new Set(['/search'])
 const isAdminPath = (path: string) => path === '/admin' || path.startsWith('/admin/')
 
 const SiteLink: React.FC<ComponentProps<'a'> & { href: string }> = ({ href, ...props }) => {
-  const path = href.split(/[?#]/)[0]
+  const path = sitePathOf(href)
 
-  if (isAdminPath(path)) return <a href={href} {...props} />
+  if (path && isAdminPath(path)) return <a href={href} {...props} />
 
-  return <Link href={href} prefetch={neverPrefetched.has(path) ? false : undefined} {...props} />
+  return (
+    <Link href={href} prefetch={path && neverPrefetched.has(path) ? false : undefined} {...props} />
+  )
 }
 
 export const CMSLink: React.FC<CMSLinkType> = ({
