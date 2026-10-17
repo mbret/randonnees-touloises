@@ -5,9 +5,14 @@ import type {
   PayloadRequest,
 } from 'payload'
 
-import { revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 import { revalidatePagesShowingAdherents } from '@/collections/Adherents/hooks/revalidateAdherentPages'
+import {
+  pathsDrawingPosts,
+  published,
+  refreshPostPages,
+} from '@/collections/Posts/hooks/revalidatePost'
 import { SITE_ASSET_FILENAMES } from '@/metadata/siteAssets'
 
 /**
@@ -30,9 +35,10 @@ import { SITE_ASSET_FILENAMES } from '@/metadata/siteAssets'
  * collection is read through the page or post that references it, and expiring
  * `medias` for those would be 249 pointless invalidations during a backfill —
  * which is also why the backfill ends by asking for a redeploy rather than
- * relying on this. A cached page embeds the same rung URLs, and the only pages
- * a media hook reaches are the ones drawing adhérents' portraits and the home
- * page's hero, below.
+ * relying on this. A cached page embeds the same rung URLs, so the pages that
+ * draw an upload through something else are found below: the adhérents'
+ * portraits, the home page's hero, the outing categories' tiles on the agenda,
+ * and the pictures of published posts.
  */
 const revalidateSiteAssets = (filename?: null | string) => {
   if (!filename || !SITE_ASSET_FILENAMES.includes(filename)) return
@@ -97,11 +103,87 @@ const isHomeHero = async (id: number | string, req: PayloadRequest) => {
 const revalidateHomeHero = () => revalidateTag('global_general', { expire: 0 })
 
 /**
+ * Whether this upload is an outing category's logo or label, which the agenda
+ * on the home page draws on each of that category's outings. The agenda reads
+ * the category at depth 1, so the home page holds a copy of this document as
+ * the hero's global does, and has no timer to catch a replaced file now.
+ */
+const isAgendaTile = async (id: number | string, req: PayloadRequest) => {
+  const { totalDocs } = await req.payload.count({
+    collection: 'outingCategories',
+    req,
+    where: { or: [{ logo: { equals: id } }, { credential: { equals: id } }] },
+  })
+
+  return totalDocs > 0
+}
+
+const revalidateAgenda = () => revalidatePath('/')
+
+/** The same document, whether it arrives as an id, a string or populated. */
+const isUpload = (value: unknown, id: number | string) =>
+  value != null &&
+  String(typeof value === 'object' ? (value as { id?: unknown }).id : value) === String(id)
+
+/**
+ * Whether a post's body shows this upload: an upload node, or a « Média »
+ * block. The body is stored as JSON, so these ids have no relationship row
+ * for a query to find, and the tree is walked here instead.
+ */
+const embedsUpload = (node: unknown, id: number | string): boolean => {
+  if (Array.isArray(node)) return node.some((child) => embedsUpload(child, id))
+
+  if (!node || typeof node !== 'object') return false
+
+  const { children, fields, relationTo, root, type, value } = node as Record<string, unknown>
+
+  if (type === 'upload' && relationTo === 'media' && isUpload(value, id)) return true
+
+  if (type === 'block') {
+    const block = fields as { blockType?: unknown; media?: unknown } | undefined
+
+    if (block?.blockType === 'mediaBlock' && isUpload(block.media, id)) return true
+  }
+
+  return embedsUpload(root ?? children, id)
+}
+
+/**
+ * The pages drawing the published posts that show this upload: as their hero,
+ * as the picture their card and share preview use, or in their body.
+ *
+ * Every published post is read to find the ones whose body shows it, since no
+ * query reaches inside the body. The club publishes a few dozen, and an upload
+ * is rarely edited once in use; the size backfill writes with revalidation
+ * turned off, so it never comes here.
+ */
+const pathsShowingUpload = async (id: number | string, req: PayloadRequest) => {
+  const { docs } = await req.payload.find({
+    collection: 'posts',
+    depth: 0,
+    pagination: false,
+    req,
+    select: { content: true, heroImage: true, meta: true, schedule: true, slug: true },
+    where: published,
+  })
+
+  return pathsDrawingPosts(
+    req,
+    docs.filter(
+      (post) =>
+        isUpload(post.heroImage, id) ||
+        isUpload(post.meta?.image, id) ||
+        embedsUpload(post.content, id),
+    ),
+  )
+}
+
+/**
  * Any write to a portrait's document refreshes the pages that draw it: a new
  * file renames the rungs out from under the cached `srcset`, and even an
  * edited alt text or crop reaches a profile card. The same goes for the home
- * page's hero. A new upload cannot be anybody's portrait or the hero yet, so a
- * creation is left alone.
+ * page's hero, an outing category's tile and a post's pictures. A new upload
+ * cannot be any of those yet, so a creation is left alone.
  */
 export const revalidateMedia: CollectionAfterChangeHook = async ({
   doc,
@@ -120,7 +202,13 @@ export const revalidateMedia: CollectionAfterChangeHook = async ({
       await revalidatePagesShowingAdherents(req)
     }
 
-    if (operation === 'update' && (await isHomeHero(doc.id, req))) revalidateHomeHero()
+    if (operation === 'update') {
+      if (await isHomeHero(doc.id, req)) revalidateHomeHero()
+
+      if (await isAgendaTile(doc.id, req)) revalidateAgenda()
+
+      refreshPostPages(req, await pathsShowingUpload(doc.id, req))
+    }
   }
 
   return doc
@@ -131,6 +219,21 @@ const PORTRAITS_BEING_DELETED = 'portraitsBeingDeleted'
 
 /** Where it leaves the id of the home page's hero, when that is going too. */
 const HERO_BEING_DELETED = 'homeHeroBeingDeleted'
+
+/** The ids of agenda tiles being deleted. */
+const TILES_BEING_DELETED = 'agendaTilesBeingDeleted'
+
+/** The pages of the posts showing an upload being deleted, by its id. */
+const POST_PAGES_BEING_DELETED = 'postPagesBeingDeleted'
+
+const tilesBeingDeleted = (req: PayloadRequest) =>
+  (req.context[TILES_BEING_DELETED] ??= new Set<number | string>()) as Set<number | string>
+
+const postPagesBeingDeleted = (req: PayloadRequest) =>
+  (req.context[POST_PAGES_BEING_DELETED] ??= new Map<number | string, string[]>()) as Map<
+    number | string,
+    string[]
+  >
 
 const portraitsBeingDeleted = (req: PayloadRequest) =>
   (req.context[PORTRAITS_BEING_DELETED] ??= new Set<number | string>()) as Set<number | string>
@@ -146,7 +249,8 @@ const portraitsBeingDeleted = (req: PayloadRequest) =>
  *
  * The home page's hero goes the same way — `general.homeHeroImage` is cleared
  * by the same rule, and the global's hook never hears of it — so this notes
- * that too: the hook is named for the portraits it was written for.
+ * that too: the hook is named for the portraits it was written for. So are
+ * an outing category's logo and label, and a post's pictures.
  */
 export const notePortraitDelete: CollectionBeforeDeleteHook = async ({ id, req }) => {
   if (req.context.disableRevalidate) return
@@ -154,6 +258,10 @@ export const notePortraitDelete: CollectionBeforeDeleteHook = async ({ id, req }
   if (await isShownPortrait(id, req)) portraitsBeingDeleted(req).add(id)
 
   if (await isHomeHero(id, req)) req.context[HERO_BEING_DELETED] = id
+
+  if (await isAgendaTile(id, req)) tilesBeingDeleted(req).add(id)
+
+  postPagesBeingDeleted(req).set(id, await pathsShowingUpload(id, req))
 }
 
 export const revalidateMediaDelete: CollectionAfterDeleteHook = async ({ doc, id, req }) => {
@@ -167,6 +275,12 @@ export const revalidateMediaDelete: CollectionAfterDeleteHook = async ({ doc, id
     /* Likewise the home page draws its stand-in, as it does with no hero
      * chosen, rather than go on naming files the delete took away. */
     if (req.context[HERO_BEING_DELETED] === id) revalidateHomeHero()
+
+    /* The agenda's tile falls back to the category's name, and a post to its
+     * placeholder, rather than either naming a file that is gone. */
+    if (tilesBeingDeleted(req).has(id)) revalidateAgenda()
+
+    refreshPostPages(req, postPagesBeingDeleted(req).get(id) ?? [])
   }
 
   return doc

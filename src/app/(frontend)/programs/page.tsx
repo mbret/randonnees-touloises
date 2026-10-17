@@ -6,10 +6,10 @@ import { servedAt } from '@/seo/servedAt'
 import React from 'react'
 
 /**
- * Entries drop off the day after they end, so the page has to be re-rendered on
- * a clock rather than pinned to the last build.
+ * Entries drop off the day after they end. The daily refresh, in
+ * `app/(frontend)/next/daily-refresh`, re-renders the page for that; an edit to
+ * a post refreshes it through `revalidatePost`.
  */
-export const revalidate = 3600
 
 const TITLE = 'Programme hebdomadaire'
 const DESCRIPTION =

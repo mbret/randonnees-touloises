@@ -16,7 +16,7 @@ import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { fillMeta } from './hooks/fillMeta'
 import { populateAuthors } from './hooks/populateAuthors'
-import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
+import { noteRelatedBeforeDelete, revalidateDelete, revalidatePost } from './hooks/revalidatePost'
 import { AUTOSAVE_INTERVAL } from '../autosaveInterval'
 
 import {
@@ -317,6 +317,7 @@ export const Posts: CollectionConfig<'posts'> = {
     afterChange: [revalidatePost],
     afterRead: [populateAuthors],
     afterDelete: [revalidateDelete],
+    beforeDelete: [noteRelatedBeforeDelete],
   },
   versions: {
     drafts: {

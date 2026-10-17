@@ -14,10 +14,18 @@ const { notePortraitDelete, revalidateMedia, revalidateMediaDelete } =
 type Doc = { [k: string]: unknown }
 
 /** How many adhérents show the upload as their portrait, with permission. */
-const count = vi.fn(async () => ({ totalDocs: 1 }))
+const count = vi.fn(async (_args: object) => ({ totalDocs: 1 }))
 
 /** The pages the database would say carry a trombinoscope or profile cards. */
-const find = vi.fn(async () => ({ docs: [{ slug: 'trombinoscope' }, { slug: 'board' }] }))
+const find = vi.fn(async (_args: object) => ({
+  docs: [{ slug: 'trombinoscope' }, { slug: 'board' }],
+}))
+
+/** How many outing categories draw the upload on the agenda: none, unless a test says. */
+const countTiles = vi.fn(async () => ({ totalDocs: 0 }))
+
+/** The published posts showing the upload: none, unless a test says. */
+const findPosts = vi.fn(async (_args: object) => ({ docs: [] as Doc[] }))
 
 /** The home page's settings: no hero, unless a test sets one. */
 const findGlobal = vi.fn(async () => ({ homeHeroImage: null as null | number }))
@@ -28,7 +36,14 @@ const logError = vi.fn()
  * it, which is how the first leaves word for the second. */
 const request = (context: object = {}) => ({
   context: { ...context },
-  payload: { count, find, findGlobal, logger: { error: logError, info: () => {} } },
+  payload: {
+    count: (args: { collection: string }) =>
+      args.collection === 'outingCategories' ? countTiles() : count(args),
+    find: (args: { collection: string }) =>
+      args.collection === 'posts' ? findPosts(args) : find(args),
+    findGlobal,
+    logger: { error: logError, info: () => {} },
+  },
 })
 
 /* The hooks want full Payload arguments; these tests give them the fields they
@@ -73,6 +88,10 @@ beforeEach(() => {
   count.mockClear()
   count.mockResolvedValue({ totalDocs: 1 })
   find.mockClear()
+  countTiles.mockClear()
+  countTiles.mockResolvedValue({ totalDocs: 0 })
+  findPosts.mockClear()
+  findPosts.mockResolvedValue({ docs: [] })
   findGlobal.mockClear()
   findGlobal.mockResolvedValue({ homeHeroImage: null })
   logError.mockClear()
@@ -340,5 +359,173 @@ describe('the site assets', () => {
     await remove({ filename: 'logo.webp', id: 1 })
 
     expect(revalidateTag).toHaveBeenCalledWith('medias', { expire: 0 })
+  })
+})
+
+describe('an outing category’s tile replaced in the media library', () => {
+  beforeEach(() => {
+    count.mockResolvedValue({ totalDocs: 0 })
+    countTiles.mockResolvedValue({ totalDocs: 1 })
+  })
+
+  /*
+   * The agenda reads the category at depth 1, so the home page holds a copy of
+   * the upload, and the hourly timer that used to replace that copy is gone.
+   */
+  it('refreshes the home page’s agenda', async () => {
+    await change(
+      { filename: 'logo-grande-2026.png', id: 9 },
+      { filename: 'logo-grande.png', id: 9 },
+    )
+
+    expect(revalidatePath).toHaveBeenCalledWith('/')
+  })
+
+  /* The database clears the category's `logo` without running its hook. */
+  it('refreshes it when the tile is deleted, having asked before', async () => {
+    const req = request()
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    await (notePortraitDelete as any)({ collection: {}, id: 9, req } as any)
+    countTiles.mockResolvedValue({ totalDocs: 0 })
+    await (revalidateMediaDelete as any)({ collection: {}, doc: { id: 9 }, id: 9, req } as any)
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    expect(revalidatePath).toHaveBeenCalledWith('/')
+  })
+
+  it('leaves the home page alone for an upload no category draws', async () => {
+    countTiles.mockResolvedValue({ totalDocs: 0 })
+
+    await change(portrait({ filename: 'affiche-2026.jpg' }), portrait())
+
+    expect(revalidatePath).not.toHaveBeenCalledWith('/')
+  })
+})
+
+describe('a post’s picture replaced in the media library', () => {
+  beforeEach(() => {
+    count.mockResolvedValue({ totalDocs: 0 })
+  })
+
+  /** The published posts the database holds, before the hook picks among them. */
+  const posts = (...docs: Doc[]) => findPosts.mockResolvedValueOnce({ docs })
+
+  const news = (overrides: Doc = {}): Doc => ({
+    id: 4,
+    schedule: {},
+    slug: 'assemblee-generale',
+    ...overrides,
+  })
+
+  /** A body holding one paragraph and then `node`, as Lexical stores it. */
+  const body = (node: Doc) => ({
+    root: {
+      children: [{ children: [{ text: 'Compte rendu', type: 'text' }], type: 'paragraph' }, node],
+      type: 'root',
+    },
+  })
+
+  const replace = (id: number) =>
+    change({ filename: `photo-${id}-2026.jpg`, id }, { filename: `photo-${id}.jpg`, id })
+
+  it('refreshes the news post, and the listing whose cards show it', async () => {
+    posts(news({ heroImage: 30 }))
+
+    await replace(30)
+
+    expect(findPosts).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { _status: { equals: 'published' } } }),
+    )
+    expect(revalidatePath).toHaveBeenCalledWith('/news/assemblee-generale')
+    expect(revalidatePath).toHaveBeenCalledWith('/news')
+    expect(revalidatePath).toHaveBeenCalledWith('/(frontend)/news/page/[pageNumber]', 'page')
+  })
+
+  it('knows the picture the card and the share preview use', async () => {
+    posts(news({ meta: { image: 30 } }))
+
+    await replace(30)
+
+    expect(revalidatePath).toHaveBeenCalledWith('/news/assemblee-generale')
+  })
+
+  /*
+   * The body is JSON: an upload inside it has no relationship row, so only
+   * reading the body finds the post.
+   */
+  it('finds a « Média » block in the body', async () => {
+    posts(
+      news({ content: body({ fields: { blockType: 'mediaBlock', media: 33 }, type: 'block' }) }),
+    )
+
+    await replace(33)
+
+    expect(revalidatePath).toHaveBeenCalledWith('/news/assemblee-generale')
+  })
+
+  it('finds an upload node in the body', async () => {
+    posts(news({ content: body({ relationTo: 'media', type: 'upload', value: 34 }) }))
+
+    await replace(34)
+
+    expect(revalidatePath).toHaveBeenCalledWith('/news/assemblee-generale')
+  })
+
+  /* The programme listings print no picture, so only the entry's own page. */
+  it('refreshes a programme entry’s own page alone', async () => {
+    posts({
+      heroImage: 31,
+      id: 5,
+      schedule: { startDate: '2026-11-08T23:00:00.000Z' },
+      slug: 'sortie-a-foug',
+    })
+
+    await replace(31)
+
+    expect(revalidatePath.mock.calls).toEqual([['/programs/sortie-a-foug']])
+  })
+
+  /* Their related-post cards draw it too. */
+  it('refreshes the posts that list it as related', async () => {
+    posts(news({ heroImage: 30 }))
+    posts(news({ id: 6, slug: 'compte-rendu' }))
+
+    await replace(30)
+
+    expect(findPosts).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        where: { and: [{ _status: { equals: 'published' } }, { relatedPosts: { in: [4] } }] },
+      }),
+    )
+    expect(revalidatePath).toHaveBeenCalledWith('/news/compte-rendu')
+  })
+
+  /* The database clears `heroImage` and `meta.image` without a post hook. */
+  it('refreshes the post when the picture is deleted, having asked before', async () => {
+    const req = request()
+
+    posts(news({ heroImage: 30 }))
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    await (notePortraitDelete as any)({ collection: {}, id: 30, req } as any)
+    await (revalidateMediaDelete as any)({ collection: {}, doc: { id: 30 }, id: 30, req } as any)
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    expect(revalidatePath).toHaveBeenCalledWith('/news/assemblee-generale')
+  })
+
+  it('refreshes nothing for an upload no post shows', async () => {
+    posts(
+      news({
+        content: body({ fields: { blockType: 'mediaBlock', media: 33 }, type: 'block' }),
+        heroImage: 30,
+        meta: { image: 31 },
+      }),
+    )
+
+    await replace(32)
+
+    expect(revalidatePath).not.toHaveBeenCalled()
   })
 })

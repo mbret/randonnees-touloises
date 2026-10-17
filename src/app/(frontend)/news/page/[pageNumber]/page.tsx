@@ -12,7 +12,11 @@ import React from 'react'
 import PageClient from './page.client'
 import { notFound } from 'next/navigation'
 
-export const revalidate = 600
+/*
+ * No `revalidate`: a post hook refreshes every numbered page whenever the
+ * listing can have moved, since one post added or removed shifts every page
+ * after it.
+ */
 
 const TITLE = 'Actualités'
 const DESCRIPTION =

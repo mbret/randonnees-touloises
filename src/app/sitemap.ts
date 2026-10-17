@@ -9,10 +9,10 @@ import { getServerSideURL } from '@/utilities/getURL'
 /**
  * Next caches this route by default and the collection hooks invalidate it by
  * path when a document is published, so a crawler is served a file rather than a
- * pair of queries. The hourly window is only the backstop for anything that
- * changes without a write — a programme entry ageing out of the listing, say.
+ * pair of queries. Nothing here changes without a write: every published post
+ * is listed whatever its dates, so a programme entry that has passed stays in
+ * the sitemap as its page stays up.
  */
-export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const payload = await getPayload({ config })

@@ -9,10 +9,12 @@ import { SEO_DESCRIPTION } from '@/seo/constants'
 import React from 'react'
 
 /**
- * The agenda drops events once their day has passed, so the page has to be
- * re-rendered on a clock rather than pinned to the last build.
+ * The agenda drops events once their day has passed, and the programme drops
+ * entries once theirs has. That is the daily refresh's job, in
+ * `app/(frontend)/next/daily-refresh`, rather than a timer's: the date changes
+ * once a day, and every edit that reaches the page already refreshes it through
+ * the hooks on events, locations, outing categories, posts and their uploads.
  */
-export const revalidate = 3600
 
 export default function Page() {
   return (
