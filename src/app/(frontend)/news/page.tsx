@@ -11,9 +11,11 @@ import { getPayload } from 'payload'
 import React from 'react'
 import PageClient from './page.client'
 
+/**
+ * Held until a post hook refreshes it: nothing here depends on the date, so
+ * there is nothing for a timer to catch.
+ */
 export const dynamic = 'force-static'
-
-export const revalidate = 600
 
 const TITLE = 'Actualités'
 const DESCRIPTION =

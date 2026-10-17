@@ -11,12 +11,11 @@ import { getAnimationTeam } from './getAnimationTeam'
  * Prerendered, then refreshed: the list comes from the adhérents' fiches, so a
  * page baked at build time would keep whatever they held then. An edit to a
  * fiche or to a portrait's file refreshes it straight away, through the hooks
- * that refresh /board and /trombinoscope; the ten minutes, matching the posts
- * and events listings, catch whatever reaches the database around them.
+ * that refresh /board and /trombinoscope, and so does the CSV sync, which
+ * writes through the same hooks. Nothing else writes there with the hooks
+ * turned off but the seed, so there is no timer behind them.
  */
 export const dynamic = 'force-static'
-
-export const revalidate = 600
 
 export default async function Page() {
   const teamMembers = await getAnimationTeam()

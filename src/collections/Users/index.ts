@@ -5,6 +5,11 @@ import { adminOnly } from '@/access/adminOnly'
 import { adminOrSelf } from '@/access/adminOrSelf'
 import { checkRole } from '@/access/utilities'
 import { roleField } from '@/fields/role'
+import {
+  noteAuthorPagesBeforeDelete,
+  revalidateAuthorPages,
+  revalidateAuthorPagesDelete,
+} from './hooks/revalidateAuthorPages'
 import { expireSignedInCookie, setSignedInCookie } from './hooks/signedInCookie'
 
 export const Users: CollectionConfig = {
@@ -27,9 +32,12 @@ export const Users: CollectionConfig = {
   },
   auth: true,
   hooks: {
+    afterChange: [revalidateAuthorPages],
+    afterDelete: [revalidateAuthorPagesDelete],
     afterLogin: [setSignedInCookie],
     afterLogout: [expireSignedInCookie],
     afterRefresh: [setSignedInCookie],
+    beforeDelete: [noteAuthorPagesBeforeDelete],
   },
   fields: [
     {

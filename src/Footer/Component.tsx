@@ -137,14 +137,17 @@ export async function Footer() {
             is the one part of a footer nobody came for; leading with it put the
             site's own domain name above the club's address.
 
-            The year is read as the page renders. The pages that hold
-            themselves static set `revalidate` between 600 and 3600, and the
-            rest are rendered per request, so the stalest HTML anyone can be
-            served on the first of January is an hour old. An hour is also why
-            this does not reach for `Europe/Paris`: the server's midnight and
-            the club's are at most two hours apart, and the cache is already
-            fuzzier than that. What it replaces is a literal `2025`, which had
-            to be remembered every January and was not. */}
+            The year is read as the page renders. The prerendered pages have no
+            timer: they are held until an edit refreshes them, so on their own
+            they would print the year of their last edit. On the first of
+            January the daily refresh, in `app/(frontend)/next/daily-refresh`,
+            refreshes the whole site instead of its usual few pages, and each
+            page prints the new year from its first render after that. The
+            rest are rendered per request. The cron fires between 1 and 3am in
+            Toul, which is also why this does not reach for `Europe/Paris`: by
+            then the server's year and the club's agree. What it replaces is a
+            literal `2025`, which had to be remembered every January and was
+            not. */}
         <p className="text-muted-foreground text-xs">
           randonnées-touloises.net · © {new Date().getFullYear()}
         </p>

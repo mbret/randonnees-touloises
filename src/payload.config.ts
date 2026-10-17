@@ -21,6 +21,7 @@ import { Header } from './cms/globals/header/config'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
+import { isCronRequest } from './utilities/isCronRequest'
 import { GlobalPages } from './collections/GlobalPages/config'
 import { Events } from './collections/Events'
 import { General } from './cms/globals/general/config'
@@ -239,8 +240,7 @@ export default buildConfig({
         // If there is no logged in user, then check
         // for the Vercel Cron secret to be present as an
         // Authorization header:
-        const authHeader = req.headers.get('authorization')
-        return authHeader === `Bearer ${process.env.CRON_SECRET}`
+        return isCronRequest(req.headers)
       },
     },
     tasks: [],
