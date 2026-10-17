@@ -14,7 +14,6 @@ import { PostViewClient } from './PostViewClient'
 import { PublishedAt } from './PublishedAt'
 import { RelatedPosts } from '@/blocks/RelatedPosts/Component'
 import RichText from '@/components/RichText'
-import { WithContentProtectedPassword } from '@/components/auth/WithContentProtectedPassword'
 import { withoutPrograms } from '@/components/programs/filters'
 
 /** One post, rendered the same whichever namespace served it. */
@@ -22,44 +21,39 @@ export async function PostView({ post }: { post: Post }) {
   const { isEnabled: draft } = await draftMode()
 
   // Structured data for whichever kind of post this is: a dated entry is an
-  // outing a reader can turn up to, an undated one only has its trail. Both sit
-  // inside the password gate, so a post whose body is withheld does not describe
-  // itself to a crawler either.
+  // outing a reader can turn up to, an undated one only has its trail.
   const event = programEventJsonLd(post)
   const breadcrumbs = breadcrumbJsonLd(postTrail(post))
 
   return (
-    <WithContentProtectedPassword required={post.requireContentPassword}>
-      {/* No padding at the top, and that is the hero's business rather than
-          this element's. With a photograph the head of the post is full-bleed
-          and has to start where the header ends — 64px of cream between the bar
-          and the top of the picture reads as a gap in the page. Without one the
-          hero is a plain container and needs that space, so it carries it
-          itself: see `PostHero`. */}
-      <article className="pb-16">
-        <PostViewClient />
+    // No padding at the top, and that is the hero's business rather than this
+    // element's. With a photograph the head of the post is full-bleed and has to
+    // start where the header ends — 64px of cream between the bar and the top of
+    // the picture reads as a gap in the page. Without one the hero is a plain
+    // container and needs that space, so it carries it itself: see `PostHero`.
+    <article className="pb-16">
+      <PostViewClient />
 
-        {event && <JsonLd data={event} />}
-        {breadcrumbs && <JsonLd data={breadcrumbs} />}
+      {event && <JsonLd data={event} />}
+      {breadcrumbs && <JsonLd data={breadcrumbs} />}
 
-        {draft && <LivePreviewListener />}
+      {draft && <LivePreviewListener />}
 
-        <PostHero post={post} />
+      <PostHero post={post} />
 
-        <div className="flex flex-col items-center gap-4 pt-8">
-          <div className="container">
-            <RichText className="max-w-none" data={post.content} enableGutter={false} />
-            <PublishedAt value={post.publishedAt} />
-            {post.relatedPosts && post.relatedPosts.length > 0 && (
-              <RelatedPosts
-                className="mt-12"
-                docs={post.relatedPosts.filter((related) => typeof related === 'object')}
-              />
-            )}
-          </div>
+      <div className="flex flex-col items-center gap-4 pt-8">
+        <div className="container">
+          <RichText className="max-w-none" data={post.content} enableGutter={false} />
+          <PublishedAt value={post.publishedAt} />
+          {post.relatedPosts && post.relatedPosts.length > 0 && (
+            <RelatedPosts
+              className="mt-12"
+              docs={post.relatedPosts.filter((related) => typeof related === 'object')}
+            />
+          )}
         </div>
-      </article>
-    </WithContentProtectedPassword>
+      </div>
+    </article>
   )
 }
 
