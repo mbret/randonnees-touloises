@@ -64,7 +64,7 @@ const revalidate = (paths: Iterable<string>) => {
   revalidatePath(SITEMAP_PATH)
 }
 
-const published = { _status: { equals: 'published' } } as const
+export const published = { _status: { equals: 'published' } } as const
 
 /**
  * The pages of every published post listing one of these among its related
@@ -107,6 +107,17 @@ export const pathsShowingPosts = async (req: PayloadRequest, where: Where) => {
     where: { and: [published, where] },
   })
 
+  return pathsDrawingPosts(req, docs)
+}
+
+/**
+ * The same for posts already in hand, for a caller that has to read them
+ * itself to tell which ones match.
+ */
+export const pathsDrawingPosts = async (
+  req: PayloadRequest,
+  docs: (Pick<Post, 'id' | 'slug'> & Partial<Pick<Post, 'schedule'>>)[],
+) => {
   if (docs.length === 0) return []
 
   return [

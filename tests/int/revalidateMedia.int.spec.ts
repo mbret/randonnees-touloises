@@ -408,43 +408,90 @@ describe('a post’s picture replaced in the media library', () => {
     count.mockResolvedValue({ totalDocs: 0 })
   })
 
+  /** The published posts the database holds, before the hook picks among them. */
   const posts = (...docs: Doc[]) => findPosts.mockResolvedValueOnce({ docs })
 
-  it('refreshes the news post, and the listing whose cards show it', async () => {
-    posts({ id: 4, schedule: {}, slug: 'assemblee-generale' })
+  const news = (overrides: Doc = {}): Doc => ({
+    id: 4,
+    schedule: {},
+    slug: 'assemblee-generale',
+    ...overrides,
+  })
 
-    await change({ filename: 'ag-2026.jpg', id: 30 }, { filename: 'ag.jpg', id: 30 })
+  /** A body holding one paragraph and then `node`, as Lexical stores it. */
+  const body = (node: Doc) => ({
+    root: {
+      children: [{ children: [{ text: 'Compte rendu', type: 'text' }], type: 'paragraph' }, node],
+      type: 'root',
+    },
+  })
+
+  const replace = (id: number) =>
+    change({ filename: `photo-${id}-2026.jpg`, id }, { filename: `photo-${id}.jpg`, id })
+
+  it('refreshes the news post, and the listing whose cards show it', async () => {
+    posts(news({ heroImage: 30 }))
+
+    await replace(30)
 
     expect(findPosts).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: {
-          and: [
-            { _status: { equals: 'published' } },
-            { or: [{ heroImage: { equals: 30 } }, { 'meta.image': { equals: 30 } }] },
-          ],
-        },
-      }),
+      expect.objectContaining({ where: { _status: { equals: 'published' } } }),
     )
     expect(revalidatePath).toHaveBeenCalledWith('/news/assemblee-generale')
     expect(revalidatePath).toHaveBeenCalledWith('/news')
     expect(revalidatePath).toHaveBeenCalledWith('/(frontend)/news/page/[pageNumber]', 'page')
   })
 
+  it('knows the picture the card and the share preview use', async () => {
+    posts(news({ meta: { image: 30 } }))
+
+    await replace(30)
+
+    expect(revalidatePath).toHaveBeenCalledWith('/news/assemblee-generale')
+  })
+
+  /*
+   * The body is JSON: an upload inside it has no relationship row, so only
+   * reading the body finds the post.
+   */
+  it('finds a « Média » block in the body', async () => {
+    posts(
+      news({ content: body({ fields: { blockType: 'mediaBlock', media: 33 }, type: 'block' }) }),
+    )
+
+    await replace(33)
+
+    expect(revalidatePath).toHaveBeenCalledWith('/news/assemblee-generale')
+  })
+
+  it('finds an upload node in the body', async () => {
+    posts(news({ content: body({ relationTo: 'media', type: 'upload', value: 34 }) }))
+
+    await replace(34)
+
+    expect(revalidatePath).toHaveBeenCalledWith('/news/assemblee-generale')
+  })
+
   /* The programme listings print no picture, so only the entry's own page. */
   it('refreshes a programme entry’s own page alone', async () => {
-    posts({ id: 5, schedule: { startDate: '2026-11-08T23:00:00.000Z' }, slug: 'sortie-a-foug' })
+    posts({
+      heroImage: 31,
+      id: 5,
+      schedule: { startDate: '2026-11-08T23:00:00.000Z' },
+      slug: 'sortie-a-foug',
+    })
 
-    await change({ filename: 'foug-2026.jpg', id: 31 }, { filename: 'foug.jpg', id: 31 })
+    await replace(31)
 
     expect(revalidatePath.mock.calls).toEqual([['/programs/sortie-a-foug']])
   })
 
   /* Their related-post cards draw it too. */
   it('refreshes the posts that list it as related', async () => {
-    posts({ id: 4, schedule: {}, slug: 'assemblee-generale' })
-    posts({ id: 6, schedule: {}, slug: 'compte-rendu' })
+    posts(news({ heroImage: 30 }))
+    posts(news({ id: 6, slug: 'compte-rendu' }))
 
-    await change({ filename: 'ag-2026.jpg', id: 30 }, { filename: 'ag.jpg', id: 30 })
+    await replace(30)
 
     expect(findPosts).toHaveBeenLastCalledWith(
       expect.objectContaining({
@@ -458,7 +505,7 @@ describe('a post’s picture replaced in the media library', () => {
   it('refreshes the post when the picture is deleted, having asked before', async () => {
     const req = request()
 
-    posts({ id: 4, schedule: {}, slug: 'assemblee-generale' })
+    posts(news({ heroImage: 30 }))
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
     await (notePortraitDelete as any)({ collection: {}, id: 30, req } as any)
@@ -469,7 +516,15 @@ describe('a post’s picture replaced in the media library', () => {
   })
 
   it('refreshes nothing for an upload no post shows', async () => {
-    await change({ filename: 'affiche.jpg', id: 32 }, { filename: 'affiche.jpg', id: 32 })
+    posts(
+      news({
+        content: body({ fields: { blockType: 'mediaBlock', media: 33 }, type: 'block' }),
+        heroImage: 30,
+        meta: { image: 31 },
+      }),
+    )
+
+    await replace(32)
 
     expect(revalidatePath).not.toHaveBeenCalled()
   })

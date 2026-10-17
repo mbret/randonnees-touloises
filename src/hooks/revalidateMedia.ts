@@ -3,13 +3,16 @@ import type {
   CollectionAfterDeleteHook,
   CollectionBeforeDeleteHook,
   PayloadRequest,
-  Where,
 } from 'payload'
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 
 import { revalidatePagesShowingAdherents } from '@/collections/Adherents/hooks/revalidateAdherentPages'
-import { pathsShowingPosts, refreshPostPages } from '@/collections/Posts/hooks/revalidatePost'
+import {
+  pathsDrawingPosts,
+  published,
+  refreshPostPages,
+} from '@/collections/Posts/hooks/revalidatePost'
 import { SITE_ASSET_FILENAMES } from '@/metadata/siteAssets'
 
 /**
@@ -117,19 +120,69 @@ const isAgendaTile = async (id: number | string, req: PayloadRequest) => {
 
 const revalidateAgenda = () => revalidatePath('/')
 
+/** The same document, whether it arrives as an id, a string or populated. */
+const isUpload = (value: unknown, id: number | string) =>
+  value != null &&
+  String(typeof value === 'object' ? (value as { id?: unknown }).id : value) === String(id)
+
 /**
- * The published posts showing this upload, as their hero or as the picture
- * their card and their share preview use.
+ * Whether a post's body shows this upload: an upload node, or a « Média »
+ * block. The body is stored as JSON, so these ids have no relationship row
+ * for a query to find, and the tree is walked here instead.
  */
-const showingUpload = (id: number | string): Where => ({
-  or: [{ heroImage: { equals: id } }, { 'meta.image': { equals: id } }],
-})
+const embedsUpload = (node: unknown, id: number | string): boolean => {
+  if (Array.isArray(node)) return node.some((child) => embedsUpload(child, id))
+
+  if (!node || typeof node !== 'object') return false
+
+  const { children, fields, relationTo, root, type, value } = node as Record<string, unknown>
+
+  if (type === 'upload' && relationTo === 'media' && isUpload(value, id)) return true
+
+  if (type === 'block') {
+    const block = fields as { blockType?: unknown; media?: unknown } | undefined
+
+    if (block?.blockType === 'mediaBlock' && isUpload(block.media, id)) return true
+  }
+
+  return embedsUpload(root ?? children, id)
+}
+
+/**
+ * The pages drawing the published posts that show this upload: as their hero,
+ * as the picture their card and share preview use, or in their body.
+ *
+ * Every published post is read to find the ones whose body shows it, since no
+ * query reaches inside the body. The club publishes a few dozen, and an upload
+ * is rarely edited once in use; the size backfill writes with revalidation
+ * turned off, so it never comes here.
+ */
+const pathsShowingUpload = async (id: number | string, req: PayloadRequest) => {
+  const { docs } = await req.payload.find({
+    collection: 'posts',
+    depth: 0,
+    pagination: false,
+    req,
+    select: { content: true, heroImage: true, meta: true, schedule: true, slug: true },
+    where: published,
+  })
+
+  return pathsDrawingPosts(
+    req,
+    docs.filter(
+      (post) =>
+        isUpload(post.heroImage, id) ||
+        isUpload(post.meta?.image, id) ||
+        embedsUpload(post.content, id),
+    ),
+  )
+}
 
 /**
  * Any write to a portrait's document refreshes the pages that draw it: a new
  * file renames the rungs out from under the cached `srcset`, and even an
  * edited alt text or crop reaches a profile card. The same goes for the home
- * page's hero, an outing category's tile and a post's picture. A new upload
+ * page's hero, an outing category's tile and a post's pictures. A new upload
  * cannot be any of those yet, so a creation is left alone.
  */
 export const revalidateMedia: CollectionAfterChangeHook = async ({
@@ -154,7 +207,7 @@ export const revalidateMedia: CollectionAfterChangeHook = async ({
 
       if (await isAgendaTile(doc.id, req)) revalidateAgenda()
 
-      refreshPostPages(req, await pathsShowingPosts(req, showingUpload(doc.id)))
+      refreshPostPages(req, await pathsShowingUpload(doc.id, req))
     }
   }
 
@@ -208,7 +261,7 @@ export const notePortraitDelete: CollectionBeforeDeleteHook = async ({ id, req }
 
   if (await isAgendaTile(id, req)) tilesBeingDeleted(req).add(id)
 
-  postPagesBeingDeleted(req).set(id, await pathsShowingPosts(req, showingUpload(id)))
+  postPagesBeingDeleted(req).set(id, await pathsShowingUpload(id, req))
 }
 
 export const revalidateMediaDelete: CollectionAfterDeleteHook = async ({ doc, id, req }) => {
