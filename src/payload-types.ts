@@ -372,7 +372,6 @@ export interface Post {
   };
   publishedAt?: string | null;
   authors?: (number | User)[] | null;
-  requireContentPassword?: boolean | null;
   populatedAuthors?:
     | {
         id?: string | null;
@@ -2168,7 +2167,6 @@ export interface PostsSelect<T extends boolean = true> {
       };
   publishedAt?: T;
   authors?: T;
-  requireContentPassword?: T;
   populatedAuthors?:
     | T
     | {
@@ -3002,7 +3000,6 @@ export interface Footer {
  */
 export interface General {
   id: number;
-  contentPassword?: string | null;
   /**
    * La grande photo tout en haut de la page d’accueil. Une image large et en haute définition (au moins 2000 px de large) : elle occupe toute la largeur de l’écran. Le texte se pose sur le bas de la photo, alors évitez d’y placer un sujet important. Sans image, la page d’accueil affiche un cadre « à définir » à la place de la photo.
    */
@@ -3085,7 +3082,6 @@ export interface FooterSelect<T extends boolean = true> {
  * via the `definition` "general_select".
  */
 export interface GeneralSelect<T extends boolean = true> {
-  contentPassword?: T;
   homeHeroImage?: T;
   updatedAt?: T;
   createdAt?: T;

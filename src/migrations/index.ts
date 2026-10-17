@@ -25,6 +25,7 @@ import * as migration_20261003_102651_trombinoscope_block from './20261003_10265
 import * as migration_20261003_105129_payload_3_90_upgrade from './20261003_105129_payload_3_90_upgrade';
 import * as migration_20261004_120000_normalise_adherent_phones from './20261004_120000_normalise_adherent_phones';
 import * as migration_20261015_144900_contact_form_global from './20261015_144900_contact_form_global';
+import * as migration_20261017_120405_remove_content_password from './20261017_120405_remove_content_password';
 
 export const migrations = [
   {
@@ -160,6 +161,11 @@ export const migrations = [
   {
     up: migration_20261015_144900_contact_form_global.up,
     down: migration_20261015_144900_contact_form_global.down,
-    name: '20261015_144900_contact_form_global'
+    name: '20261015_144900_contact_form_global',
+  },
+  {
+    up: migration_20261017_120405_remove_content_password.up,
+    down: migration_20261017_120405_remove_content_password.down,
+    name: '20261017_120405_remove_content_password'
   },
 ];
