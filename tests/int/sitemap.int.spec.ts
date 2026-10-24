@@ -63,7 +63,6 @@ describe('sitemapEntries', () => {
       `${SITE}/news`,
       `${SITE}/privacy`,
       `${SITE}/programs`,
-      `${SITE}/search`,
       `${SITE}/terms`,
     ])
   })

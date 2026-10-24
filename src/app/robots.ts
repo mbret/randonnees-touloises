@@ -9,9 +9,9 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
       // `/admin` rather than the old `/admin/*`, which left the CMS login itself
-      // crawlable. Everything else worth keeping out of an index is unreachable
-      // without a session anyway.
-      disallow: '/admin',
+      // crawlable. `/search` renders on every request, so each crawl of it
+      // starts Payload and wakes the database.
+      disallow: ['/admin', '/search'],
     },
     sitemap: absoluteUrl(SITEMAP_PATH),
   }
