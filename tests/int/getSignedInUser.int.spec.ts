@@ -2,27 +2,22 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { SIGNED_IN_COOKIE } from '@/utilities/signedInCookie'
+
 const auth = vi.fn()
 const getPayload = vi.fn(async () => ({ auth }))
-const cookies = vi.fn()
 const headers = vi.fn()
 
-vi.mock('@payload-config', () => ({ default: { cookiePrefix: 'payload' } }))
+vi.mock('@payload-config', () => ({ default: { cookiePrefix: 'rt' } }))
 vi.mock('payload', () => ({ getPayload }))
-vi.mock('next/headers', () => ({ cookies, headers }))
+vi.mock('next/headers', () => ({ headers }))
 
 const { getSignedInUser } = await import('@/utilities/getSignedInUser')
 
-/** Answers `cookies()` and `headers()` as they would be for a request carrying these. */
-const request = ({
-  cookieNames = [],
-  headerValues = {},
-}: {
-  cookieNames?: string[]
-  headerValues?: Record<string, string>
-}) => {
-  cookies.mockResolvedValue({ has: (name: string) => cookieNames.includes(name) })
-  headers.mockResolvedValue(new Headers(headerValues))
+const mockRequest = (init: HeadersInit) => {
+  const requestHeaders = new Headers(init)
+  headers.mockResolvedValue(requestHeaders)
+  return requestHeaders
 }
 
 afterEach(() => {
@@ -30,8 +25,8 @@ afterEach(() => {
 })
 
 describe('getSignedInUser', () => {
-  it('answers a request with no credentials without starting Payload', async () => {
-    request({ cookieNames: ['payload-signed-in'] })
+  it('answers a request carrying only the signed-in hint without starting Payload', async () => {
+    mockRequest({ Cookie: `${SIGNED_IN_COOKIE}=1` })
 
     await expect(getSignedInUser()).resolves.toBeNull()
     expect(getPayload).not.toHaveBeenCalled()
@@ -40,17 +35,19 @@ describe('getSignedInUser', () => {
   it('asks Payload for the user behind the token cookie', async () => {
     const user = { id: 1 }
     auth.mockResolvedValue({ user })
-    request({ cookieNames: ['payload-token'] })
+    const requestHeaders = mockRequest({
+      Cookie: `${SIGNED_IN_COOKIE}=1; rt-token=not-a-real-token`,
+    })
 
     await expect(getSignedInUser()).resolves.toBe(user)
-    expect(auth).toHaveBeenCalledOnce()
+    expect(auth).toHaveBeenCalledWith({ headers: requestHeaders })
   })
 
   it('asks Payload when the request carries an Authorization header', async () => {
     auth.mockResolvedValue({ user: null })
-    request({ headerValues: { Authorization: 'JWT not-a-real-token' } })
+    const requestHeaders = mockRequest({ Authorization: 'JWT not-a-real-token' })
 
     await expect(getSignedInUser()).resolves.toBeNull()
-    expect(getPayload).toHaveBeenCalledOnce()
+    expect(auth).toHaveBeenCalledWith({ headers: requestHeaders })
   })
 })
