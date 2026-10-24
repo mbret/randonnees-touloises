@@ -11,11 +11,9 @@ export const SITEMAP_PATH = '/sitemap.xml'
 /**
  * The pages this site serves from a file rather than from a document.
  *
- * Nothing enumerates these for us. next-sitemap reads the build manifest, so it
- * finds only what Next chose to prerender — it misses every post for rendering
- * on demand, while offering `/logout` and `/news/page/1`. Which pages are
- * indexable is not a rendering-strategy question, so the list is written down,
- * and `tests/int/sitemap.int.spec.ts` reads the route files back so a page added
+ * Nothing enumerates these for us. Which pages are indexable is not a
+ * rendering-strategy question, so the list is written down, and
+ * `tests/int/sitemap.int.spec.ts` reads the route files back so a page added
  * later cannot quietly go unadvertised.
  */
 export const STATIC_ROUTES = [
@@ -33,7 +31,7 @@ export const STATIC_ROUTES = [
 /**
  * Pages deliberately left out: the members' area and the forms that lead into it
  * have nothing a crawler can reach, `/logout` is an action rather than a page,
- * and `/search` renders on every request, so `robots.ts` keeps crawlers off it.
+ * and `robots.ts` keeps crawlers off `/search`.
  */
 export const UNINDEXED_ROUTES = [
   '/account',
