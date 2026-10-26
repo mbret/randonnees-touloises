@@ -38,11 +38,14 @@ const payloadOPTIONS = REST_OPTIONS(config)
  */
 const r2 = mediaStorage.enabled ? new S3Client(mediaStorage.config) : null
 
-/** Payload's policy for XML-family uploads, so an SVG opened on its own runs no script. */
+/** Payload's policy and test for XML-family uploads, so an SVG opened on its own runs no script. */
 const XML_CONTENT_SECURITY_POLICY = "script-src 'none'; frame-src 'none'; object-src 'none'"
 
-const isXml = (contentType: string) =>
-  /(^|[/+])xml$/.test(contentType.split(';')[0].trim().toLowerCase())
+const isXml = (contentType: string) => {
+  const essence = contentType.split(';')[0].trim().toLowerCase()
+
+  return essence === 'application/xml' || essence === 'text/xml' || essence.endsWith('+xml')
+}
 
 const withCollectionHeaders = (headers: Headers) =>
   (typeof Media.upload === 'object' && Media.upload.modifyResponseHeaders?.({ headers })) || headers
