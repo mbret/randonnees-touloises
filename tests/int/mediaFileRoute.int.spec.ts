@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import { NoSuchKey, S3ServiceException, type GetObjectCommandInput } from '@aws-sdk/client-s3'
+import type { GetObjectCommandInput } from '@aws-sdk/client-s3'
 import { UPLOAD_CONTENT_SECURITY_POLICY } from 'payload/internal'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -8,30 +8,34 @@ import { publicAccess } from '@/access/publicAccess'
 import { Media } from '@/collections/Media'
 import { getMediaUrl } from '@/utilities/getMediaUrl'
 
+type S3 = typeof import('@aws-sdk/client-s3')
+
 const ROUTE = '@/app/(payload)/api/media/file/[filename]/route'
 
-const stored = new Map<string, { body: string; contentType: string }>()
+/** A stored file, or the status R2 answers for its key. */
+const stored = new Map<string, { body: string; contentType: string } | number>()
 const asked: GetObjectCommandInput[] = []
 const payloadGET = vi.fn(async () => new Response('from Payload'))
 
-/** R2 as the route sees it: whole files, byte ranges, and the errors it throws for neither. */
-const fromBucket = async (input: GetObjectCommandInput) => {
-  asked.push(input)
-  const object = stored.get(input.Key ?? '')
+const fakeSend = async (s3: S3, command: { input: GetObjectCommandInput }) => {
+  const { Key = '', Range } = command.input
+  asked.push(command.input)
 
-  if (!object) throw new NoSuchKey({ $metadata: {}, message: 'The specified key does not exist.' })
+  const object = stored.get(Key) ?? 404
+  const fail = (status: number) =>
+    new s3.S3ServiceException({
+      $fault: 'client',
+      $metadata: { httpStatusCode: status },
+      message: `R2 answered ${status}`,
+      name: 'R2Error',
+    })
 
-  const range = input.Range?.match(/^bytes=(\d+)-(\d+)$/)
+  if (typeof object === 'number') throw fail(object)
+
+  const range = Range?.match(/^bytes=(\d+)-(\d+)$/)
   const [start, end] = range ? [Number(range[1]), Number(range[2])] : [0, object.body.length - 1]
 
-  if (start >= object.body.length) {
-    throw new S3ServiceException({
-      $fault: 'client',
-      $metadata: { httpStatusCode: 416 },
-      message: 'The requested range is not satisfiable',
-      name: 'InvalidRange',
-    })
-  }
+  if (start >= object.body.length) throw fail(416)
 
   const body = object.body.slice(start, end + 1)
 
@@ -44,24 +48,31 @@ const fromBucket = async (input: GetObjectCommandInput) => {
   }
 }
 
-vi.mock('@aws-sdk/client-s3', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@aws-sdk/client-s3')>()),
-  S3Client: class {
-    send = ({ input }: { input: GetObjectCommandInput }) => fromBucket(input)
-  },
-}))
+vi.mock('@aws-sdk/client-s3', async (importOriginal) => {
+  const s3 = await importOriginal<S3>()
+
+  return {
+    ...s3,
+    S3Client: class {
+      send = (command: { input: GetObjectCommandInput }) => fakeSend(s3, command)
+    },
+  }
+})
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('@payloadcms/next/routes', () => ({ REST_GET: () => payloadGET, REST_OPTIONS: vi.fn() }))
 
 type Route = typeof import('@/app/(payload)/api/media/file/[filename]/route')
 
-/** Imports the route with these variables set, since it decides where files live as it loads. */
+/** Imports the route afresh with these variables set, since it decides where files live as it loads. */
 const loadRoute = async (env: Record<string, string>): Promise<Route> => {
+  vi.resetModules()
   Object.entries(env).forEach(([name, value]) => vi.stubEnv(name, value))
-  const route: Route = await import(ROUTE)
-  vi.unstubAllEnvs()
 
-  return route
+  try {
+    return await import(ROUTE)
+  } finally {
+    vi.unstubAllEnvs()
+  }
 }
 
 const get = (route: Route, filename: string, { headers = {}, revision = '' } = {}) =>
@@ -138,25 +149,33 @@ describe('the media file route, with the bucket configured', () => {
     expect(await response.text()).toBe('by')
   })
 
-  it('leaves a file the bucket does not hold under its name to Payload', async () => {
-    const response = await get(route, 'renamed.webp')
-
-    expect(payloadGET).toHaveBeenCalledOnce()
-    expect(await response.text()).toBe('from Payload')
-  })
-
-  it('leaves a range past the end of the file to Payload', async () => {
+  it('answers a missing file and a range past its end itself, without Payload', async () => {
     stored.set('programme.pdf', { body: 'bytes', contentType: 'application/pdf' })
 
-    await get(route, 'programme.pdf', { headers: { Range: 'bytes=9-10' } })
+    const missing = await get(route, 'renamed.webp')
+    const pastTheEnd = await get(route, 'programme.pdf', { headers: { Range: 'bytes=9-10' } })
 
-    expect(payloadGET).toHaveBeenCalledOnce()
+    expect(missing.status).toBe(404)
+    expect(pastTheEnd.status).toBe(416)
+    expect(payloadGET).not.toHaveBeenCalled()
+  })
+
+  it('refuses a name Payload refuses, without asking the bucket', async () => {
+    const response = await get(route, '..')
+
+    expect(response.status).toBe(400)
+    expect(asked).toEqual([])
+  })
+
+  it('lets any other error from the bucket through', async () => {
+    stored.set('photo.webp', 403)
+
+    await expect(get(route, 'photo.webp')).rejects.toThrow('R2 answered 403')
   })
 })
 
 describe('the media file route, in a local run', () => {
   it('leaves files on disk to Payload', async () => {
-    vi.resetModules()
     const route = await loadRoute({ R2_BUCKET: '', USE_REMOTE_STORAGE: '' })
 
     const response = await get(route, 'photo.webp')
