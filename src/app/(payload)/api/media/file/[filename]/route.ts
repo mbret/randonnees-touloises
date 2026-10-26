@@ -34,7 +34,7 @@ const payloadOPTIONS = REST_OPTIONS(config)
  *
  * Payload's CORS headers and its `?prefix=` parameter are left out: `cors`
  * allows only the site's own origin, which needs no CORS headers, and no file
- * has a prefix. A conditional request gets the whole file, which HTTP allows.
+ * has a prefix.
  */
 const r2 = mediaStorage.enabled ? new S3Client(mediaStorage.config) : null
 
@@ -59,6 +59,32 @@ const fileHeaders = ({ ContentLength, ContentRange, ContentType, ETag }: Stored)
   if (isXml(contentType)) headers.set('Content-Security-Policy', XML_CONTENT_SECURITY_POLICY)
 
   return withCollectionHeaders(headers)
+}
+
+/** Whether `If-None-Match` names the stored file, compared weakly as RFC 9110 asks. */
+const alreadyHeld = (request: Request, etag: string | undefined): etag is string => {
+  const tags = request.headers.get('If-None-Match')
+
+  if (!tags || !etag) return false
+
+  const opaque = (tag: string) => tag.trim().replace(/^W\//, '')
+
+  return tags.split(',').some((tag) => tag.trim() === '*' || opaque(tag) === opaque(etag))
+}
+
+const notModified = (etag: string) =>
+  new Response(null, { headers: withCollectionHeaders(new Headers({ ETag: etag })), status: 304 })
+
+/**
+ * One well-formed range, passed on to R2. Any other is ignored, as RFC 9110
+ * allows, and so is a range under `If-Range`, whose validator R2 cannot check.
+ */
+const rangeFor = (request: Request) => {
+  const range = request.headers.get('Range')
+
+  return range && !request.headers.has('If-Range') && /^bytes=(\d+-\d*|-\d+)$/.test(range)
+    ? range
+    : undefined
 }
 
 /** R2's status for a request the visitor got wrong: a missing file, or a range past its end. */
@@ -89,13 +115,21 @@ const fromBucket = async (bucket: S3Client, request: Request, filename: string) 
     if (request.method === 'HEAD') {
       const object = await bucket.send(new HeadObjectCommand(target), options)
 
-      return new Response(null, { headers: fileHeaders(object) })
+      return alreadyHeld(request, object.ETag)
+        ? notModified(object.ETag)
+        : new Response(null, { headers: fileHeaders(object) })
     }
 
     const object = await bucket.send(
-      new GetObjectCommand({ ...target, Range: request.headers.get('Range') ?? undefined }),
+      new GetObjectCommand({ ...target, Range: rangeFor(request) }),
       options,
     )
+
+    if (alreadyHeld(request, object.ETag)) {
+      await object.Body?.transformToWebStream().cancel()
+
+      return notModified(object.ETag)
+    }
 
     return new Response(object.Body?.transformToWebStream() ?? null, {
       headers: fileHeaders(object),

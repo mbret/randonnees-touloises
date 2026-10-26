@@ -15,6 +15,7 @@ const ROUTE = '@/app/(payload)/api/media/file/[filename]/route'
 /** A stored file, or the status R2 answers for its key. */
 const stored = new Map<string, { body: string; contentType: string } | number>()
 const sent: { command: string; input: GetObjectCommandInput; signal: boolean }[] = []
+const cancelled: string[] = []
 const payloadGET = vi.fn(async () => new Response('from Payload'))
 
 const fakeSend = async (
@@ -41,15 +42,27 @@ const fakeSend = async (
 
   if (typeof object === 'number') throw fail(object)
 
-  const range = Range?.match(/^bytes=(\d+)-(\d+)$/)
-  const [start, end] = range ? [Number(range[1]), Number(range[2])] : [0, object.body.length - 1]
+  const range = Range?.match(/^bytes=(\d+)-(\d*)$/)
+  const start = range ? Number(range[1]) : 0
+  const end = range?.[2] ? Number(range[2]) : object.body.length - 1
 
   if (start >= object.body.length) throw fail(416)
 
   const body = object.body.slice(start, end + 1)
 
   return {
-    Body: head ? undefined : { transformToWebStream: () => new Response(body).body },
+    Body: head
+      ? undefined
+      : {
+          transformToWebStream: () =>
+            new ReadableStream({
+              cancel: () => void cancelled.push(Key),
+              pull: (controller) => {
+                controller.enqueue(new TextEncoder().encode(body))
+                controller.close()
+              },
+            }),
+        },
     ContentLength: head ? object.body.length : body.length,
     ContentRange: range && !head ? `bytes ${start}-${end}/${object.body.length}` : undefined,
     ContentType: object.contentType,
@@ -106,6 +119,7 @@ const collectionCacheControl = () =>
 afterEach(() => {
   stored.clear()
   sent.length = 0
+  cancelled.length = 0
   payloadGET.mockClear()
 })
 
@@ -170,6 +184,36 @@ describe('the media file route, with the bucket configured', () => {
     expect(response.headers.get('Content-Range')).toBe('bytes 0-1/5')
     expect(response.headers.get('Content-Length')).toBe('2')
     expect(await response.text()).toBe('by')
+  })
+
+  it('serves the whole file for a range it cannot pass on to R2', async () => {
+    stored.set('programme.pdf', { body: 'bytes', contentType: 'application/pdf' })
+
+    for (const headers of [
+      { Range: 'bytes=0-1,3-4' },
+      { Range: 'bytes=abc' },
+      { 'If-Range': '"revision-0"', Range: 'bytes=0-1' },
+    ]) {
+      const response = await request(route, 'programme.pdf', { headers })
+
+      expect(response.status).toBe(200)
+      expect(await response.text()).toBe('bytes')
+      expect(sent.at(-1)?.input.Range).toBeUndefined()
+    }
+  })
+
+  it('answers a revalidation of the stored file with a 304, dropping the body', async () => {
+    stored.set('photo.webp', { body: 'bytes', contentType: 'image/webp' })
+
+    const response = await request(route, 'photo.webp', {
+      headers: { 'If-None-Match': 'W/"revision-1"' },
+    })
+
+    expect(response.status).toBe(304)
+    expect(response.body).toBeNull()
+    expect(response.headers.get('ETag')).toBe('"revision-1"')
+    expect(response.headers.get('Cache-Control')).toBe(collectionCacheControl())
+    expect(cancelled).toEqual(['photo.webp'])
   })
 
   it('answers HEAD from the file’s metadata, opening no body', async () => {
