@@ -97,6 +97,13 @@ const visitorError = (error: unknown) => {
   return status === 404 || status === 416 ? status : undefined
 }
 
+/** A 416 names the file's length, as RFC 9110 asks, so a client can tell where the file ends. */
+const rangeNotSatisfiable = ({ ContentLength }: Stored) =>
+  new Response(null, {
+    headers: ContentLength === undefined ? {} : { 'Content-Range': `bytes */${ContentLength}` },
+    status: 416,
+  })
+
 /** The key Payload's adapter would store the file under, or `null` for a name it refuses. */
 const keyFor = (filename: string) => {
   try {
@@ -141,6 +148,9 @@ const fromBucket = async (bucket: S3Client, request: Request, filename: string) 
   } catch (error) {
     const status = visitorError(error)
 
+    if (status === 416) {
+      return rangeNotSatisfiable(await bucket.send(new HeadObjectCommand(target), options))
+    }
     if (status) return new Response(null, { status })
 
     throw error

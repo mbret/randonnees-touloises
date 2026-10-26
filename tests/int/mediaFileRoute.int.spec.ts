@@ -236,6 +236,7 @@ describe('the media file route, with the bucket configured', () => {
 
     expect(missing.status).toBe(404)
     expect(pastTheEnd.status).toBe(416)
+    expect(pastTheEnd.headers.get('Content-Range')).toBe('bytes */5')
     expect(payloadGET).not.toHaveBeenCalled()
   })
 
