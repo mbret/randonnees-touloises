@@ -14,12 +14,21 @@ const ROUTE = '@/app/(payload)/api/media/file/[filename]/route'
 
 /** A stored file, or the status R2 answers for its key. */
 const stored = new Map<string, { body: string; contentType: string } | number>()
-const asked: GetObjectCommandInput[] = []
+const sent: { command: string; input: GetObjectCommandInput; signal: boolean }[] = []
 const payloadGET = vi.fn(async () => new Response('from Payload'))
 
-const fakeSend = async (s3: S3, command: { input: GetObjectCommandInput }) => {
+const fakeSend = async (
+  s3: S3,
+  command: { input: GetObjectCommandInput },
+  options?: { abortSignal?: AbortSignal },
+) => {
+  const head = command instanceof s3.HeadObjectCommand
   const { Key = '', Range } = command.input
-  asked.push(command.input)
+  sent.push({
+    command: head ? 'HeadObject' : 'GetObject',
+    input: command.input,
+    signal: Boolean(options?.abortSignal),
+  })
 
   const object = stored.get(Key) ?? 404
   const fail = (status: number) =>
@@ -40,9 +49,9 @@ const fakeSend = async (s3: S3, command: { input: GetObjectCommandInput }) => {
   const body = object.body.slice(start, end + 1)
 
   return {
-    Body: { transformToWebStream: () => new Response(body).body },
-    ContentLength: body.length,
-    ContentRange: range ? `bytes ${start}-${end}/${object.body.length}` : undefined,
+    Body: head ? undefined : { transformToWebStream: () => new Response(body).body },
+    ContentLength: head ? object.body.length : body.length,
+    ContentRange: range && !head ? `bytes ${start}-${end}/${object.body.length}` : undefined,
     ContentType: object.contentType,
     ETag: '"revision-1"',
   }
@@ -54,7 +63,8 @@ vi.mock('@aws-sdk/client-s3', async (importOriginal) => {
   return {
     ...s3,
     S3Client: class {
-      send = (command: { input: GetObjectCommandInput }) => fakeSend(s3, command)
+      send = (command: { input: GetObjectCommandInput }, options?: { abortSignal?: AbortSignal }) =>
+        fakeSend(s3, command, options)
     },
   }
 })
@@ -75,10 +85,15 @@ const loadRoute = async (env: Record<string, string>): Promise<Route> => {
   }
 }
 
-const get = (route: Route, filename: string, { headers = {}, revision = '' } = {}) =>
-  route.GET(
+const request = (
+  route: Route,
+  filename: string,
+  { headers = {}, method = 'GET', revision = '' } = {},
+) =>
+  route[method === 'HEAD' ? 'HEAD' : 'GET'](
     new Request(`https://example.test${getMediaUrl(`/api/media/file/${filename}`, revision)}`, {
       headers,
+      method,
     }),
     { params: Promise.resolve({ filename }) },
   )
@@ -90,7 +105,7 @@ const collectionCacheControl = () =>
 
 afterEach(() => {
   stored.clear()
-  asked.length = 0
+  sent.length = 0
   payloadGET.mockClear()
 })
 
@@ -109,21 +124,28 @@ describe('the media file route, with the bucket configured', () => {
   it('serves a file from the bucket without starting Payload', async () => {
     stored.set('photo.webp', { body: 'bytes', contentType: 'image/webp' })
 
-    const response = await get(route, 'photo.webp', { revision: '2026-01-01T00:00:00.000Z' })
+    const response = await request(route, 'photo.webp', { revision: '2026-01-01T00:00:00.000Z' })
 
     expect(response.status).toBe(200)
     expect(await response.text()).toBe('bytes')
     expect(response.headers.get('Content-Type')).toBe('image/webp')
+    expect(response.headers.get('Content-Length')).toBe('5')
     expect(response.headers.get('ETag')).toBe('"revision-1"')
     expect(response.headers.get('Cache-Control')).toContain('immutable')
-    expect(asked).toEqual([{ Bucket: 'media', Key: 'photo.webp', Range: undefined }])
+    expect(sent).toEqual([
+      {
+        command: 'GetObject',
+        input: { Bucket: 'media', Key: 'photo.webp', Range: undefined },
+        signal: true,
+      },
+    ])
     expect(payloadGET).not.toHaveBeenCalled()
   })
 
   it('answers a URL naming no revision with the collection’s own window', async () => {
     stored.set('photo.webp', { body: 'bytes', contentType: 'image/webp' })
 
-    const response = await get(route, 'photo.webp')
+    const response = await request(route, 'photo.webp')
 
     expect(response.headers.get('Cache-Control')).toBe(collectionCacheControl())
   })
@@ -132,8 +154,8 @@ describe('the media file route, with the bucket configured', () => {
     stored.set('logo.svg', { body: '<svg/>', contentType: 'image/svg+xml' })
     stored.set('photo.webp', { body: 'bytes', contentType: 'image/webp' })
 
-    const svg = await get(route, 'logo.svg')
-    const photo = await get(route, 'photo.webp')
+    const svg = await request(route, 'logo.svg')
+    const photo = await request(route, 'photo.webp')
 
     expect(svg.headers.get('Content-Security-Policy')).toBe(UPLOAD_CONTENT_SECURITY_POLICY)
     expect(photo.headers.get('Content-Security-Policy')).toBeNull()
@@ -142,18 +164,31 @@ describe('the media file route, with the bucket configured', () => {
   it('serves the part of a file a range asks for', async () => {
     stored.set('programme.pdf', { body: 'bytes', contentType: 'application/pdf' })
 
-    const response = await get(route, 'programme.pdf', { headers: { Range: 'bytes=0-1' } })
+    const response = await request(route, 'programme.pdf', { headers: { Range: 'bytes=0-1' } })
 
     expect(response.status).toBe(206)
     expect(response.headers.get('Content-Range')).toBe('bytes 0-1/5')
+    expect(response.headers.get('Content-Length')).toBe('2')
     expect(await response.text()).toBe('by')
+  })
+
+  it('answers HEAD from the file’s metadata, opening no body', async () => {
+    stored.set('photo.webp', { body: 'bytes', contentType: 'image/webp' })
+
+    const response = await request(route, 'photo.webp', { method: 'HEAD' })
+
+    expect(response.status).toBe(200)
+    expect(response.body).toBeNull()
+    expect(response.headers.get('Content-Length')).toBe('5')
+    expect(response.headers.get('ETag')).toBe('"revision-1"')
+    expect(sent.map(({ command }) => command)).toEqual(['HeadObject'])
   })
 
   it('answers a missing file and a range past its end itself, without Payload', async () => {
     stored.set('programme.pdf', { body: 'bytes', contentType: 'application/pdf' })
 
-    const missing = await get(route, 'renamed.webp')
-    const pastTheEnd = await get(route, 'programme.pdf', { headers: { Range: 'bytes=9-10' } })
+    const missing = await request(route, 'renamed.webp')
+    const pastTheEnd = await request(route, 'programme.pdf', { headers: { Range: 'bytes=9-10' } })
 
     expect(missing.status).toBe(404)
     expect(pastTheEnd.status).toBe(416)
@@ -161,16 +196,16 @@ describe('the media file route, with the bucket configured', () => {
   })
 
   it('refuses a name Payload refuses, without asking the bucket', async () => {
-    const response = await get(route, '..')
+    const response = await request(route, '..')
 
     expect(response.status).toBe(400)
-    expect(asked).toEqual([])
+    expect(sent).toEqual([])
   })
 
   it('lets any other error from the bucket through', async () => {
     stored.set('photo.webp', 403)
 
-    await expect(get(route, 'photo.webp')).rejects.toThrow('R2 answered 403')
+    await expect(request(route, 'photo.webp')).rejects.toThrow('R2 answered 403')
   })
 })
 
@@ -178,9 +213,9 @@ describe('the media file route, in a local run', () => {
   it('leaves files on disk to Payload', async () => {
     const route = await loadRoute({ R2_BUCKET: '', USE_REMOTE_STORAGE: '' })
 
-    const response = await get(route, 'photo.webp')
+    const response = await request(route, 'photo.webp')
 
     expect(await response.text()).toBe('from Payload')
-    expect(asked).toEqual([])
+    expect(sent).toEqual([])
   })
 })
