@@ -59,6 +59,28 @@ test.describe('Who is signed in', () => {
     expect(me.length).toBeGreaterThan(0)
   })
 
+  test('a signed-in visitor sees /account and is sent there from the sign-in pages', async ({
+    page,
+  }) => {
+    const login = await page.request.post(`${BASE_URL}/api/users/login`, {
+      data: { email, password },
+    })
+    expect(login.ok()).toBe(true)
+
+    await page.goto(`${BASE_URL}/account`)
+    await expect(page.getByRole('heading', { name: 'Account settings' })).toBeVisible()
+
+    for (const path of ['/login', '/create-account']) {
+      await page.goto(`${BASE_URL}${path}`)
+      await expect(page).toHaveURL(/\/account\?warning=/)
+    }
+  })
+
+  test('a signed-out visitor is sent from /account to /login', async ({ page }) => {
+    await page.goto(`${BASE_URL}/account`)
+    await expect(page).toHaveURL(/\/login\?warning=/)
+  })
+
   test('login sets the signed-in cookie beside the token, logout expires it', async ({
     request,
   }) => {

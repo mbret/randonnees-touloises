@@ -4,16 +4,12 @@ import { SEO_NOINDEX } from '@/seo/constants'
 import { Button } from '@/components/ui/button'
 import { servedAt } from '@/seo/servedAt'
 import Link from 'next/link'
-import { headers as getHeaders } from 'next/headers.js'
-import configPromise from '@payload-config'
-import { getPayload } from 'payload'
 import { redirect } from 'next/navigation'
 import { AccountForm } from '@/components/auth/AccountForm'
+import { getSignedInUser } from '@/utilities/getSignedInUser'
 
 export default async function AccountPage() {
-  const headers = await getHeaders()
-  const payload = await getPayload({ config: configPromise })
-  const { user } = await payload.auth({ headers })
+  const user = await getSignedInUser()
 
   if (!user) {
     redirect(
