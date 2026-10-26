@@ -83,8 +83,8 @@ const wantsRemoteStorage =
 
 /**
  * Also require a bucket name: a deploy that reaches production before the
- * bucket variables are set should fall back to disk — media 404s, the same as
- * an empty bucket — rather than have every request fail inside an S3 client
+ * bucket variables are set should fall back to disk (media 404s, the same as
+ * an empty bucket) rather than have every request fail inside an S3 client
  * that has nothing to talk to.
  */
 const useRemoteStorage = wantsRemoteStorage && Boolean(process.env.R2_BUCKET)
