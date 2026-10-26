@@ -5,8 +5,8 @@ import { APIError } from 'payload'
 import { sanitizeFilename } from 'payload/shared'
 
 import { Media } from '@/collections/Media'
-import { MEDIA_BUCKET, mediaBucketConfig, useRemoteStorage } from '@/utilities/mediaBucket'
 import { withMediaCacheControl } from '@/utilities/mediaCacheTag'
+import { mediaStorage } from '@/utilities/mediaStorage'
 
 /**
  * The one REST path whose answer depends on how it was asked for.
@@ -25,13 +25,12 @@ const payloadOPTIONS = REST_OPTIONS(config)
  * Files are read from the bucket here rather than through Payload, whose handler
  * wakes Neon twice over: starting Payload opens a database connection, and the
  * storage adapter then queries the media table for the file's key. That key is
- * the filename: only client uploads, which are not enabled, store one of their
- * own (`_objectKey`).
+ * always the filename, since `mediaStorage` enables no client uploads.
  *
  * Payload still answers local runs, which keep uploads on disk, and whatever the
  * bucket cannot. A conditional request gets the whole file, which HTTP allows.
  */
-const bucket = useRemoteStorage ? new S3Client(mediaBucketConfig) : null
+const bucket = mediaStorage.enabled ? new S3Client(mediaStorage.config) : null
 
 /** Payload's policy for XML-family uploads, so an SVG opened on its own runs no script. */
 const XML_CONTENT_SECURITY_POLICY = "script-src 'none'; frame-src 'none'; object-src 'none'"
@@ -49,7 +48,7 @@ const fromBucket = async (request: Request, filename: string): Promise<Response 
   try {
     const object = await bucket.send(
       new GetObjectCommand({
-        Bucket: MEDIA_BUCKET,
+        Bucket: mediaStorage.bucket,
         Key: sanitizeFilename(filename),
         Range: request.headers.get('Range') ?? undefined,
       }),

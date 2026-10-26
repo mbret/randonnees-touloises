@@ -22,7 +22,7 @@ import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import { isCronRequest } from './utilities/isCronRequest'
-import { MEDIA_BUCKET, mediaBucketConfig, useRemoteStorage } from './utilities/mediaBucket'
+import { mediaStorage } from './utilities/mediaStorage'
 import { GlobalPages } from './collections/GlobalPages/config'
 import { Events } from './collections/Events'
 import { General } from './cms/globals/general/config'
@@ -190,12 +190,10 @@ export default buildConfig({
     // the environment; `enabled: false` leaves the config untouched, which is
     // what makes Payload fall back to disk storage.
     s3Storage({
-      bucket: MEDIA_BUCKET,
+      ...mediaStorage,
       collections: {
         media: true,
       },
-      config: mediaBucketConfig,
-      enabled: useRemoteStorage,
     }),
   ],
   secret: process.env.PAYLOAD_SECRET,
